@@ -1,0 +1,107 @@
+/**
+ * Auto-generated Supabase database types.
+ *
+ * To regenerate, run:
+ * ```bash
+ * npx supabase gen types typescript --project-id <project-id> > src/lib/supabase/database.types.ts
+ * ```
+ *
+ * This placeholder provides the minimum structure needed for type-safe
+ * Supabase client instantiation. Replace with generated types once
+ * the Supabase project schema is finalized.
+ */
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string;
+          display_name: string | null;
+          avatar_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      assessments: {
+        Row: {
+          id: string;
+          user_id: string;
+          transport_input: Record<string, unknown>;
+          diet_input: Record<string, unknown>;
+          energy_input: Record<string, unknown>;
+          shopping_input: Record<string, unknown>;
+          transport_kg: number;
+          diet_kg: number;
+          energy_kg: number;
+          shopping_kg: number;
+          total_kg: number;
+          compared_to_average: number;
+          percentile: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          transport_input: Record<string, unknown>;
+          diet_input: Record<string, unknown>;
+          energy_input: Record<string, unknown>;
+          shopping_input: Record<string, unknown>;
+          transport_kg: number;
+          diet_kg: number;
+          energy_kg: number;
+          shopping_kg: number;
+          total_kg: number;
+          compared_to_average: number;
+          percentile: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          transport_input?: Record<string, unknown>;
+          diet_input?: Record<string, unknown>;
+          energy_input?: Record<string, unknown>;
+          shopping_input?: Record<string, unknown>;
+          transport_kg?: number;
+          diet_kg?: number;
+          energy_kg?: number;
+          shopping_kg?: number;
+          total_kg?: number;
+          compared_to_average?: number;
+          percentile?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'assessments_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
+}
