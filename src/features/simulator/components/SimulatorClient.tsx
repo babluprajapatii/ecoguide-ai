@@ -15,6 +15,8 @@ import dynamic from 'next/dynamic';
 import { useSimulator } from '@/features/simulator/hooks/useSimulator';
 import type { FootprintBreakdown, DietType, FuelType, ShoppingLevel } from '@/features/assessment/types/assessment.types';
 import { SCENARIO_PRESETS } from '@/features/simulator/types/simulator.types';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useBadges } from '@/features/gamification/hooks/useBadges';
 
 // ---------------------------------------------------------------------------
 // Lazy-loaded chart component (keeps Recharts out of initial bundle)
@@ -182,6 +184,15 @@ export function SimulatorClient({ baseline }: SimulatorClientProps) {
   );
 
   const { setDietType, setCarFuelType, setShoppingLevel, setCarKmPerWeek, encodeToUrl } = sim;
+  const { user } = useAuth();
+  const { checkUnlocks } = useBadges(user?.id ?? null);
+
+  // Trigger switch_vegan badge when dietType becomes vegan in simulator
+  React.useEffect(() => {
+    if (sim.adjustments.dietType === 'vegan') {
+      void checkUnlocks('switch_vegan');
+    }
+  }, [sim.adjustments.dietType, checkUnlocks]);
 
   const handleDietChange = useCallback(
     (v: string) => setDietType(v ? (v as DietType) : null),
@@ -211,7 +222,9 @@ export function SimulatorClient({ baseline }: SimulatorClientProps) {
       // Fallback — select the URL for manual copy
       window.prompt('Copy this URL:', url);
     }
-  }, [encodeToUrl]);
+    // Award points / check unlock for sharing scenario
+    void checkUnlocks('share_scenario');
+  }, [encodeToUrl, checkUnlocks]);
 
   // Savings color
   const savingsColorClass = sim.totalSavings > 0

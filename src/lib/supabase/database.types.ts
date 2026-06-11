@@ -98,6 +98,68 @@ export interface Database {
           },
         ];
       };
+      user_points: {
+        Row: {
+          id: string;
+          user_id: string;
+          action: string;
+          points: number;
+          awarded_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          action: string;
+          points: number;
+          awarded_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          action?: string;
+          points?: number;
+          awarded_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_points_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      user_badges: {
+        Row: {
+          id: string;
+          user_id: string;
+          badge_slug: string;
+          earned_at: string;
+          points_awarded: number;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          badge_slug: string;
+          earned_at?: string;
+          points_awarded: number;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          badge_slug?: string;
+          earned_at?: string;
+          points_awarded?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_badges_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

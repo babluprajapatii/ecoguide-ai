@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback, type FormEvent, type Keyboard
 import DOMPurify from 'isomorphic-dompurify';
 import { useCoach } from '@/features/coach/hooks/useCoach';
 import { SuggestedPrompts } from './SuggestedPrompts';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useBadges } from '@/features/gamification/hooks/useBadges';
 
 interface CoachInterfaceProps {
   /** User's highest footprint category from assessment database */
@@ -70,6 +72,16 @@ function parseMarkdownToHtml(text: string): string {
 export function CoachInterface({ highestCategory = 'default' }: CoachInterfaceProps) {
   const { messages, isStreaming, error, sendMessage, clearChat } = useCoach();
   const [input, setInput] = useState('');
+  const { user } = useAuth();
+  const { checkUnlocks } = useBadges(user?.id ?? null);
+
+  // Trigger coach_10_messages badge when user sends 10 messages
+  useEffect(() => {
+    const userMsgCount = messages.filter((m) => m.role === 'user').length;
+    if (userMsgCount >= 10) {
+      void checkUnlocks('coach_10_messages');
+    }
+  }, [messages, checkUnlocks]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
