@@ -40,6 +40,10 @@ export interface AuthContextValue {
   signOut: () => Promise<void>;
   /** Create a new account with email, password, and display name. */
   signUp: (credentials: SignUpCredentials) => Promise<void>;
+  /** Send a password recovery email. */
+  resetPasswordForEmail: (email: string) => Promise<void>;
+  /** Update the current user's password. */
+  updatePassword: (password: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -53,10 +57,9 @@ interface AuthProviderProps {
  *
  * Wraps children with an `AuthContext.Provider` that exposes the
  * current user, session, loading state, and auth actions (signIn,
- * signOut, signUp). Listens for Supabase auth state changes and
- * updates the context reactively.
- *
- * @param props.children - React nodes to render within the auth context.
+ * signOut, signUp, resetPasswordForEmail, updatePassword). Listens
+ * for Supabase auth state changes, updates state, and synchronizes
+ * cookies to the Next.js middleware using route handlers.
  */
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
@@ -84,13 +87,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     void initSession();
 
-    // Subscribe to auth state changes
+    // Subscribe to auth state changes and sync cookies
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setError(null);
+
+      // Explicitly synchronize cookie tokens with server middleware
+      if (
+        event === 'SIGNED_IN' ||
+        event === 'TOKEN_REFRESHED' ||
+        event === 'SIGNED_OUT'
+      ) {
+        try {
+          await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ event, session: newSession }),
+          });
+        } catch (err) {
+          console.error('[AuthProvider] Failed to sync session cookie:', err);
+        }
+      }
     });
 
     return () => {
@@ -111,6 +133,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
       if (authError) {
         setError(authError);
+        throw authError;
       }
     },
     [supabase],
@@ -124,6 +147,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { error: authError } = await supabase.auth.signOut();
     if (authError) {
       setError(authError);
+      throw authError;
     }
   }, [supabase]);
 
@@ -139,10 +163,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
         password,
         options: {
           data: { display_name: displayName },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       if (authError) {
         setError(authError);
+        throw authError;
+      }
+    },
+    [supabase],
+  );
+
+  /**
+   * Sends a password reset recovery email to the specified user.
+   */
+  const resetPasswordForEmail = useCallback(
+    async (email: string) => {
+      setError(null);
+      const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (authError) {
+        setError(authError);
+        throw authError;
+      }
+    },
+    [supabase],
+  );
+
+  /**
+   * Updates the current user's password.
+   */
+  const updatePassword = useCallback(
+    async (password: string) => {
+      setError(null);
+      const { error: authError } = await supabase.auth.updateUser({
+        password,
+      });
+      if (authError) {
+        setError(authError);
+        throw authError;
       }
     },
     [supabase],
@@ -157,8 +217,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signIn,
       signOut,
       signUp,
+      resetPasswordForEmail,
+      updatePassword,
     }),
-    [user, session, loading, error, signIn, signOut, signUp],
+    [
+      user,
+      session,
+      loading,
+      error,
+      signIn,
+      signOut,
+      signUp,
+      resetPasswordForEmail,
+      updatePassword,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
