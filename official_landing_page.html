@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoGuide AI — Optimize Your Home, Lower Utility Bills</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
+      },
+      colors: {
+        eco: {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
+          950: '#022c22',
+        },
+        dark: {
+          900: '#0a0f0d',
+          800: '#0f1a15',
+          700: '#15231d',
+          600: '#1a2e25',
+          500: '#1f392d',
+        }
+      }
+    }
+  }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; background: #0a0f0d; color: #e2e8f0; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0f0d; }
+  ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 3px; }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-10px) rotate(1deg); }
+    66% { transform: translateY(5px) rotate(-1deg); }
+  }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.15); }
+    50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.3); }
+  }
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes typing-dot {
+    0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-4px); }
+  }
+  @keyframes orbit {
+    from { transform: rotate(0deg) translateX(140px) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(140px) rotate(-360deg); }
+  }
+  @keyframes count-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  @keyframes leaf-fall {
+    0% { transform: translateY(-10%) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes slideDown {
+    from { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
+    to { opacity: 1; max-height: 300px; padding-top: 16px; padding-bottom: 16px; }
+  }
+  @keyframes ripple {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  .animate-on-scroll { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+  .animate-on-scroll.visible { opacity: 1; transform: translateY(0); }
+  .animate-on-scroll.from-left { transform: translateX(-40px); }
+  .animate-on-scroll.from-left.visible { transform: translateX(0); }
+  .animate-on-scroll.from-right { transform: translateX(40px); }
+  .animate-on-scroll.from-right.visible { transform: translateX(0); }
+
+  .glass-card {
+    background: rgba(16, 185, 129, 0.04);
+    border: 1px solid rgba(16, 185, 129, 0.12);
+    backdrop-filter: blur(16px);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-card:hover {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.25);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(16, 185, 129, 0.08);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #10b981, #059669);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s ease;
+  }
+  .btn-primary:hover::before { left: 100%; }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.35);
+  }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-outline {
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #10b981;
+    transition: all 0.3s ease;
+  }
+  .btn-outline:hover {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
+    transform: translateY(-2px);
+  }
+
+  .stat-card {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+  .stat-card:nth-child(2) { animation-delay: 1s; }
+  .stat-card:nth-child(3) { animation-delay: 2s; }
+
+  .hero-gradient {
+    background: radial-gradient(ellipse at 30% 20%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(5, 150, 105, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(52, 211, 153, 0.04) 0%, transparent 70%);
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #34d399, #10b981, #6ee7b7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .leaf-particle {
+    position: absolute;
+    pointer-events: none;
+    animation: leaf-fall linear infinite;
+    opacity: 0;
+  }
+
+  .chat-bubble { animation: fadeInUp 0.5s ease forwards; }
+  .chat-bubble:nth-child(2) { animation-delay: 0.8s; opacity: 0; }
+  .chat-bubble:nth-child(3) { animation-delay: 1.6s; opacity: 0; }
+
+  .typing-indicator span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    margin: 0 2px;
+  }
+  .typing-indicator span:nth-child(1) { animation: typing-dot 1.4s infinite 0s; }
+  .typing-indicator span:nth-child(2) { animation: typing-dot 1.4s infinite 0.2s; }
+  .typing-indicator span:nth-child(3) { animation: typing-dot 1.4s infinite 0.4s; }
+
+  .progress-ring { transition: stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(16, 185, 129, 0.15);
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    transition: all 0.2s ease;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+  }
+
+  .faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, padding 0.3s ease;
+    opacity: 0;
+  }
+  .faq-item.open .faq-answer {
+    max-height: 300px;
+    opacity: 1;
+  }
+  .faq-item.open .faq-chevron {
+    transform: rotate(180deg);
+  }
+  .faq-chevron { transition: transform 0.3s ease; }
+
+  .orbit-dot {
+    animation: orbit linear infinite;
+  }
+
+  .nav-link {
+    position: relative;
+    transition: color 0.3s ease;
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0;
+    width: 0; height: 2px;
+    background: #10b981;
+    transition: width 0.3s ease;
+  }
+  .nav-link:hover::after { width: 100%; }
+  .nav-link:hover { color: #10b981; }
+
+  .shimmer-text {
+    background: linear-gradient(90deg, #e2e8f0 0%, #10b981 50%, #e2e8f0 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s linear infinite;
+  }
+
+  .mobile-menu {
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .mobile-menu.open {
+    transform: translateX(0);
+  }
+
+  .toast {
+    animation: fadeInUp 0.4s ease forwards;
+  }
+</style>
+</head>
+<body class="antialiased overflow-x-hidden">
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed top-24 right-4 z-[100] flex flex-col gap-3"></div>
+
+<!-- Floating Leaves Background -->
+<div id="leaves-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+<!-- Navigation -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-500">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex items-center justify-between h-16">
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2 group">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-eco-400 to-eco-600 flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+          <iconify-icon icon="lucide:leaf" class="text-white text-base"></iconify-icon>
+        </div>
+        <span class="font-serif text-lg font-semibold tracking-tight text-white">EcoGuide<span class="text-eco-400">AI</span></span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#dashboard" class="nav-link text-sm text-stone-400">Dashboard</a>
+        <a href="#features" class="nav-link text-sm text-stone-400">Features</a>
+        <a href="#how-it-works" class="nav-link text-sm text-stone-400">How It Works</a>
+        <a href="#analytics" class="nav-link text-sm text-stone-400">Analytics</a>
+        <a href="#community" class="nav-link text-sm text-stone-400">Community</a>
+      </div>
+
+      <!-- CTA + Mobile Toggle -->
+      <div class="flex items-center gap-4">
+        <button onclick="scrollToSection('cta')" class="hidden md:inline-flex btn-primary text-xs font-semibold text-white px-5 py-2.5 rounded-full tracking-wide uppercase">
+          Meet My AI Coach
+        </button>
+        <button id="mobile-toggle" class="md:hidden text-stone-400 hover:text-eco-400 transition-colors" onclick="toggleMobileMenu()">
+          <iconify-icon icon="lucide:menu" width="24"></iconify-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div id="mobile-menu" class="mobile-menu fixed inset-y-0 right-0 w-72 z-[60] bg-dark-800/95 backdrop-blur-xl border-l border-eco-900/50">
+  <div class="flex items-center justify-between p-6">
+    <span class="font-serif text-lg font-semibold text-white">Menu</span>
+    <button onclick="toggleMobileMenu()" class="text-stone-400 hover:text-eco-400 transition-colors">
+      <iconify-icon icon="lucide:x" width="24"></iconify-icon>
+    </button>
+  </div>
+  <div class="flex flex-col gap-1 px-4">
+    <a href="#dashboard" onclick="toggleMobileMenu()" class="px-4 py-3 rounded-lg text-stone-300 hover:bg-eco-900/30 hover:text-eco-400 transition-all">Dashboard</a>
+    <a href="#features" onclick="toggleMobileMenu()" class="px-4 py-3 rounded-lg text-stone-300 hover:bg-eco-900/30 hover:text-eco-400 transition-all">Features</a>
+    <a href="#how-it-works" onclick="toggleMobileMenu()" class="px-4 py-3 rounded-lg text-stone-300 hover:bg-eco-900/30 hover:text-eco-400 transition-all">How It Works</a>
+    <a href="#analytics" onclick="toggleMobileMenu()" class="px-4 py-3 rounded-lg text-stone-300 hover:bg-eco-900/30 hover:text-eco-400 transition-all">Analytics</a>
+    <a href="#community" onclick="toggleMobileMenu()" class="px-4 py-3 rounded-lg text-stone-300 hover:bg-eco-900/30 hover:text-eco-400 transition-all">Community</a>
+    <div class="mt-4 px-4">
+      <button onclick="toggleMobileMenu(); scrollToSection('cta')" class="btn-primary w-full text-sm font-semibold text-white px-5 py-3 rounded-full tracking-wide uppercase">Meet My AI Coach</button>
+    </div>
+  </div>
+</div>
+<div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-[55] hidden" onclick="toggleMobileMenu()"></div>
+
+<!-- ==================== HERO SECTION ==================== -->
+<section class="relative min-h-screen flex items-center justify-center hero-gradient grid-bg overflow-hidden">
+  <!-- Orbital Decoration -->
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] pointer-events-none opacity-20">
+    <div class="absolute inset-0 rounded-full border border-eco-500/20"></div>
+    <div class="absolute inset-8 rounded-full border border-eco-500/15"></div>
+    <div class="absolute inset-16 rounded-full border border-eco-500/10"></div>
+    <div class="orbit-dot absolute w-2 h-2 rounded-full bg-eco-400" style="animation-duration: 12s;"></div>
+    <div class="orbit-dot absolute w-1.5 h-1.5 rounded-full bg-eco-300" style="animation-duration: 18s; animation-direction: reverse;"></div>
+  </div>
+
+  <!-- Glow Orbs -->
+  <div class="absolute top-20 left-20 w-72 h-72 bg-eco-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+  <div class="absolute bottom-20 right-20 w-96 h-96 bg-eco-600/8 rounded-full blur-[120px] pointer-events-none"></div>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-6 text-center pt-24 pb-20">
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-eco-500/20 bg-eco-500/5 mb-8 animate-on-scroll">
+      <span class="w-2 h-2 rounded-full bg-eco-400 animate-pulse"></span>
+      <span class="text-xs font-medium text-eco-300 tracking-wider uppercase">AI-Powered Sustainability</span>
+    </div>
+
+    <!-- Headline -->
+    <h1 class="font-serif text-4xl md:text-6xl lg:text-7xl font-400 tracking-tight leading-[1.1] mb-6 animate-on-scroll" style="transition-delay: 0.1s">
+      Optimize Your Home.<br>
+      <span class="text-gradient">Lower Utility Bills.</span><br>
+      Reduce Your Footprint.
+    </h1>
+
+    <!-- Subtitle -->
+    <p class="max-w-2xl mx-auto text-stone-400 text-base md:text-lg font-light leading-relaxed mb-10 animate-on-scroll" style="transition-delay: 0.2s">
+      The sustainable living platform that combines AI guidance, carbon footprint tracking, and smart home integration to help you live greener — effortlessly.
+    </p>
+
+    <!-- Email Form -->
+    <div class="max-w-lg mx-auto animate-on-scroll" style="transition-delay: 0.3s">
+      <form id="hero-form" class="flex flex-col sm:flex-row gap-3" onsubmit="handleFormSubmit(event, 'hero')">
+        <div class="flex-1 relative">
+          <iconify-icon icon="lucide:mail" class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500"></iconify-icon>
+          <input type="email" required placeholder="Enter your email" class="w-full pl-11 pr-4 py-3.5 rounded-full bg-dark-700/80 border border-eco-500/15 text-white placeholder-stone-500 text-sm focus:outline-none focus:border-eco-500/40 focus:ring-2 focus:ring-eco-500/10 transition-all">
+        </div>
+        <button type="submit" class="btn-primary text-sm font-semibold text-white px-7 py-3.5 rounded-full tracking-wide whitespace-nowrap flex items-center gap-2">
+          <span>Meet My AI Coach</span>
+          <iconify-icon icon="lucide:arrow-right" width="16"></iconify-icon>
+        </button>
+      </form>
+      <p class="text-stone-600 text-xs mt-3">Free to start · No credit card required · Cancel anytime</p>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="mt-16 animate-bounce">
+      <iconify-icon icon="lucide:chevrons-down" class="text-eco-500/40 text-2xl"></iconify-icon>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== STATS / DASHBOARD SECTION ==================== -->
+<section id="dashboard" class="relative py-20 md:py-32 overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900"></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-6">
+    <!-- Section Header -->
+    <div class="text-center mb-16 animate-on-scroll">
+      <span class="text-xs font-semibold text-eco-400 tracking-[0.2em] uppercase">Live Dashboard</span>
+      <h2 class="font-serif text-3xl md:text-5xl tracking-tight mt-3 text-white">Your Impact at a <span class="text-gradient">Glance</span></h2>
+      <p class="text-stone-400 mt-4 max-w-xl mx-auto font-light">Real-time metrics that track your carbon reduction, clean energy usage, and community standing.</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Carbon Footprint -->
+      <div class="stat-card glass-card rounded-2xl p-8 animate-on-scroll" style="transition-delay: 0.1s">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-12 h-12 rounded-xl bg-eco-500/10 flex items-center justify-center">
+            <iconify-icon icon="lucide:footprints" class="text-eco-400 text-xl"></iconify-icon>
+          </div>
+          <span class="inline-flex items-center gap-1 text-xs font-semibold text-eco-400 bg-eco-500/10 px-2.5 py-1 rounded-full">
+            <iconify-icon icon="lucide:trending-down" width="12"></iconify-icon>
+            12%
+          </span>
+        </div>
+        <p class="text-stone-500 text-xs font-medium tracking-wider uppercase mb-1">Carbon Footprint</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-4xl font-serif font-semibold text-white counter" data-target="2.4" data-decimals="1">0</span>
+          <span class="text-stone-500 text-sm">tons CO₂/mo</span>
+        </div>
+        <!-- Mini Chart -->
+        <div class="mt-6 flex items-end gap-1 h-12">
+          <div class="flex-1 bg-eco-500/20 rounded-sm" style="height:60%"></div>
+          <div class="flex-1 bg-eco-500/20 rounded-sm" style="height:80%"></div>
+          <div class="flex-1 bg-eco-500/20 rounded-sm" style="height:70%"></div>
+          <div class="flex-1 bg-eco-500/20 rounded-sm" style="height:55%"></div>
+          <div class="flex-1 bg-eco-500/20 rounded-sm" style="height:50%"></div>
+          <div class="flex-1 bg-eco-500/20 rounded-sm" style="height:45%"></div>
+          <div class="flex-1 bg-eco-500/30 rounded-sm" style="height:40%"></div>
+          <div class="flex-1 bg-eco-500/40 rounded-sm" style="height:35%"></div>
+          <div class="flex-1 bg-eco-400/60 rounded-sm" style="height:30%"></div>
+          <div class="flex-1 bg-eco-400 rounded-sm" style="height:25%"></div>
+        </div>
+        <p class="text-eco-400/60 text-xs mt-2">Monthly decline trend ↓</p>
+      </div>
+
+      <!-- Clean Energy -->
+      <div class="stat-card glass-card rounded-2xl p-8 animate-on-scroll" style="transition-delay: 0.2s">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+            <iconify-icon icon="lucide:sun" class="text-amber-400 text-xl"></iconify-icon>
+          </div>
+          <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full">
+            <iconify-icon icon="lucide:trending-up" width="12"></iconify-icon>
+            8%
+          </span>
+        </div>
+        <p class="text-stone-500 text-xs font-medium tracking-wider uppercase mb-1">Clean Energy Share</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-4xl font-serif font-semibold text-white counter" data-target="84.2" data-decimals="1">0</span>
+          <span class="text-stone-500 text-sm">%</span>
+        </div>
+        <!-- Circular Progress -->
+        <div class="mt-6 flex justify-center">
+          <svg width="80" height="80" viewBox="0 0 80 80" class="transform -rotate-90">
+            <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(16,185,129,0.1)" stroke-width="6"/>
+            <circle cx="40" cy="40" r="34" fill="none" stroke="url(#ecoGrad)" stroke-width="6" stroke-linecap="round"
+              stroke-dasharray="213.6" stroke-dashoffset="213.6" class="progress-ring" data-target="33.7"/>
+            <defs>
+              <linearGradient id="ecoGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#10b981"/>
+                <stop offset="100%" style="stop-color:#fbbf24"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <p class="text-amber-400/60 text-xs mt-2 text-center">Weekly growth ↑</p>
+      </div>
+
+      <!-- Offset Badges -->
+      <div class="stat-card glass-card rounded-2xl p-8 animate-on-scroll" style="transition-delay: 0.3s">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
+            <iconify-icon icon="lucide:award" class="text-purple-400 text-xl"></iconify-icon>
+          </div>
+          <span class="inline-flex items-center gap-1 text-xs font-semibold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-full">
+            <iconify-icon icon="lucide:trophy" width="12"></iconify-icon>
+            Top 5%
+          </span>
+        </div>
+        <p class="text-stone-500 text-xs font-medium tracking-wider uppercase mb-1">Offset Badges</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-4xl font-serif font-semibold text-white counter" data-target="12" data-decimals="0">0</span>
+          <span class="text-stone-500 text-sm">badges earned</span>
+        </div>
+        <!-- Badge Grid -->
+        <div class="mt-6 grid grid-cols-4 gap-2">
+          <div class="w-full aspect-square rounded-lg bg-eco-500/10 flex items-center justify-center text-eco-400"><iconify-icon icon="lucide:tree-pine" width="16"></iconify-icon></div>
+          <div class="w-full aspect-square rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400"><iconify-icon icon="lucide:sun" width="16"></iconify-icon></div>
+          <div class="w-full aspect-square rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400"><iconify-icon icon="lucide:droplets" width="16"></iconify-icon></div>
+          <div class="w-full aspect-square rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400"><iconify-icon icon="lucide:zap" width="16"></iconify-icon></div>
+          <div class="w-full aspect-square rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-400"><iconify-icon icon="lucide:heart" width="16"></iconify-icon></div>
+          <div class="w-full aspect-square rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400"><iconify-icon icon="lucide:wind" width="16"></iconify-icon></div>
+          <div class="w-full aspect-square rounded-lg bg-eco-500/10 flex items-center justify-center text-eco-400"><iconify-icon icon="lucide:leaf" width="16"></iconify-icon></div>
+          <div class="w-full aspect-square rounded-lg bg-dark-600 flex items-center justify-center text-stone-600"><iconify-icon icon="lucide:plus" width="16"></iconify-icon></div>
+        </div>
+        <p class="text-purple-400/60 text-xs mt-2">Community ranking ↑</p>
+      </div>
+    </div>
+
+    <!-- Partner Logos -->
+    <div class="mt-20 animate-on-scroll">
+      <p class="text-center text-stone-600 text-xs font-medium tracking-[0.2em] uppercase mb-8">Trusted by Smart Grid Partners</p>
+      <div class="flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-40">
+        <span class="text-stone-400 font-semibold text-sm tracking-wider">SMARTGRID</span>
+        <span class="text-stone-400 font-semibold text-sm tracking-wider">NEST</span>
+        <span class="text-stone-400 font-semibold text-sm tracking-wider">TESLA</span>
+        <span class="text-stone-400 font-semibold text-sm tracking-wider">ENPHASE</span>
+        <span class="text-stone-400 font-semibold text-sm tracking-wider">SOLAREDGE</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FEATURES SECTION ==================== -->
+<section id="features" class="relative py-20 md:py-32 overflow-hidden">
+  <div class="absolute inset-0 bg-dark-900"></div>
+  <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-eco-500/5 rounded-full blur-[150px] pointer-events-none"></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 animate-on-scroll">
+      <span class="text-xs font-semibold text-eco-400 tracking-[0.2em] uppercase">Platform Capabilities</span>
+      <h2 class="font-serif text-3xl md:text-5xl tracking-tight mt-3 text-white">Modules That Power Your <span class="text-gradient">Net-Zero Life</span></h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Feature 1 -->
+      <div class="glass-card rounded-2xl p-8 group animate-on-scroll" style="transition-delay: 0.1s">
+        <div class="flex items-start gap-5">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-eco-500/20 to-eco-600/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+            <iconify-icon icon="lucide:bot" class="text-eco-400 text-2xl"></iconify-icon>
+          </div>
+          <div>
+            <h3 class="text-lg font-serif font-semibold text-white mb-2">Real-Time AI Coach</h3>
+            <p class="text-stone-400 font-light text-sm leading-relaxed">24/7 personalized sustainability guidance powered by GPT. Get instant recommendations on energy usage, waste reduction, and green alternatives tailored to your lifestyle.</p>
+            <a href="#" class="inline-flex items-center gap-1 text-eco-400 text-xs font-medium mt-4 hover:gap-2 transition-all">
+              Learn more <iconify-icon icon="lucide:arrow-right" width="12"></iconify-icon>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="glass-card rounded-2xl p-8 group animate-on-scroll" style="transition-delay: 0.15s">
+        <div class="flex items-start gap-5">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+            <iconify-icon icon="lucide:clipboard-check" class="text-amber-400 text-2xl"></iconify-icon>
+          </div>
+          <div>
+            <h3 class="text-lg font-serif font-semibold text-white mb-2">Smart Assessments</h3>
+            <p class="text-stone-400 font-light text-sm leading-relaxed">Comprehensive home energy audits using AI vision and utility data. Identify inefficiencies and get prioritized action plans with ROI projections.</p>
+            <a href="#" class="inline-flex items-center gap-1 text-amber-400 text-xs font-medium mt-4 hover:gap-2 transition-all">
+              Learn more <iconify-icon icon="lucide:arrow-right" width="12"></iconify-icon>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="glass-card rounded-2xl p-8 group animate-on-scroll" style="transition-delay: 0.2s">
+        <div class="flex items-start gap-5">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+            <iconify-icon icon="lucide:trophy" class="text-purple-400 text-2xl"></iconify-icon>
+          </div>
+          <div>
+            <h3 class="text-lg font-serif font-semibold text-white mb-2">Eco Leaderboards</h3>
+            <p class="text-stone-400 font-light text-sm leading-relaxed">Compete in sustainability leagues with neighbors and friends. Earn badges, unlock achievements, and climb community rankings through real impact.</p>
+            <a href="#" class="inline-flex items-center gap-1 text-purple-400 text-xs font-medium mt-4 hover:gap-2 transition-all">
+              Learn more <iconify-icon icon="lucide:arrow-right" width="12"></iconify-icon>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="glass-card rounded-2xl p-8 group animate-on-scroll" style="transition-delay: 0.25s">
+        <div class="flex items-start gap-5">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+            <iconify-icon icon="lucide:plug-zap" class="text-cyan-400 text-2xl"></iconify-icon>
+          </div>
+          <div>
+            <h3 class="text-lg font-serif font-semibold text-white mb-2">Energy Integrations</h3>
+            <p class="text-stone-400 font-light text-sm leading-relaxed">Connect with Nest, Tesla Powerwall, smart plugs, and utility APIs. Automatic data sync means zero manual entry and real-time optimization.</p>
+            <a href="#" class="inline-flex items-center gap-1 text-cyan-400 text-xs font-medium mt-4 hover:gap-2 transition-all">
+              Learn more <iconify-icon icon="lucide:arrow-right" width="12"></iconify-icon>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== HOW IT WORKS SECTION ==================== -->
+<section id="how-it-works" class="relative py-20 md:py-32 overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16 animate-on-scroll">
+      <span class="text-xs font-semibold text-eco-400 tracking-[0.2em] uppercase">How EcoGuide AI Works</span>
+      <h2 class="font-serif text-3xl md:text-5xl tracking-tight mt-3 text-white">Three Simple Phases to <span class="text-gradient">Net Zero</span></h2>
+      <p class="text-stone-400 mt-4 max-w-xl mx-auto font-light">From assessment to real-time optimization — your journey to sustainable living starts here.</p>
+    </div>
+
+    <!-- Timeline -->
+    <div class="relative">
+      <!-- Connection Line -->
+      <div class="hidden md:block absolute top-24 left-0 right-0 h-px bg-gradient-to-r from-transparent via-eco-500/30 to-transparent"></div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+        <!-- Step 1 -->
+        <div class="text-center animate-on-scroll" style="transition-delay: 0.1s">
+          <div class="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-dark-700 border-2 border-eco-500/30 mb-6 mx-auto">
+            <span class="text-2xl font-serif font-semibold text-eco-400">01</span>
+            <div class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-eco-500 flex items-center justify-center">
+              <iconify-icon icon="lucide:search" class="text-white text-xs"></iconify-icon>
+            </div>
+          </div>
+          <h3 class="text-xl font-serif font-semibold text-white mb-3">Assess</h3>
+          <p class="text-stone-400 font-light text-sm leading-relaxed">Measure your carbon footprint by inputting home energy, transport, and diet data. Get an instant carbon benchmark in under 5 minutes.</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="text-center animate-on-scroll" style="transition-delay: 0.2s">
+          <div class="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-dark-700 border-2 border-amber-500/30 mb-6 mx-auto">
+            <span class="text-2xl font-serif font-semibold text-amber-400">02</span>
+            <div class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
+              <iconify-icon icon="lucide:cpu" class="text-white text-xs"></iconify-icon>
+            </div>
+          </div>
+          <h3 class="text-xl font-serif font-semibold text-white mb-3">Optimize</h3>
+          <p class="text-stone-400 font-light text-sm leading-relaxed">Our eco-model evaluates thousands of combinations to recommend the highest-impact, lowest-cost energy saving actions for your home.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="text-center animate-on-scroll" style="transition-delay: 0.3s">
+          <div class="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-dark-700 border-2 border-purple-500/30 mb-6 mx-auto">
+            <span class="text-2xl font-serif font-semibold text-purple-400">03</span>
+            <div class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
+              <iconify-icon icon="lucide:rocket" class="text-white text-xs"></iconify-icon>
+            </div>
+          </div>
+          <h3 class="text-xl font-serif font-semibold text-white mb-3">Improve</h3>
+          <p class="text-stone-400 font-light text-sm leading-relaxed">Unlock green achievements, track your progress, and compete in community leagues. Watch your carbon shrink and savings grow month over month.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== AI COACH SECTION ==================== -->
+<section id="ai-coach" class="relative py-20 md:py-32 overflow-hidden">
+  <div class="absolute inset-0 bg-dark-900"></div>
+  <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-eco-500/5 rounded-full blur-[150px] pointer-events-none"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <!-- Left: Text -->
+      <div class="animate-on-scroll from-left">
+        <span class="text-xs font-semibold text-eco-400 tracking-[0.2em] uppercase">AI Coach</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight mt-3 text-white leading-tight">
+          Personalized Carbon Coaching, <span class="text-gradient">Available 24/7</span>
+        </h2>
+        <p class="text-stone-400 mt-5 font-light leading-relaxed">
+          Your AI sustainability coach connects to utility APIs and smart appliances to deliver real-time, personalized energy-saving pathways. It learns your patterns and proactively suggests actions.
+        </p>
+        <div class="mt-8 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-eco-500/10 flex items-center justify-center shrink-0">
+              <iconify-icon icon="lucide:check" class="text-eco-400 text-sm"></iconify-icon>
+            </div>
+            <span class="text-stone-300 text-sm">Proactive peak-hour alerts & recommendations</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-eco-500/10 flex items-center justify-center shrink-0">
+              <iconify-icon icon="lucide:check" class="text-eco-400 text-sm"></iconify-icon>
+            </div>
+            <span class="text-stone-300 text-sm">Smart thermostat & appliance automation</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-eco-500/10 flex items-center justify-center shrink-0">
+              <iconify-icon icon="lucide:check" class="text-eco-400 text-sm"></iconify-icon>
+            </div>
+            <span class="text-stone-300 text-sm">Utility bill optimization & ROI tracking</span>
+          </div>
+        </div>
+        <button onclick="scrollToSection('cta')" class="btn-primary mt-8 text-sm font-semibold text-white px-7 py-3 rounded-full tracking-wide inline-flex items-center gap-2">
+          <iconify-icon icon="lucide:bot" width="16"></iconify-icon>
+          Meet My AI Coach
+        </button>
+      </div>
+
+      <!-- Right: Chat UI -->
+      <div class="animate-on-scroll from-right">
+        <div class="glass-card rounded-2xl overflow-hidden">
+          <!-- Chat Header -->
+          <div class="flex items-center gap-3 px-6 py-4 border-b border-eco-500/10">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-eco-400 to-eco-600 flex items-center justify-center">
+              <iconify-icon icon="lucide:bot" class="text-white text-sm"></iconify-icon>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-white">EcoGuide AI Coach</p>
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-eco-400 animate-pulse"></span>
+                <span class="text-xs text-eco-400">Online</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Messages -->
+          <div id="chat-messages" class="px-6 py-5 space-y-4 min-h-[300px]">
+            <!-- AI Message -->
+            <div class="chat-bubble flex gap-3">
+              <div class="w-7 h-7 rounded-full bg-eco-500/20 flex items-center justify-center shrink-0 mt-1">
+                <iconify-icon icon="lucide:bot" class="text-eco-400 text-xs"></iconify-icon>
+              </div>
+              <div class="bg-dark-600/80 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                <p class="text-sm text-stone-300 leading-relaxed">⚡ <strong class="text-eco-400">Peak Alert:</strong> Your area's electricity demand peaks between 6–8 PM tonight. I recommend pre-cooling your home now to save on your bill.</p>
+              </div>
+            </div>
+
+            <!-- AI Suggestion -->
+            <div class="chat-bubble flex gap-3">
+              <div class="w-7 h-7 rounded-full bg-eco-500/20 flex items-center justify-center shrink-0 mt-1">
+                <iconify-icon icon="lucide:bot" class="text-eco-400 text-xs"></iconify-icon>
+              </div>
+              <div class="bg-dark-600/80 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                <p class="text-sm text-stone-300 leading-relaxed">Set your thermostat to 72°F before 5 PM, then raise to 76°F during peak hours. Estimated savings: <strong class="text-amber-400">$3.20 tonight</strong> 🌿</p>
+              </div>
+            </div>
+
+            <!-- User Quick Reply -->
+            <div class="chat-bubble flex justify-end">
+              <div class="bg-eco-600/30 rounded-2xl rounded-tr-sm px-4 py-3 max-w-[75%]">
+                <p class="text-sm text-eco-200">Apply that setting please! 👍</p>
+              </div>
+            </div>
+
+            <!-- AI Confirmation -->
+            <div class="flex gap-3">
+              <div class="w-7 h-7 rounded-full bg-eco-500/20 flex items-center justify-center shrink-0 mt-1">
+                <iconify-icon icon="lucide:bot" class="text-eco-400 text-xs"></iconify-icon>
+              </div>
+              <div class="bg-dark-600/80 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                <p class="text-sm text-stone-300 leading-relaxed">✅ Done! Nest Thermostat schedule updated. I'll also shift your dishwasher to off-peak hours. You're on track to save <strong class="text-eco-400">$47 this month</strong>!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input -->
+          <div class="px-6 py-4 border-t border-eco-500/10">
+            <div class="flex items-center gap-3">
+              <input id="chat-input" type="text" placeholder="Ask your AI coach..." class="flex-1 bg-dark-700/80 border border-eco-500/15 rounded-full px-4 py-2.5 text-sm text-white placeholder-stone-500 focus:outline-none focus:border-eco-500/30 transition-all" onkeypress="if(event.key==='Enter')sendChatMessage()">
+              <button onclick="sendChatMessage()" class="w-10 h-10 rounded-full bg-eco-500 hover:bg-eco-600 flex items-center justify-center transition-colors shrink-0">
+                <iconify-icon icon="lucide:send" class="text-white text-sm"></iconify-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== IMPACT ESTIMATOR SECTION ==================== -->
+<section id="analytics" class="relative py-20 md:py-32 overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <!-- Left: Estimator -->
+      <div class="animate-on-scroll from-left">
+        <div class="glass-card rounded-2xl p-8">
+          <div class="flex items-center gap-2 mb-8">
+            <iconify-icon icon="lucide:calculator" class="text-eco-400 text-lg"></iconify-icon>
+            <span class="text-sm font-semibold text-eco-400 tracking-wider uppercase">Impact Estimator</span>
+          </div>
+
+          <!-- Temperature Slider -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-3">
+              <label class="text-sm text-stone-300 flex items-center gap-2">
+                <iconify-icon icon="lucide:thermometer" class="text-amber-400"></iconify-icon>
+                Temperature Offset
+              </label>
+              <span id="temp-value" class="text-sm font-semibold text-amber-400">0°F</span>
+            </div>
+            <input type="range" min="-10" max="10" value="0" id="temp-slider" oninput="updateEstimates()">
+            <div class="flex justify-between text-xs text-stone-600 mt-1">
+              <span>-10°F</span><span>0°F</span><span>+10°F</span>
+            </div>
+          </div>
+
+          <!-- Commute Slider -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-3">
+              <label class="text-sm text-stone-300 flex items-center gap-2">
+                <iconify-icon icon="lucide:car" class="text-blue-400"></iconify-icon>
+                Weekly Commute
+              </label>
+              <span id="commute-value" class="text-sm font-semibold text-blue-400">80 mi</span>
+            </div>
+            <input type="range" min="0" max="300" value="80" id="commute-slider" oninput="updateEstimates()">
+            <div class="flex justify-between text-xs text-stone-600 mt-1">
+              <span>0 mi</span><span>150 mi</span><span>300 mi</span>
+            </div>
+          </div>
+
+          <!-- Diet Select -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-3">
+              <label class="text-sm text-stone-300 flex items-center gap-2">
+                <iconify-icon icon="lucide:utensils" class="text-eco-400"></iconify-icon>
+                Diet Pattern
+              </label>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <button class="diet-btn px-3 py-2 rounded-lg text-xs font-medium bg-eco-500/15 text-eco-400 border border-eco-500/30 transition-all" data-diet="balanced" onclick="selectDiet(this)">Balanced</button>
+              <button class="diet-btn px-3 py-2 rounded-lg text-xs font-medium bg-dark-600 text-stone-400 border border-stone-700 transition-all hover:border-eco-500/30" data-diet="vegetarian" onclick="selectDiet(this)">Vegetarian</button>
+              <button class="diet-btn px-3 py-2 rounded-lg text-xs font-medium bg-dark-600 text-stone-400 border border-stone-700 transition-all hover:border-eco-500/30" data-diet="vegan" onclick="selectDiet(this)">Vegan</button>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div class="border-t border-eco-500/10 pt-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-stone-500 text-xs font-medium tracking-wider uppercase">Estimated Footprint</span>
+              <span id="footprint-result" class="text-xl font-serif font-semibold text-white">5.2 <span class="text-sm text-stone-500">Tons CO₂/yr</span></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-stone-500 text-xs font-medium tracking-wider uppercase">ROI Estimate</span>
+              <span id="roi-result" class="text-xl font-serif font-semibold text-eco-400">Save up to $340<span class="text-sm text-eco-500">/yr</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Text -->
+      <div class="animate-on-scroll from-right">
+        <span class="text-xs font-semibold text-eco-400 tracking-[0.2em] uppercase">Carbon Simulator</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight mt-3 text-white leading-tight">
+          Simulate Your Carbon & <span class="text-gradient">Utility Savings</span>
+        </h2>
+        <p class="text-stone-400 mt-5 font-light leading-relaxed">
+          Adjust your lifestyle parameters and instantly see how changes impact your carbon footprint and annual savings. Our model uses EPA data and real utility rates.
+        </p>
+        <div class="mt-6 p-4 rounded-xl bg-eco-500/5 border border-eco-500/10">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="lucide:info" class="text-eco-400 text-lg shrink-0"></iconify-icon>
+            <p class="text-stone-400 text-sm font-light">Average active users save over <strong class="text-eco-400">$280/year</strong> by following AI recommendations. Top savers reduce their carbon by 40%.</p>
+          </div>
+        </div>
+        <button onclick="scrollToSection('cta')" class="btn-primary mt-8 text-sm font-semibold text-white px-7 py-3 rounded-full tracking-wide inline-flex items-center gap-2">
+          <iconify-icon icon="lucide:calculator" width="16"></iconify-icon>
+          Calculate My Carbon Impact
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== INTEGRATIONS & LEADERBOARD SECTION ==================== -->
+<section id="community" class="relative py-20 md:py-32 overflow-hidden">
+  <div class="absolute inset-0 bg-dark-900"></div>
+  <div class="absolute top-20 right-0 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6">
+    <!-- Integrations -->
+    <div class="text-center mb-16 animate-on-scroll">
+      <span class="text-xs font-semibold text-eco-400 tracking-[0.2em] uppercase">Seamless Smart Integrations</span>
+      <h2 class="font-serif text-3xl md:text-5xl tracking-tight mt-3 text-white">Connect Your <span class="text-gradient">Smart Home</span></h2>
+      <p class="text-stone-400 mt-4 max-w-xl mx-auto font-light">Works with the devices and platforms you already use.</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-20">
+      <div class="glass-card rounded-xl p-5 text-center g
+<truncated 32831 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

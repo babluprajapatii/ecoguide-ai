@@ -1,28 +1,34 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import { AppProviders } from '@/providers/app-providers';
 import './globals.css';
 
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-sans',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-serif',
 });
 
 export const metadata: Metadata = {
   title: {
-    default: 'EcoGuide AI - Your Sustainable Living Assistant',
+    default: 'EcoGuide AI - Optimize Your Home, Lower Utility Bills',
     template: '%s | EcoGuide AI',
   },
   description:
-    'EcoGuide AI helps you make sustainable choices through AI-powered assessments, coaching, and community engagement. Track your environmental impact and join the green revolution.',
+    'The sustainable living platform that combines AI guidance, carbon footprint tracking, and smart home integration to help you live greener — effortlessly.',
   keywords: ['sustainability', 'eco-friendly', 'AI', 'environmental impact', 'green living'],
   authors: [{ name: 'EcoGuide AI Team' }],
   openGraph: {
     type: 'website',
     locale: 'en_US',
     siteName: 'EcoGuide AI',
-    title: 'EcoGuide AI - Your Sustainable Living Assistant',
+    title: 'EcoGuide AI - Optimize Your Home, Lower Utility Bills',
     description:
       'AI-powered sustainability coaching and environmental impact tracking.',
   },
@@ -40,8 +46,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0f0d' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -53,8 +58,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans antialiased">
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
+      <body className="min-h-screen bg-dark-900 font-sans antialiased text-stone-200 overflow-x-hidden">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
