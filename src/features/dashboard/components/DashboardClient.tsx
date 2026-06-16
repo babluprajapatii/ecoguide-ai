@@ -136,6 +136,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           dietKg={latestAssessment.diet_kg}
           energyKg={latestAssessment.energy_kg}
           shoppingKg={latestAssessment.shopping_kg}
+          travelKg={latestAssessment.travel_kg}
         />
         <TrendChart history={history} />
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import type { DietInput, DietType } from '@/features/assessment/types/assessment.types';
 import { dietInputSchema } from '@/features/assessment/schemas/assessment.schemas';
 import { cn } from '@/shared/utils/cn';
@@ -9,6 +10,7 @@ interface DietStepProps {
   initialData: DietInput;
   onNext: (data: DietInput) => void;
   onBack: () => void;
+  isSaving?: boolean;
 }
 
 const DIET_OPTIONS: { value: DietType; label: string; description: string }[] = [
@@ -18,10 +20,7 @@ const DIET_OPTIONS: { value: DietType; label: string; description: string }[] = 
   { value: 'meat-heavy', label: 'Meat-Heavy', description: 'Meat with most meals' },
 ];
 
-/**
- * Diet step — collects dietary pattern.
- */
-export function DietStep({ initialData, onNext, onBack }: DietStepProps) {
+export function DietStep({ initialData, onNext, onBack, isSaving }: DietStepProps) {
   const [dietType, setDietType] = useState<DietType>(initialData.dietType);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,9 +36,16 @@ export function DietStep({ initialData, onNext, onBack }: DietStepProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="text-xl font-semibold text-foreground">Diet</h2>
-      <p className="text-sm text-muted-foreground">Select the option that best describes your typical diet.</p>
+    <motion.form
+      onSubmit={handleSubmit}
+      initial={{ opacity: 0, x: 15 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="space-y-6"
+    >
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold text-foreground">Dietary Pattern</h2>
+        <p className="text-sm text-muted-foreground">Select the option that best describes your typical diet.</p>
+      </div>
 
       <fieldset className="space-y-3">
         <legend className="sr-only">Dietary pattern</legend>
@@ -80,6 +86,12 @@ export function DietStep({ initialData, onNext, onBack }: DietStepProps) {
           Next
         </button>
       </div>
-    </form>
+
+      {isSaving && (
+        <p className="text-center text-xs text-muted-foreground animate-pulse mt-2">
+          Saving draft...
+        </p>
+      )}
+    </motion.form>
   );
 }

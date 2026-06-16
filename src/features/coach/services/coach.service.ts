@@ -20,7 +20,8 @@ export async function fetchUserHighestCategory(): Promise<string> {
 
     const { data: rows, error } = await supabase
       .from('assessments')
-      .select('transport_kg, diet_kg, energy_kg, shopping_kg')
+      .select('transport_score, diet_score, energy_score, shopping_score, travel_score, transport_kg, diet_kg, energy_kg, shopping_kg')
+      .eq('is_complete', true)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(1);
@@ -35,10 +36,11 @@ export async function fetchUserHighestCategory(): Promise<string> {
     }
 
     const categories = [
-      { name: 'Transport', value: latest.transport_kg },
-      { name: 'Diet', value: latest.diet_kg },
-      { name: 'Energy', value: latest.energy_kg },
-      { name: 'Shopping', value: latest.shopping_kg },
+      { name: 'Transport', value: Number(latest.transport_score ?? latest.transport_kg ?? 0) },
+      { name: 'Diet', value: Number(latest.diet_score ?? latest.diet_kg ?? 0) },
+      { name: 'Energy', value: Number(latest.energy_score ?? latest.energy_kg ?? 0) },
+      { name: 'Shopping', value: Number(latest.shopping_score ?? latest.shopping_kg ?? 0) },
+      { name: 'Travel', value: Number(latest.travel_score ?? 0) },
     ];
 
     const highest = categories.reduce((prev, current) =>

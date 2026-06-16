@@ -39,8 +39,9 @@ export async function GET(request: NextRequest) {
     const { data: rows, error: dbError } = await supabase
       .from('assessments')
       .select(
-        'id, user_id, transport_kg, diet_kg, energy_kg, shopping_kg, total_kg, compared_to_average, percentile, created_at',
+        'id, user_id, transport_score, diet_score, energy_score, shopping_score, travel_score, total_score, transport_kg, diet_kg, energy_kg, shopping_kg, total_kg, compared_to_average, percentile, created_at',
       )
+      .eq('is_complete', true)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(MAX_HISTORY);
@@ -56,11 +57,12 @@ export async function GET(request: NextRequest) {
     const typedRows: AssessmentRecord[] = (rows ?? []).map((row) => ({
       id: row.id,
       user_id: row.user_id,
-      transport_kg: row.transport_kg,
-      diet_kg: row.diet_kg,
-      energy_kg: row.energy_kg,
-      shopping_kg: row.shopping_kg,
-      total_kg: row.total_kg,
+      transport_kg: Number(row.transport_score ?? row.transport_kg ?? 0),
+      diet_kg: Number(row.diet_score ?? row.diet_kg ?? 0),
+      energy_kg: Number(row.energy_score ?? row.energy_kg ?? 0),
+      shopping_kg: Number(row.shopping_score ?? row.shopping_kg ?? 0),
+      travel_kg: Number(row.travel_score ?? 0),
+      total_kg: Number(row.total_score ?? row.total_kg ?? 0),
       compared_to_average: row.compared_to_average,
       percentile: row.percentile,
       created_at: row.created_at,

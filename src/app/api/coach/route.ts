@@ -95,7 +95,8 @@ export async function POST(request: NextRequest) {
     // Fetch user's latest carbon footprint assessment
     const { data: assessments, error: dbError } = await supabase
       .from('assessments')
-      .select('transport_kg, diet_kg, energy_kg, shopping_kg, total_kg, compared_to_average, percentile')
+      .select('transport_score, diet_score, energy_score, shopping_score, travel_score, total_score, transport_kg, diet_kg, energy_kg, shopping_kg, total_kg, compared_to_average, percentile')
+      .eq('is_complete', true)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(1);
@@ -105,7 +106,8 @@ export async function POST(request: NextRequest) {
       diet: 2500,
       energy: 3000,
       shopping: 1200,
-      total: 8700,
+      travel: 1000,
+      total: 9700,
       comparedToAverage: 1.85,
       percentile: 65,
     };
@@ -114,11 +116,12 @@ export async function POST(request: NextRequest) {
       const latest = assessments[0];
       if (latest) {
         footprint = {
-          transport: latest.transport_kg,
-          diet: latest.diet_kg,
-          energy: latest.energy_kg,
-          shopping: latest.shopping_kg,
-          total: latest.total_kg,
+          transport: Number(latest.transport_score ?? latest.transport_kg ?? 0),
+          diet: Number(latest.diet_score ?? latest.diet_kg ?? 0),
+          energy: Number(latest.energy_score ?? latest.energy_kg ?? 0),
+          shopping: Number(latest.shopping_score ?? latest.shopping_kg ?? 0),
+          travel: Number(latest.travel_score ?? 0),
+          total: Number(latest.total_score ?? latest.total_kg ?? 0),
           comparedToAverage: latest.compared_to_average,
           percentile: latest.percentile,
         };
@@ -131,6 +134,7 @@ export async function POST(request: NextRequest) {
       { name: 'Diet', value: footprint.diet },
       { name: 'Energy', value: footprint.energy },
       { name: 'Shopping', value: footprint.shopping },
+      { name: 'Travel', value: footprint.travel },
     ];
     const highestCategory = categories.reduce((prev, current) =>
       current.value > prev.value ? current : prev,
@@ -141,6 +145,7 @@ export async function POST(request: NextRequest) {
 - Diet emissions: ${footprint.diet.toFixed(0)} kg CO₂/yr
 - Energy emissions: ${footprint.energy.toFixed(0)} kg CO₂/yr
 - Shopping emissions: ${footprint.shopping.toFixed(0)} kg CO₂/yr
+- Travel emissions: ${footprint.travel.toFixed(0)} kg CO₂/yr
 - Total annual emissions: ${footprint.total.toFixed(0)} kg CO₂/yr
 - Ratio to global average: ${footprint.comparedToAverage.toFixed(2)}x
 - Percentile ranking: ${footprint.percentile}/100 (lower is better)

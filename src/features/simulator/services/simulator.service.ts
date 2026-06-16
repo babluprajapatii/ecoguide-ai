@@ -90,24 +90,9 @@ export function adjustFootprint(
     const fuelType = adjustments.carFuelType ?? 'petrol';
     const factor = CAR_KG_PER_KM[fuelType] ?? CAR_KG_PER_KM.petrol ?? 0.21;
     const carKg = kmPerWeek * WEEKS_PER_YEAR * factor;
-
-    // Preserve flight component from baseline if flight hours not overridden
-    let flightKg = 0;
-    if (adjustments.flightHoursPerYear !== null) {
-      const flightKm = adjustments.flightHoursPerYear * AVG_FLIGHT_SPEED_KMH;
-      flightKg = flightKm * AVG_FLIGHT_KG_PER_KM;
-    } else {
-      // Estimate baseline flight contribution (rough: baseline minus estimated car)
-      flightKg = Math.max(0, baseline.transport * 0.3);
-    }
-
-    transport = carKg + flightKg;
-  } else if (adjustments.flightHoursPerYear !== null) {
-    const flightKm = adjustments.flightHoursPerYear * AVG_FLIGHT_SPEED_KMH;
-    const flightKg = flightKm * AVG_FLIGHT_KG_PER_KM;
-    // Replace flight portion only (estimate car as 70% of baseline transport)
-    const carPortion = baseline.transport * 0.7;
-    transport = carPortion + flightKg;
+    // Estimate transit portion as 20% of baseline transport
+    const transitPortion = baseline.transport * 0.2;
+    transport = carKg + transitPortion;
   }
 
   // --- Diet ---
@@ -122,7 +107,6 @@ export function adjustFootprint(
     // Estimate electricity portion as ~60% of energy, gas as ~40%
     const electricityPortion = baseline.energy * 0.6;
     const gasPortion = baseline.energy * 0.4;
-    // Renewable energy reduces the electricity portion
     const renewableFraction = adjustments.renewableEnergyPercent / 100;
     energy = electricityPortion * (1 - renewableFraction) + gasPortion;
   }
@@ -133,13 +117,24 @@ export function adjustFootprint(
     shopping = SHOPPING_ANNUAL_KG[adjustments.shoppingLevel] ?? baseline.shopping;
   }
 
+  // --- Travel ---
+  let travel = baseline.travel ?? 0;
+  if (adjustments.flightHoursPerYear !== null) {
+    const flightKm = adjustments.flightHoursPerYear * AVG_FLIGHT_SPEED_KMH;
+    const flightKg = flightKm * AVG_FLIGHT_KG_PER_KM;
+    // Estimate hotel portion as 10% of baseline travel
+    const hotelPortion = (baseline.travel ?? 0) * 0.1;
+    travel = flightKg + hotelPortion;
+  }
+
   // Ensure non-negative
   transport = Math.max(0, Math.round(transport));
   diet = Math.max(0, Math.round(diet));
   energy = Math.max(0, Math.round(energy));
   shopping = Math.max(0, Math.round(shopping));
+  travel = Math.max(0, Math.round(travel));
 
-  const total = transport + diet + energy + shopping;
+  const total = transport + diet + energy + shopping + travel;
   const metrics = computeMetrics(total);
 
   return {
@@ -147,6 +142,7 @@ export function adjustFootprint(
     diet,
     energy,
     shopping,
+    travel,
     total,
     ...metrics,
   };
@@ -159,14 +155,6 @@ export function adjustFootprint(
 /**
  * Generates a month-by-month linear interpolation from the current
  * footprint to the target footprint over a given number of months.
- *
- * Each data point represents the projected annual emissions if the
- * user were at that point in their transition at that month.
- *
- * @param start - Current footprint (month 0).
- * @param end - Target footprint after all changes applied.
- * @param months - Number of months to project (default 12).
- * @returns Array of `MonthlyProjection` with `months + 1` entries (month 0 to month N).
  */
 export function projectForecast(
   start: FootprintBreakdown,
@@ -183,7 +171,8 @@ export function projectForecast(
     const diet = Math.round(start.diet + (end.diet - start.diet) * t);
     const energy = Math.round(start.energy + (end.energy - start.energy) * t);
     const shopping = Math.round(start.shopping + (end.shopping - start.shopping) * t);
-    const total = transport + diet + energy + shopping;
+    const travel = Math.round((start.travel ?? 0) + ((end.travel ?? 0) - (start.travel ?? 0)) * t);
+    const total = transport + diet + energy + shopping + travel;
 
     projections.push({
       month: i === 0 ? 'Now' : `Month ${i}`,
@@ -193,6 +182,7 @@ export function projectForecast(
       diet,
       energy,
       shopping,
+      travel,
     });
   }
 

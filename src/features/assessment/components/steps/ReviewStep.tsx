@@ -1,19 +1,22 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import type {
   TransportInput,
   DietInput,
   EnergyInput,
   ShoppingInput,
+  TravelInput,
   FootprintBreakdown,
 } from '@/features/assessment/types/assessment.types';
 import { calculateTotalFootprint } from '@/features/assessment/services/carbon-calculator.service';
 
 interface ReviewStepProps {
   transport: TransportInput;
-  diet: DietInput;
   energy: EnergyInput;
+  diet: DietInput;
   shopping: ShoppingInput;
+  travel: TravelInput;
   result: FootprintBreakdown | null;
   isSubmitting: boolean;
   error: string | null;
@@ -28,72 +31,119 @@ function formatKg(kg: number): string {
   return `${Math.round(kg)} kg`;
 }
 
-/**
- * Review step — shows all answers and calculated breakdown before submission.
- */
 export function ReviewStep({
   transport,
-  diet,
   energy,
+  diet,
   shopping,
+  travel,
   result,
   isSubmitting,
   error,
   onBack,
   onSubmit,
 }: ReviewStepProps) {
-  const preview = calculateTotalFootprint({ transport, diet, energy, shopping });
-
+  const preview = calculateTotalFootprint({ transport, energy, diet, shopping, travel });
   const breakdown = result ?? preview;
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-foreground">Review Your Assessment</h2>
+    <motion.div
+      initial={{ opacity: 0, x: 15 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="space-y-6"
+    >
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold text-foreground">Review Your Assessment</h2>
+        <p className="text-sm text-muted-foreground">
+          Double-check your choices. Submit the form to calculate your final score, unlock achievements, and get personalized recommendations.
+        </p>
+      </div>
 
       <div className="space-y-4">
         <section className="rounded-lg border border-border p-4">
-          <h3 className="mb-2 text-sm font-medium text-muted-foreground">Transport</h3>
-          {transport.car ? (
-            <p className="text-sm">{transport.car.weeklyKm} km/week · {transport.car.fuelType}</p>
-          ) : (
-            <p className="text-sm text-muted-foreground">No car</p>
-          )}
-          {transport.flights.length > 0 ? (
-            transport.flights.map((f, i) => (
-              <p key={`${f.type}-${i}`} className="text-sm">{f.flightsPerYear} {f.type} flights · {f.avgDistanceKm} km avg</p>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">No flights</p>
-          )}
-          <p className="mt-1 text-sm font-semibold text-primary">{formatKg(breakdown.transport)} CO₂/yr</p>
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Transport</h3>
+          <ul className="space-y-1 text-sm text-foreground">
+            {transport.fuelType !== 'none' ? (
+              <li>
+                <strong>Vehicle:</strong> {transport.weeklyKm} km/week driven ({transport.fuelType})
+              </li>
+            ) : (
+              <li>No personal vehicle driven.</li>
+            )}
+            {transport.publicTransportWeeklyHours > 0 && (
+              <li>
+                <strong>Public Transport:</strong> {transport.publicTransportWeeklyHours} hrs/week
+              </li>
+            )}
+            {transport.rideShareWeeklyKm > 0 && (
+              <li>
+                <strong>Ride Sharing:</strong> {transport.rideShareWeeklyKm} km/week
+              </li>
+            )}
+          </ul>
+          <p className="mt-2 text-sm font-semibold text-primary">Est. Emissions: {formatKg(breakdown.transport)} CO₂/yr</p>
         </section>
 
         <section className="rounded-lg border border-border p-4">
-          <h3 className="mb-2 text-sm font-medium text-muted-foreground">Diet</h3>
-          <p className="text-sm capitalize">{diet.dietType.replace('-', ' ')}</p>
-          <p className="mt-1 text-sm font-semibold text-primary">{formatKg(breakdown.diet)} CO₂/yr</p>
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Home Energy</h3>
+          <ul className="space-y-1 text-sm text-foreground">
+            <li>
+              <strong>Electricity:</strong> {energy.electricityKwhPerMonth} kWh/month
+            </li>
+            <li>
+              <strong>Natural Gas:</strong> {energy.gasKwhPerMonth} kWh/month
+            </li>
+            {energy.renewableEnergyPercent > 0 && (
+              <li>
+                <strong>Renewable Offset:</strong> {energy.renewableEnergyPercent}% clean energy
+              </li>
+            )}
+            <li>
+              <strong>Home Size &amp; Household:</strong> {energy.homeSizeSqFt} sq ft · {energy.householdMembers} member(s)
+            </li>
+          </ul>
+          <p className="mt-2 text-sm font-semibold text-primary">Est. Emissions: {formatKg(breakdown.energy)} CO₂/yr</p>
         </section>
 
         <section className="rounded-lg border border-border p-4">
-          <h3 className="mb-2 text-sm font-medium text-muted-foreground">Energy</h3>
-          <p className="text-sm">{energy.electricityKwhPerMonth} kWh electricity · {energy.gasKwhPerMonth} kWh gas /month</p>
-          <p className="mt-1 text-sm font-semibold text-primary">{formatKg(breakdown.energy)} CO₂/yr</p>
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Diet</h3>
+          <p className="text-sm capitalize">{diet.dietType.replace('-', ' ')} dietary pattern</p>
+          <p className="mt-2 text-sm font-semibold text-primary">Est. Emissions: {formatKg(breakdown.diet)} CO₂/yr</p>
         </section>
 
         <section className="rounded-lg border border-border p-4">
-          <h3 className="mb-2 text-sm font-medium text-muted-foreground">Shopping</h3>
-          <p className="text-sm capitalize">{shopping.level} spending</p>
-          <p className="mt-1 text-sm font-semibold text-primary">{formatKg(breakdown.shopping)} CO₂/yr</p>
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Shopping</h3>
+          <p className="text-sm capitalize">{shopping.level} spending habits</p>
+          <p className="mt-2 text-sm font-semibold text-primary">Est. Emissions: {formatKg(breakdown.shopping)} CO₂/yr</p>
+        </section>
+
+        <section className="rounded-lg border border-border p-4">
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Travel</h3>
+          <ul className="space-y-1 text-sm text-foreground">
+            {travel.flightsPerYear > 0 ? (
+              <li>
+                <strong>Flights:</strong> {travel.flightsPerYear} flights/yr at {travel.avgDistanceKm} km avg
+              </li>
+            ) : (
+              <li>No annual flights.</li>
+            )}
+            {travel.hotelStaysPerYear > 0 && (
+              <li>
+                <strong>Lodging:</strong> {travel.hotelStaysPerYear} hotel night(s)/yr
+              </li>
+            )}
+          </ul>
+          <p className="mt-2 text-sm font-semibold text-primary">Est. Emissions: {formatKg(breakdown.travel)} CO₂/yr</p>
         </section>
 
         <section className="rounded-lg border border-primary bg-primary/5 p-4">
-          <h3 className="mb-1 text-sm font-medium text-foreground">Total Annual Footprint</h3>
-          <p className="text-2xl font-bold text-primary">{formatKg(breakdown.total)}</p>
+          <h3 className="mb-1 text-sm font-bold text-foreground">Pre-submission Total Footprint</h3>
+          <p className="text-3xl font-extrabold text-primary">{formatKg(breakdown.total)}</p>
           <p className="mt-1 text-sm text-muted-foreground">
             {breakdown.comparedToAverage < 1
               ? `${Math.round((1 - breakdown.comparedToAverage) * 100)}% below`
               : `${Math.round((breakdown.comparedToAverage - 1) * 100)}% above`}
-            {' '}global average · {breakdown.percentile}th percentile
+            {' '}global average · {breakdown.percentile}th percentile rank
           </p>
         </section>
       </div>
@@ -120,6 +170,6 @@ export function ReviewStep({
           </button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import type { ShoppingInput, ShoppingLevel } from '@/features/assessment/types/assessment.types';
 import { shoppingInputSchema } from '@/features/assessment/schemas/assessment.schemas';
 import { cn } from '@/shared/utils/cn';
@@ -9,6 +10,7 @@ interface ShoppingStepProps {
   initialData: ShoppingInput;
   onNext: (data: ShoppingInput) => void;
   onBack: () => void;
+  isSaving?: boolean;
 }
 
 const SHOPPING_OPTIONS: { value: ShoppingLevel; label: string; description: string }[] = [
@@ -17,10 +19,7 @@ const SHOPPING_OPTIONS: { value: ShoppingLevel; label: string; description: stri
   { value: 'high', label: 'High', description: 'Frequent new purchases, fast fashion' },
 ];
 
-/**
- * Shopping step — collects consumer spending intensity.
- */
-export function ShoppingStep({ initialData, onNext, onBack }: ShoppingStepProps) {
+export function ShoppingStep({ initialData, onNext, onBack, isSaving }: ShoppingStepProps) {
   const [level, setLevel] = useState<ShoppingLevel>(initialData.level);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,9 +35,16 @@ export function ShoppingStep({ initialData, onNext, onBack }: ShoppingStepProps)
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="text-xl font-semibold text-foreground">Shopping &amp; Consumption</h2>
-      <p className="text-sm text-muted-foreground">How would you describe your shopping habits?</p>
+    <motion.form
+      onSubmit={handleSubmit}
+      initial={{ opacity: 0, x: 15 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="space-y-6"
+    >
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold text-foreground">Shopping &amp; Consumption</h2>
+        <p className="text-sm text-muted-foreground">How would you describe your shopping habits?</p>
+      </div>
 
       <fieldset className="space-y-3">
         <legend className="sr-only">Shopping intensity</legend>
@@ -79,6 +85,12 @@ export function ShoppingStep({ initialData, onNext, onBack }: ShoppingStepProps)
           Next
         </button>
       </div>
-    </form>
+
+      {isSaving && (
+        <p className="text-center text-xs text-muted-foreground animate-pulse mt-2">
+          Saving draft...
+        </p>
+      )}
+    </motion.form>
   );
 }

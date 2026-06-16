@@ -60,6 +60,8 @@ export interface MonthlyProjection {
   readonly energy: number;
   /** Projected shopping emissions at this month in kg CO2. */
   readonly shopping: number;
+  /** Projected travel emissions at this month in kg CO2. */
+  readonly travel: number;
 }
 
 // ---------------------------------------------------------------------------

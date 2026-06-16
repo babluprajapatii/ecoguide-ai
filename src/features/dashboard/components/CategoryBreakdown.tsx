@@ -39,6 +39,8 @@ interface CategoryBreakdownProps {
   readonly energyKg: number;
   /** Shopping emissions in kg CO2/yr. */
   readonly shoppingKg: number;
+  /** Travel emissions in kg CO2/yr. */
+  readonly travelKg: number;
 }
 
 /**
@@ -52,13 +54,15 @@ function buildChartData(
   dietKg: number,
   energyKg: number,
   shoppingKg: number,
+  travelKg: number,
 ): CategoryDataPoint[] {
-  const maxValue = Math.max(transportKg, dietKg, energyKg, shoppingKg, 1000);
+  const maxValue = Math.max(transportKg, dietKg, energyKg, shoppingKg, travelKg, 1000);
   return [
     { category: 'Transport', value: transportKg, fullMark: maxValue },
     { category: 'Diet', value: dietKg, fullMark: maxValue },
     { category: 'Energy', value: energyKg, fullMark: maxValue },
     { category: 'Shopping', value: shoppingKg, fullMark: maxValue },
+    { category: 'Travel', value: travelKg, fullMark: maxValue },
   ];
 }
 
@@ -74,16 +78,17 @@ function CategoryBreakdownInner({
   dietKg,
   energyKg,
   shoppingKg,
+  travelKg,
 }: CategoryBreakdownProps) {
   /**
    * WHY useMemo: buildChartData allocates a new array on every call.
-   * Memoising on the four numeric dependencies avoids creating new
+   * Memoising on the five numeric dependencies avoids creating new
    * referentially-different data arrays that would force Recharts
    * to re-render its SVG tree.
    */
   const chartData = useMemo(
-    () => buildChartData(transportKg, dietKg, energyKg, shoppingKg),
-    [transportKg, dietKg, energyKg, shoppingKg],
+    () => buildChartData(transportKg, dietKg, energyKg, shoppingKg, travelKg),
+    [transportKg, dietKg, energyKg, shoppingKg, travelKg],
   );
 
   return (

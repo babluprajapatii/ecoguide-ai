@@ -71,10 +71,11 @@ export interface UseSimulatorReturn {
 // ---------------------------------------------------------------------------
 
 const FALLBACK_BASELINE: FootprintBreakdown = {
-  transport: 2500,
-  diet: 2500,
+  transport: 2000,
+  diet: 2000,
   energy: 1800,
   shopping: 1200,
+  travel: 1000,
   total: 8000,
   comparedToAverage: 1.7,
   percentile: 60,

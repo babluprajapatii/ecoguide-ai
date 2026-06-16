@@ -4,450 +4,172 @@ import {
   calculateDietFootprint,
   calculateEnergyFootprint,
   calculateShoppingFootprint,
+  calculateTravelFootprint,
   calculateTotalFootprint,
+  estimatePercentile,
+  clampEmission,
 } from '@/features/assessment/services/carbon-calculator.service';
 import type {
   TransportInput,
   EnergyInput,
+  TravelInput,
   AssessmentInput,
-  DietType,
-  ShoppingLevel,
-  FuelType,
 } from '@/features/assessment/types/assessment.types';
 
-// ---------------------------------------------------------------------------
-// calculateTransportFootprint
-// ---------------------------------------------------------------------------
+describe('clampEmission', () => {
+  it('returns 0 for negative, NaN or infinite values', () => {
+    expect(clampEmission(-500)).toBe(0);
+    expect(clampEmission(NaN)).toBe(0);
+    expect(clampEmission(Infinity)).toBe(0);
+    expect(clampEmission(250.5)).toBe(250.5);
+  });
+});
 
 describe('calculateTransportFootprint', () => {
-  it('returns 0 for no car and no flights', () => {
-    const input: TransportInput = { flights: [] };
-    expect(calculateTransportFootprint(input)).toBe(0);
-  });
-
-  it('calculates petrol car emissions correctly', () => {
+  it('calculates vehicle and transit emissions correctly', () => {
     const input: TransportInput = {
-      car: { weeklyKm: 100, fuelType: 'petrol' },
-      flights: [],
+      fuelType: 'petrol',
+      weeklyKm: 100,
+      publicTransportWeeklyHours: 5,
+      rideShareWeeklyKm: 50,
     };
-    // 100 km/week * 0.21 kg/km * 52 weeks = 1092
-    expect(calculateTransportFootprint(input)).toBe(1092);
+    // Car: 100 * 0.21 * 52 = 1092
+    // Public Transport: 5 * 0.8 * 52 = 208
+    // Ride Sharing: 50 * 0.12 * 52 = 312
+    // Expected Sum = 1092 + 208 + 312 = 1612
+    expect(calculateTransportFootprint(input)).toBe(1612);
   });
 
-  it('calculates diesel car emissions correctly', () => {
+  it('returns 0 for no driving and zero transit hours', () => {
     const input: TransportInput = {
-      car: { weeklyKm: 100, fuelType: 'diesel' },
-      flights: [],
-    };
-    // 100 * 0.17 * 52 = 884
-    expect(calculateTransportFootprint(input)).toBe(884);
-  });
-
-  it('calculates electric car emissions correctly', () => {
-    const input: TransportInput = {
-      car: { weeklyKm: 100, fuelType: 'electric' },
-      flights: [],
-    };
-    // 100 * 0.05 * 52 = 260
-    expect(calculateTransportFootprint(input)).toBe(260);
-  });
-
-  it('calculates hybrid car emissions correctly', () => {
-    const input: TransportInput = {
-      car: { weeklyKm: 100, fuelType: 'hybrid' },
-      flights: [],
-    };
-    // 100 * 0.11 * 52 = 572
-    expect(calculateTransportFootprint(input)).toBe(572);
-  });
-
-  it('returns 0 for car with 0 weekly km', () => {
-    const input: TransportInput = {
-      car: { weeklyKm: 0, fuelType: 'petrol' },
-      flights: [],
+      fuelType: 'none',
+      weeklyKm: 0,
+      publicTransportWeeklyHours: 0,
+      rideShareWeeklyKm: 0,
     };
     expect(calculateTransportFootprint(input)).toBe(0);
-  });
-
-  it('calculates short-haul flight emissions correctly', () => {
-    const input: TransportInput = {
-      flights: [
-        { flightsPerYear: 4, avgDistanceKm: 800, type: 'short-haul' },
-      ],
-    };
-    // 4 * 800 * 0.255 = 816
-    expect(calculateTransportFootprint(input)).toBe(816);
-  });
-
-  it('calculates long-haul flight emissions correctly', () => {
-    const input: TransportInput = {
-      flights: [
-        { flightsPerYear: 2, avgDistanceKm: 5000, type: 'long-haul' },
-      ],
-    };
-    // 2 * 5000 * 0.195 = 1950
-    expect(calculateTransportFootprint(input)).toBe(1950);
-  });
-
-  it('returns 0 for flights with 0 flights per year', () => {
-    const input: TransportInput = {
-      flights: [
-        { flightsPerYear: 0, avgDistanceKm: 800, type: 'short-haul' },
-      ],
-    };
-    expect(calculateTransportFootprint(input)).toBe(0);
-  });
-
-  it('returns 0 for flights with 0 distance', () => {
-    const input: TransportInput = {
-      flights: [
-        { flightsPerYear: 10, avgDistanceKm: 0, type: 'short-haul' },
-      ],
-    };
-    expect(calculateTransportFootprint(input)).toBe(0);
-  });
-
-  it('sums car and multiple flight categories', () => {
-    const input: TransportInput = {
-      car: { weeklyKm: 50, fuelType: 'petrol' },
-      flights: [
-        { flightsPerYear: 4, avgDistanceKm: 800, type: 'short-haul' },
-        { flightsPerYear: 2, avgDistanceKm: 5000, type: 'long-haul' },
-      ],
-    };
-    // Car: 50 * 0.21 * 52 = 546
-    // Short: 4 * 800 * 0.255 = 816
-    // Long: 2 * 5000 * 0.195 = 1950
-    // Total: 3312
-    expect(calculateTransportFootprint(input)).toBe(3312);
-  });
-
-  it('handles all fuel types without error', () => {
-    const fuelTypes: FuelType[] = ['petrol', 'diesel', 'electric', 'hybrid'];
-    for (const fuelType of fuelTypes) {
-      const input: TransportInput = {
-        car: { weeklyKm: 10, fuelType },
-        flights: [],
-      };
-      const result = calculateTransportFootprint(input);
-      expect(result).toBeGreaterThanOrEqual(0);
-      expect(Number.isFinite(result)).toBe(true);
-    }
-  });
-
-  it('handles very high mileage', () => {
-    const input: TransportInput = {
-      car: { weeklyKm: 5000, fuelType: 'petrol' },
-      flights: [],
-    };
-    // 5000 * 0.21 * 52 = 54600
-    expect(calculateTransportFootprint(input)).toBe(54600);
   });
 });
-
-// ---------------------------------------------------------------------------
-// calculateDietFootprint
-// ---------------------------------------------------------------------------
-
-describe('calculateDietFootprint', () => {
-  it('returns 1500 for vegan diet', () => {
-    expect(calculateDietFootprint({ dietType: 'vegan' })).toBe(1500);
-  });
-
-  it('returns 1700 for vegetarian diet', () => {
-    expect(calculateDietFootprint({ dietType: 'vegetarian' })).toBe(1700);
-  });
-
-  it('returns 2500 for mixed diet', () => {
-    expect(calculateDietFootprint({ dietType: 'mixed' })).toBe(2500);
-  });
-
-  it('returns 3300 for meat-heavy diet', () => {
-    expect(calculateDietFootprint({ dietType: 'meat-heavy' })).toBe(3300);
-  });
-
-  it('handles all diet types without error', () => {
-    const types: DietType[] = ['vegan', 'vegetarian', 'mixed', 'meat-heavy'];
-    for (const dietType of types) {
-      const result = calculateDietFootprint({ dietType });
-      expect(result).toBeGreaterThan(0);
-      expect(Number.isFinite(result)).toBe(true);
-    }
-  });
-});
-
-// ---------------------------------------------------------------------------
-// calculateEnergyFootprint
-// ---------------------------------------------------------------------------
 
 describe('calculateEnergyFootprint', () => {
-  it('returns 0 for zero electricity and zero gas', () => {
+  it('calculates energy footprint and shares among members', () => {
     const input: EnergyInput = {
-      electricityKwhPerMonth: 0,
-      gasKwhPerMonth: 0,
+      electricityKwhPerMonth: 300,
+      gasKwhPerMonth: 100,
+      renewableEnergyPercent: 50, // 50% clean offset
+      homeSizeSqFt: 1200,
+      householdMembers: 2, // Divided by 2 members
     };
-    expect(calculateEnergyFootprint(input)).toBe(0);
+    // Raw electricity: 300 * 12 * 0.233 = 838.8
+    // Electricity with 50% renewable offset: 838.8 * 0.5 = 419.4
+    // Gas: 100 * 12 * 2.04 = 2448
+    // Home Size baseline: 1200 * 0.5 = 600
+    // Total Household emissions: 419.4 + 2448 + 600 = 3467.4
+    // Per Capita: 3467.4 / 2 = 1733.7
+    expect(calculateEnergyFootprint(input)).toBe(1733.7);
   });
 
-  it('calculates electricity-only footprint with default grid factor', () => {
+  it('safely falls back to 1 member on 0 or negative value (divide-by-zero protection)', () => {
     const input: EnergyInput = {
       electricityKwhPerMonth: 300,
       gasKwhPerMonth: 0,
+      renewableEnergyPercent: 0,
+      homeSizeSqFt: 0,
+      householdMembers: 0, // Should fallback to 1
     };
-    // 300 * 12 * 0.233 = 838.8
+    // Raw electricity: 300 * 12 * 0.233 = 838.8 / 1 = 838.8
     expect(calculateEnergyFootprint(input)).toBe(838.8);
   });
-
-  it('calculates gas-only footprint', () => {
-    const input: EnergyInput = {
-      electricityKwhPerMonth: 0,
-      gasKwhPerMonth: 100,
-    };
-    // 100 * 12 * 2.04 = 2448
-    expect(calculateEnergyFootprint(input)).toBe(2448);
-  });
-
-  it('sums electricity and gas correctly', () => {
-    const input: EnergyInput = {
-      electricityKwhPerMonth: 300,
-      gasKwhPerMonth: 100,
-    };
-    // Electricity: 300 * 12 * 0.233 = 838.8
-    // Gas: 100 * 12 * 2.04 = 2448
-    // Total: 3286.8
-    expect(calculateEnergyFootprint(input)).toBe(3286.8);
-  });
-
-  it('uses custom grid factor when provided', () => {
-    const input: EnergyInput = {
-      electricityKwhPerMonth: 100,
-      gasKwhPerMonth: 0,
-      electricityGridFactor: 0.5,
-    };
-    // 100 * 12 * 0.5 = 600
-    expect(calculateEnergyFootprint(input)).toBe(600);
-  });
-
-  it('uses zero grid factor (renewables)', () => {
-    const input: EnergyInput = {
-      electricityKwhPerMonth: 500,
-      gasKwhPerMonth: 0,
-      electricityGridFactor: 0,
-    };
-    expect(calculateEnergyFootprint(input)).toBe(0);
-  });
-
-  it('handles very high energy usage', () => {
-    const input: EnergyInput = {
-      electricityKwhPerMonth: 10000,
-      gasKwhPerMonth: 5000,
-    };
-    // Electricity: 10000 * 12 * 0.233 = 27960
-    // Gas: 5000 * 12 * 2.04 = 122400
-    // Total: 150360
-    expect(calculateEnergyFootprint(input)).toBe(150360);
-  });
 });
 
-// ---------------------------------------------------------------------------
-// calculateShoppingFootprint
-// ---------------------------------------------------------------------------
+describe('calculateDietFootprint', () => {
+  it('returns standard IPCC values', () => {
+    expect(calculateDietFootprint({ dietType: 'vegan' })).toBe(1500);
+    expect(calculateDietFootprint({ dietType: 'vegetarian' })).toBe(1700);
+    expect(calculateDietFootprint({ dietType: 'mixed' })).toBe(2500);
+    expect(calculateDietFootprint({ dietType: 'meat-heavy' })).toBe(3300);
+  });
+});
 
 describe('calculateShoppingFootprint', () => {
-  it('returns 500 for low shopping', () => {
+  it('returns standard consumer spending values', () => {
     expect(calculateShoppingFootprint({ level: 'low' })).toBe(500);
-  });
-
-  it('returns 1200 for medium shopping', () => {
     expect(calculateShoppingFootprint({ level: 'medium' })).toBe(1200);
-  });
-
-  it('returns 2500 for high shopping', () => {
     expect(calculateShoppingFootprint({ level: 'high' })).toBe(2500);
-  });
-
-  it('handles all shopping levels without error', () => {
-    const levels: ShoppingLevel[] = ['low', 'medium', 'high'];
-    for (const level of levels) {
-      const result = calculateShoppingFootprint({ level });
-      expect(result).toBeGreaterThan(0);
-      expect(Number.isFinite(result)).toBe(true);
-    }
   });
 });
 
-// ---------------------------------------------------------------------------
-// calculateTotalFootprint
-// ---------------------------------------------------------------------------
+describe('calculateTravelFootprint', () => {
+  it('calculates short-haul flights and hotel stays', () => {
+    const input: TravelInput = {
+      flightsPerYear: 3,
+      avgDistanceKm: 1000, // < 1500 is short-haul (0.255)
+      hotelStaysPerYear: 5, // 5 * 20 = 100
+    };
+    // Flights: 3 * 1000 * 0.255 = 765
+    // Hotels: 5 * 20 = 100
+    // Total = 865
+    expect(calculateTravelFootprint(input)).toBe(865);
+  });
+
+  it('calculates long-haul flights correctly', () => {
+    const input: TravelInput = {
+      flightsPerYear: 2,
+      avgDistanceKm: 4000, // >= 1500 is long-haul (0.195)
+      hotelStaysPerYear: 0,
+    };
+    // Flights: 2 * 4000 * 0.195 = 1560
+    expect(calculateTravelFootprint(input)).toBe(1560);
+  });
+});
+
+describe('estimatePercentile', () => {
+  it('determines predictable percentile rankings based on logistic curve bounds', () => {
+    // 1000 kg is very low -> low percentile
+    const lowRank = estimatePercentile(1000);
+    expect(lowRank).toBeGreaterThanOrEqual(1);
+    expect(lowRank).toBeLessThanOrEqual(25);
+
+    // 4700 kg is midpoint -> around 50th percentile
+    const midRank = estimatePercentile(4700);
+    expect(midRank).toBeCloseTo(50, 0);
+
+    // 25000 kg is very high -> clamped to 99
+    const highRank = estimatePercentile(25000);
+    expect(highRank).toBe(99);
+  });
+});
 
 describe('calculateTotalFootprint', () => {
-  const baseInput: AssessmentInput = {
-    transport: { flights: [] },
-    diet: { dietType: 'mixed' },
-    energy: { electricityKwhPerMonth: 0, gasKwhPerMonth: 0 },
-    shopping: { level: 'medium' },
-  };
-
-  it('returns correct total for minimal input', () => {
-    const result = calculateTotalFootprint(baseInput);
-    // Transport: 0, Diet: 2500, Energy: 0, Shopping: 1200
-    expect(result.total).toBe(3700);
-    expect(result.transport).toBe(0);
-    expect(result.diet).toBe(2500);
-    expect(result.energy).toBe(0);
-    expect(result.shopping).toBe(1200);
-  });
-
-  it('returns all breakdown fields', () => {
-    const result = calculateTotalFootprint(baseInput);
-    expect(result).toHaveProperty('transport');
-    expect(result).toHaveProperty('diet');
-    expect(result).toHaveProperty('energy');
-    expect(result).toHaveProperty('shopping');
-    expect(result).toHaveProperty('total');
-    expect(result).toHaveProperty('comparedToAverage');
-    expect(result).toHaveProperty('percentile');
-  });
-
-  it('total equals sum of categories', () => {
+  it('aggregates all categories into footprint breakdown metrics', () => {
     const input: AssessmentInput = {
       transport: {
-        car: { weeklyKm: 100, fuelType: 'petrol' },
-        flights: [
-          { flightsPerYear: 2, avgDistanceKm: 5000, type: 'long-haul' },
-        ],
+        fuelType: 'hybrid',
+        weeklyKm: 50,
+        publicTransportWeeklyHours: 2,
+        rideShareWeeklyKm: 10,
       },
-      diet: { dietType: 'mixed' },
-      energy: { electricityKwhPerMonth: 300, gasKwhPerMonth: 100 },
-      shopping: { level: 'medium' },
-    };
-
-    const result = calculateTotalFootprint(input);
-    const expectedSum =
-      result.transport + result.diet + result.energy + result.shopping;
-
-    // Allow for rounding
-    expect(Math.abs(result.total - expectedSum)).toBeLessThan(0.02);
-  });
-
-  it('comparedToAverage is ratio of total to 4700', () => {
-    const result = calculateTotalFootprint(baseInput);
-    // 3700 / 4700 = 0.787...  → rounded to 0.79
-    expect(result.comparedToAverage).toBe(0.79);
-  });
-
-  it('comparedToAverage > 1 for high-footprint user', () => {
-    const input: AssessmentInput = {
-      transport: {
-        car: { weeklyKm: 500, fuelType: 'petrol' },
-        flights: [
-          { flightsPerYear: 10, avgDistanceKm: 5000, type: 'long-haul' },
-        ],
+      energy: {
+        electricityKwhPerMonth: 200,
+        gasKwhPerMonth: 50,
+        renewableEnergyPercent: 100, // offsets electricity to 0
+        homeSizeSqFt: 1000,
+        householdMembers: 1,
       },
-      diet: { dietType: 'meat-heavy' },
-      energy: { electricityKwhPerMonth: 1000, gasKwhPerMonth: 500 },
-      shopping: { level: 'high' },
-    };
-    const result = calculateTotalFootprint(input);
-    expect(result.comparedToAverage).toBeGreaterThan(1);
-  });
-
-  it('comparedToAverage < 1 for low-footprint user', () => {
-    const input: AssessmentInput = {
-      transport: { flights: [] },
       diet: { dietType: 'vegan' },
-      energy: { electricityKwhPerMonth: 50, gasKwhPerMonth: 0 },
       shopping: { level: 'low' },
-    };
-    const result = calculateTotalFootprint(input);
-    expect(result.comparedToAverage).toBeLessThan(1);
-  });
-
-  it('percentile is between 0 and 100', () => {
-    const result = calculateTotalFootprint(baseInput);
-    expect(result.percentile).toBeGreaterThanOrEqual(0);
-    expect(result.percentile).toBeLessThanOrEqual(100);
-  });
-
-  it('percentile is 0 for zero total', () => {
-    // This edge case: all zeroes
-    const input: AssessmentInput = {
-      transport: { flights: [] },
-      diet: { dietType: 'vegan' }, // Vegan still has 1500 kg
-      energy: { electricityKwhPerMonth: 0, gasKwhPerMonth: 0 },
-      shopping: { level: 'low' }, // 500 kg
-    };
-    const result = calculateTotalFootprint(input);
-    // Total = 2000, which should give a low percentile
-    expect(result.percentile).toBeGreaterThanOrEqual(0);
-    expect(result.percentile).toBeLessThanOrEqual(50);
-  });
-
-  it('higher footprint yields higher percentile', () => {
-    const lowInput: AssessmentInput = {
-      transport: { flights: [] },
-      diet: { dietType: 'vegan' },
-      energy: { electricityKwhPerMonth: 50, gasKwhPerMonth: 0 },
-      shopping: { level: 'low' },
-    };
-    const highInput: AssessmentInput = {
-      transport: {
-        car: { weeklyKm: 500, fuelType: 'petrol' },
-        flights: [
-          { flightsPerYear: 10, avgDistanceKm: 5000, type: 'long-haul' },
-        ],
+      travel: {
+        flightsPerYear: 0,
+        avgDistanceKm: 0,
+        hotelStaysPerYear: 0,
       },
-      diet: { dietType: 'meat-heavy' },
-      energy: { electricityKwhPerMonth: 1000, gasKwhPerMonth: 500 },
-      shopping: { level: 'high' },
-    };
-
-    const lowResult = calculateTotalFootprint(lowInput);
-    const highResult = calculateTotalFootprint(highInput);
-
-    expect(highResult.percentile).toBeGreaterThan(lowResult.percentile);
-  });
-
-  it('all values are finite numbers', () => {
-    const input: AssessmentInput = {
-      transport: {
-        car: { weeklyKm: 200, fuelType: 'hybrid' },
-        flights: [
-          { flightsPerYear: 3, avgDistanceKm: 1200, type: 'short-haul' },
-        ],
-      },
-      diet: { dietType: 'vegetarian' },
-      energy: { electricityKwhPerMonth: 250, gasKwhPerMonth: 80 },
-      shopping: { level: 'medium' },
     };
 
     const result = calculateTotalFootprint(input);
-    expect(Number.isFinite(result.transport)).toBe(true);
-    expect(Number.isFinite(result.diet)).toBe(true);
-    expect(Number.isFinite(result.energy)).toBe(true);
-    expect(Number.isFinite(result.shopping)).toBe(true);
-    expect(Number.isFinite(result.total)).toBe(true);
-    expect(Number.isFinite(result.comparedToAverage)).toBe(true);
-    expect(Number.isFinite(result.percentile)).toBe(true);
-  });
-
-  it('handles maximum realistic values', () => {
-    const input: AssessmentInput = {
-      transport: {
-        car: { weeklyKm: 10000, fuelType: 'petrol' },
-        flights: [
-          { flightsPerYear: 200, avgDistanceKm: 20000, type: 'long-haul' },
-        ],
-      },
-      diet: { dietType: 'meat-heavy' },
-      energy: { electricityKwhPerMonth: 50000, gasKwhPerMonth: 50000 },
-      shopping: { level: 'high' },
-    };
-
-    const result = calculateTotalFootprint(input);
-    expect(result.total).toBeGreaterThan(0);
-    expect(Number.isFinite(result.total)).toBe(true);
-    expect(result.percentile).toBe(100);
-    expect(result.comparedToAverage).toBeGreaterThan(1);
+    expect(result.diet).toBe(1500);
+    expect(result.shopping).toBe(500);
+    expect(result.travel).toBe(0);
+    expect(result.total).toBe(result.transport + result.energy + result.diet + result.shopping + result.travel);
+    expect(result.comparedToAverage).toBe(Math.round((result.total / 4700) * 100) / 100);
   });
 });

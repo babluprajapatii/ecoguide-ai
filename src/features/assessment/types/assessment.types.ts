@@ -1,115 +1,98 @@
 /**
  * Type definitions for the Carbon Assessment feature.
- *
- * These types model the inputs and outputs of the carbon footprint
- * calculator and are used across the service layer, API routes,
- * and UI components.
  */
 
 // ---------------------------------------------------------------------------
 // Emission Factor Enums
 // ---------------------------------------------------------------------------
 
-/** Supported vehicle fuel types for transport emissions calculation. */
-export type FuelType = 'petrol' | 'diesel' | 'electric' | 'hybrid';
+export type FuelType = 'petrol' | 'diesel' | 'electric' | 'hybrid' | 'none';
 
-/** Flight distance categories affecting per-km emission factors. */
-export type FlightType = 'short-haul' | 'long-haul';
-
-/** Dietary pattern categories ranked by annual CO2 impact. */
 export type DietType = 'vegan' | 'vegetarian' | 'mixed' | 'meat-heavy';
 
-/** Consumer spending intensity levels. */
 export type ShoppingLevel = 'low' | 'medium' | 'high';
 
 // ---------------------------------------------------------------------------
 // Calculator Inputs
 // ---------------------------------------------------------------------------
 
-/** Input for calculating annual car transport emissions. */
-export interface CarInput {
-  /** Weekly distance driven in kilometers. */
-  readonly weeklyKm: number;
-  /** Fuel type of the vehicle. */
-  readonly fuelType: FuelType;
-}
-
-/** Input for calculating annual flight emissions. */
-export interface FlightInput {
-  /** Number of flights per year for this category. */
-  readonly flightsPerYear: number;
-  /** Average distance per flight in kilometers. */
-  readonly avgDistanceKm: number;
-  /** Flight distance category. */
-  readonly type: FlightType;
-}
-
-/** Combined transport input for all modes of travel. */
 export interface TransportInput {
-  /** Car travel details. Omit if no car is used. */
-  readonly car?: CarInput;
-  /** Flight details broken down by category. */
-  readonly flights: readonly FlightInput[];
+  readonly weeklyKm: number;
+  readonly fuelType: FuelType;
+  readonly publicTransportWeeklyHours: number;
+  readonly rideShareWeeklyKm: number;
 }
 
-/** Input for calculating annual diet emissions. */
+export interface EnergyInput {
+  readonly electricityKwhPerMonth: number;
+  readonly gasKwhPerMonth: number;
+  readonly renewableEnergyPercent: number;
+  readonly homeSizeSqFt: number;
+  readonly householdMembers: number;
+}
+
 export interface DietInput {
-  /** Self-reported dietary pattern. */
   readonly dietType: DietType;
 }
 
-/** Input for calculating annual household energy emissions. */
-export interface EnergyInput {
-  /** Monthly electricity consumption in kWh. */
-  readonly electricityKwhPerMonth: number;
-  /** Monthly natural gas consumption in kWh. */
-  readonly gasKwhPerMonth: number;
-  /**
-   * Grid carbon intensity in kg CO2 per kWh.
-   * Defaults to UK grid average (0.233) if omitted.
-   */
-  readonly electricityGridFactor?: number;
-}
-
-/** Input for calculating annual shopping/consumption emissions. */
 export interface ShoppingInput {
-  /** Self-reported shopping intensity level. */
   readonly level: ShoppingLevel;
 }
 
-/** Complete assessment input combining all categories. */
+export interface TravelInput {
+  readonly flightsPerYear: number;
+  readonly avgDistanceKm: number;
+  readonly hotelStaysPerYear: number;
+}
+
 export interface AssessmentInput {
   readonly transport: TransportInput;
-  readonly diet: DietInput;
   readonly energy: EnergyInput;
+  readonly diet: DietInput;
   readonly shopping: ShoppingInput;
+  readonly travel: TravelInput;
 }
+
+// Default values for initialisation
+export const DEFAULT_ASSESSMENT_INPUT: AssessmentInput = {
+  transport: {
+    weeklyKm: 0,
+    fuelType: 'none',
+    publicTransportWeeklyHours: 0,
+    rideShareWeeklyKm: 0,
+  },
+  energy: {
+    electricityKwhPerMonth: 0,
+    gasKwhPerMonth: 0,
+    renewableEnergyPercent: 0,
+    homeSizeSqFt: 0,
+    householdMembers: 1,
+  },
+  diet: {
+    dietType: 'mixed',
+  },
+  shopping: {
+    level: 'medium',
+  },
+  travel: {
+    flightsPerYear: 0,
+    avgDistanceKm: 0,
+    hotelStaysPerYear: 0,
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Calculator Outputs
 // ---------------------------------------------------------------------------
 
-/** Full breakdown of calculated carbon footprint. */
 export interface FootprintBreakdown {
-  /** Annual transport emissions in kg CO2. */
   readonly transport: number;
-  /** Annual diet emissions in kg CO2. */
   readonly diet: number;
-  /** Annual energy emissions in kg CO2. */
   readonly energy: number;
-  /** Annual shopping emissions in kg CO2. */
   readonly shopping: number;
-  /** Total annual emissions in kg CO2. */
+  readonly travel: number;
   readonly total: number;
-  /**
-   * Ratio of user's footprint to the global average (approx 4,700 kg CO2/yr).
-   * Values < 1 mean below average; > 1 means above average.
-   */
   readonly comparedToAverage: number;
-  /**
-   * Estimated percentile ranking (0–100).
-   * Lower values indicate a smaller footprint relative to the population.
-   */
   readonly percentile: number;
 }
 
@@ -117,48 +100,62 @@ export interface FootprintBreakdown {
 // Wizard State
 // ---------------------------------------------------------------------------
 
-/** Steps of the assessment wizard in order. */
-export type WizardStep = 'transport' | 'diet' | 'energy' | 'shopping' | 'review';
+export type WizardStep = 'welcome' | 'transport' | 'energy' | 'diet' | 'shopping' | 'travel' | 'results';
 
-/** Full state managed by the wizard's useReducer. */
 export interface WizardState {
   readonly currentStep: WizardStep;
   readonly transport: TransportInput;
-  readonly diet: DietInput;
   readonly energy: EnergyInput;
+  readonly diet: DietInput;
   readonly shopping: ShoppingInput;
+  readonly travel: TravelInput;
   readonly result: FootprintBreakdown | null;
+  readonly grade: string | null;
+  readonly recommendations: readonly string[];
   readonly isSubmitting: boolean;
   readonly error: string | null;
+  readonly draftVersion: number;
+  readonly isSaving: boolean;
 }
 
-/** All possible actions dispatched by the wizard. */
 export type WizardAction =
   | { type: 'SET_TRANSPORT'; payload: TransportInput }
-  | { type: 'SET_DIET'; payload: DietInput }
   | { type: 'SET_ENERGY'; payload: EnergyInput }
+  | { type: 'SET_DIET'; payload: DietInput }
   | { type: 'SET_SHOPPING'; payload: ShoppingInput }
+  | { type: 'SET_TRAVEL'; payload: TravelInput }
   | { type: 'GO_TO_STEP'; payload: WizardStep }
   | { type: 'SUBMIT_START' }
-  | { type: 'SUBMIT_SUCCESS'; payload: FootprintBreakdown }
+  | { type: 'SUBMIT_SUCCESS'; payload: { breakdown: FootprintBreakdown; grade: string; recommendations: readonly string[] } }
   | { type: 'SUBMIT_ERROR'; payload: string }
+  | { type: 'RESTORE_DRAFT'; payload: { inputs: AssessmentInput; step: WizardStep; version: number } }
+  | { type: 'SET_SAVING'; payload: boolean }
+  | { type: 'INCREMENT_DRAFT_VERSION' }
   | { type: 'RESET' };
 
 // ---------------------------------------------------------------------------
 // API Types
 // ---------------------------------------------------------------------------
 
-/** Shape of the POST body sent to /api/assessment. */
 export interface AssessmentApiRequest {
   readonly transport: TransportInput;
-  readonly diet: DietInput;
   readonly energy: EnergyInput;
+  readonly diet: DietInput;
   readonly shopping: ShoppingInput;
+  readonly travel: TravelInput;
 }
 
-/** Shape of the successful response from /api/assessment. */
 export interface AssessmentApiResponse {
   readonly id: string;
   readonly breakdown: FootprintBreakdown;
+  readonly grade: string;
+  readonly recommendations: readonly string[];
   readonly createdAt: string;
+}
+
+export interface DraftApiResponse {
+  readonly inputs: AssessmentInput;
+  readonly currentStep: WizardStep;
+  readonly draftVersion: number;
+  readonly lastSavedAt: string;
 }

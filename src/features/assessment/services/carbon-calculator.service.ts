@@ -2,7 +2,7 @@
  * Carbon Footprint Calculator Service
  *
  * Pure-function service that computes annual CO2 emissions (in kg)
- * across transport, diet, energy, and shopping categories.
+ * across transport, energy, diet, shopping, and travel categories.
  *
  * All emission factors are sourced from EPA/IPCC published data.
  * Functions are stateless with zero side effects — safe to call
@@ -13,167 +13,171 @@
 
 import type {
   AssessmentInput,
-  CarInput,
-  DietType,
+  DietInput,
   EnergyInput,
-  FlightInput,
   FootprintBreakdown,
   FuelType,
   ShoppingInput,
   ShoppingLevel,
   TransportInput,
-  DietInput,
+  TravelInput,
 } from '@/features/assessment/types/assessment.types';
 
 // ---------------------------------------------------------------------------
 // Constants — Emission Factors
 // ---------------------------------------------------------------------------
 
-/** Weeks in a year, used to annualise weekly figures. */
 const WEEKS_PER_YEAR = 52;
-
-/** Months in a year, used to annualise monthly figures. */
 const MONTHS_PER_YEAR = 12;
 
-/**
- * Car CO2 emission factors in kg CO2 per kilometer.
- * Source: EPA/IPCC average tailpipe + upstream emissions.
- */
+/** Car CO2 emission factors in kg CO2 per kilometer. */
 const CAR_FACTORS: Readonly<Record<FuelType, number>> = {
   petrol: 0.21,
   diesel: 0.17,
   electric: 0.05,
   hybrid: 0.11,
+  none: 0,
 } as const;
 
-/**
- * Flight CO2 emission factors in kg CO2 per passenger-kilometer.
- * Short-haul includes taxi/takeoff fuel penalty; long-haul amortises it.
- */
-const FLIGHT_FACTORS: Readonly<Record<'short-haul' | 'long-haul', number>> = {
-  'short-haul': 0.255,
-  'long-haul': 0.195,
-} as const;
+/** Public transport hourly emissions in kg CO2 (bus/train average). */
+const PUBLIC_TRANSPORT_FACTOR_PER_HOUR = 0.8;
 
-/**
- * Annual diet CO2 emissions in kg by dietary pattern.
- * Source: IPCC food-system lifecycle analyses.
- */
-const DIET_ANNUAL_KG: Readonly<Record<DietType, number>> = {
-  vegan: 1_500,
-  vegetarian: 1_700,
-  mixed: 2_500,
-  'meat-heavy': 3_300,
-} as const;
+/** Ride sharing emission factor in kg CO2 per km (shared passenger-km factor). */
+const RIDESHARE_FACTOR_PER_KM = 0.12;
 
-/**
- * Default electricity grid carbon intensity in kg CO2 per kWh.
- * UK grid average — override per-user for other regions.
- */
+/** Default grid carbon intensity in kg CO2 per kWh. */
 const DEFAULT_ELECTRICITY_FACTOR = 0.233;
 
 /** Natural gas emission factor in kg CO2 per kWh. */
 const NATURAL_GAS_FACTOR = 2.04;
 
-/**
- * Annual shopping/consumption CO2 emissions in kg by spending level.
- * Encompasses goods manufacturing, shipping, and disposal.
- */
-const SHOPPING_ANNUAL_KG: Readonly<Record<ShoppingLevel, number>> = {
-  low: 500,
-  medium: 1_200,
-  high: 2_500,
+/** Home size annual carbon impact factor per square foot (in kg CO2). */
+const HOME_SIZE_ANNUAL_FACTOR = 0.5;
+
+/** Annual diet CO2 emissions in kg by dietary pattern. */
+const DIET_ANNUAL_KG: Readonly<Record<string, number>> = {
+  vegan: 1500,
+  vegetarian: 1700,
+  mixed: 2500,
+  'meat-heavy': 3300,
 } as const;
 
+/** Annual shopping emissions in kg CO2 by spending level. */
+const SHOPPING_ANNUAL_KG: Readonly<Record<ShoppingLevel, number>> = {
+  low: 500,
+  medium: 1200,
+  high: 2500,
+} as const;
+
+/** Flight emission factors per passenger-km. Short-haul has high take-off penalty. */
+const FLIGHT_FACTORS = {
+  shortHaul: 0.255, // Under 1500 km
+  longHaul: 0.195,  // 1500 km and above
+} as const;
+
+/** Hotel stay emission factor in kg CO2 per night. */
+const HOTEL_STAY_FACTOR_PER_NIGHT = 20;
+
+/** Baseline global average footprint (kg CO2/year) for comparison. */
+const GLOBAL_AVERAGE_KG = 4700;
+
+// ---------------------------------------------------------------------------
+// Safety Guards
+// ---------------------------------------------------------------------------
+
 /**
- * Global average annual CO2 footprint per person in kg.
- * Used as the baseline for comparison metrics.
- * Source: World Bank / Our World in Data (≈ 4.7 tonnes).
+ * Clamps emissions to a positive, finite float.
+ * Prevents NaN, Infinity, and negative values.
  */
-const GLOBAL_AVERAGE_KG = 4_700;
+export function clampEmission(val: number): number {
+  if (isNaN(val) || !isFinite(val)) return 0;
+  return Math.max(0, val);
+}
 
 // ---------------------------------------------------------------------------
 // Individual Category Calculators
 // ---------------------------------------------------------------------------
 
 /**
- * Calculates the annual CO2 emissions from a single car.
- *
- * @param input - Car usage details (weekly km and fuel type).
- * @returns Annual CO2 emissions in kilograms.
- */
-function calculateCarEmissions(input: CarInput): number {
-  const factor = CAR_FACTORS[input.fuelType];
-  return input.weeklyKm * factor * WEEKS_PER_YEAR;
-}
-
-/**
- * Calculates the annual CO2 emissions from a single flight category.
- *
- * @param input - Flight details (flights/yr, avg distance, haul type).
- * @returns Annual CO2 emissions in kilograms.
- */
-function calculateFlightEmissions(input: FlightInput): number {
-  const factor = FLIGHT_FACTORS[input.type];
-  return input.flightsPerYear * input.avgDistanceKm * factor;
-}
-
-/**
- * Calculates the total annual CO2 from all transport modes.
- *
- * Sums car emissions (if provided) with all flight categories.
- *
- * @param input - Transport input with optional car and flight details.
- * @returns Annual transport CO2 emissions in kilograms.
+ * Calculates transport footprint.
+ * Includes car, public transport, and ride sharing.
  */
 export function calculateTransportFootprint(input: TransportInput): number {
-  let total = 0;
-
-  if (input.car) {
-    total += calculateCarEmissions(input.car);
+  let carEmissions = 0;
+  if (input.fuelType !== 'none') {
+    const factor = CAR_FACTORS[input.fuelType] ?? 0;
+    carEmissions = input.weeklyKm * factor * WEEKS_PER_YEAR;
   }
 
-  for (const flight of input.flights) {
-    total += calculateFlightEmissions(flight);
-  }
+  const publicTransportEmissions = input.publicTransportWeeklyHours * PUBLIC_TRANSPORT_FACTOR_PER_HOUR * WEEKS_PER_YEAR;
+  const rideShareEmissions = input.rideShareWeeklyKm * RIDESHARE_FACTOR_PER_KM * WEEKS_PER_YEAR;
 
-  return Math.round(total * 100) / 100;
+  return clampEmission(Math.round((carEmissions + publicTransportEmissions + rideShareEmissions) * 100) / 100);
 }
 
 /**
- * Calculates the annual CO2 emissions from dietary choices.
- *
- * @param input - Diet input with the user's dietary pattern.
- * @returns Annual diet CO2 emissions in kilograms.
- */
-export function calculateDietFootprint(input: DietInput): number {
-  return DIET_ANNUAL_KG[input.dietType];
-}
-
-/**
- * Calculates the annual CO2 emissions from household energy usage.
- *
- * Covers both electricity (with configurable grid factor) and natural gas.
- *
- * @param input - Energy input with monthly kWh figures.
- * @returns Annual energy CO2 emissions in kilograms.
+ * Calculates household energy footprint.
+ * Account for renewable energy offset and household member sharing.
  */
 export function calculateEnergyFootprint(input: EnergyInput): number {
-  const gridFactor = input.electricityGridFactor ?? DEFAULT_ELECTRICITY_FACTOR;
-  const electricityAnnual = input.electricityKwhPerMonth * MONTHS_PER_YEAR * gridFactor;
+  // Guard against division by zero
+  const members = Math.max(1, input.householdMembers || 1);
+  const renewFactor = Math.max(0, Math.min(100, input.renewableEnergyPercent || 0)) / 100;
+
+  const gridFactor = DEFAULT_ELECTRICITY_FACTOR;
+  
+  // Electricity emissions with renewable reduction
+  const rawElectricityAnnual = input.electricityKwhPerMonth * MONTHS_PER_YEAR * gridFactor;
+  const electricityAnnual = rawElectricityAnnual * (1 - renewFactor);
+
+  // Gas emissions
   const gasAnnual = input.gasKwhPerMonth * MONTHS_PER_YEAR * NATURAL_GAS_FACTOR;
 
-  return Math.round((electricityAnnual + gasAnnual) * 100) / 100;
+  // Home size baseline emissions
+  const homeSizeAnnual = input.homeSizeSqFt * HOME_SIZE_ANNUAL_FACTOR;
+
+  // Shared energy emissions divided per household member
+  const totalHouseholdEmissions = electricityAnnual + gasAnnual + homeSizeAnnual;
+  const perCapitaEmissions = totalHouseholdEmissions / members;
+
+  return clampEmission(Math.round(perCapitaEmissions * 100) / 100);
 }
 
 /**
- * Calculates the annual CO2 emissions from shopping/consumption habits.
- *
- * @param input - Shopping input with spending intensity level.
- * @returns Annual shopping CO2 emissions in kilograms.
+ * Calculates diet footprint.
+ */
+export function calculateDietFootprint(input: DietInput): number {
+  const score = DIET_ANNUAL_KG[input.dietType] ?? 2500;
+  return clampEmission(score);
+}
+
+/**
+ * Calculates shopping footprint.
  */
 export function calculateShoppingFootprint(input: ShoppingInput): number {
-  return SHOPPING_ANNUAL_KG[input.level];
+  const score = SHOPPING_ANNUAL_KG[input.level] ?? 1200;
+  return clampEmission(score);
+}
+
+/**
+ * Calculates travel footprint.
+ * Covers flights (short/long haul) and hotel stays.
+ *
+ * Future Extensibility Notes:
+ * - Distance-based airport code lookup mapping.
+ * - Regional grid intensity variance for hotels.
+ * - Seat-class multipliers (business, first class penalties).
+ */
+export function calculateTravelFootprint(input: TravelInput): number {
+  const flightDistanceThreshold = 1500;
+  const flightFactor = input.avgDistanceKm < flightDistanceThreshold
+    ? FLIGHT_FACTORS.shortHaul
+    : FLIGHT_FACTORS.longHaul;
+
+  const flightEmissions = input.flightsPerYear * input.avgDistanceKm * flightFactor;
+  const hotelEmissions = input.hotelStaysPerYear * HOTEL_STAY_FACTOR_PER_NIGHT;
+
+  return clampEmission(Math.round((flightEmissions + hotelEmissions) * 100) / 100);
 }
 
 // ---------------------------------------------------------------------------
@@ -181,27 +185,18 @@ export function calculateShoppingFootprint(input: ShoppingInput): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Estimates a percentile ranking for the given annual footprint.
- *
- * Uses a simplified logistic model calibrated against global distribution
- * data. The curve is centred on the global average (~4,700 kg) with a
- * spread factor that approximates the real-world variance.
- *
- * @param totalKg - Total annual CO2 emissions in kilograms.
- * @returns Estimated percentile (0–100, rounded to nearest integer).
- *
- * @internal
+ * Estimates a percentile ranking for the footprint.
+ * Uses a logistic model centered on the global average (4700 kg).
  */
-function estimatePercentile(totalKg: number): number {
-  if (totalKg <= 0) return 0;
+export function estimatePercentile(totalKg: number): number {
+  if (totalKg <= 0) return 1;
 
-  // Logistic function: 100 / (1 + e^(-k*(x - midpoint)))
-  // k controls steepness; midpoint = global average
   const k = 0.0004;
   const midpoint = GLOBAL_AVERAGE_KG;
   const percentile = 100 / (1 + Math.exp(-k * (totalKg - midpoint)));
 
-  return Math.round(Math.min(Math.max(percentile, 0), 100));
+  // Clamp percentile between 1 and 99 for a realistic rank representation
+  return Math.round(Math.min(Math.max(percentile, 1), 99));
 }
 
 // ---------------------------------------------------------------------------
@@ -209,42 +204,25 @@ function estimatePercentile(totalKg: number): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Calculates a complete carbon footprint breakdown from all assessment inputs.
- *
- * Computes each category independently, sums the total, and derives
- * comparison metrics against the global average.
- *
- * @param inputs - Full assessment input across all categories.
- * @returns A `FootprintBreakdown` with per-category totals and comparison metrics.
- *
- * @example
- * ```ts
- * const breakdown = calculateTotalFootprint({
- *   transport: { flights: [], car: { weeklyKm: 100, fuelType: 'petrol' } },
- *   diet: { dietType: 'mixed' },
- *   energy: { electricityKwhPerMonth: 300, gasKwhPerMonth: 100 },
- *   shopping: { level: 'medium' },
- * });
- *
- * console.log(breakdown.total); // e.g. ~6_880 kg CO2/yr
- * console.log(breakdown.comparedToAverage); // e.g. 1.46
- * ```
+ * Calculates a complete carbon footprint breakdown.
  */
 export function calculateTotalFootprint(inputs: AssessmentInput): FootprintBreakdown {
   const transport = calculateTransportFootprint(inputs.transport);
-  const diet = calculateDietFootprint(inputs.diet);
   const energy = calculateEnergyFootprint(inputs.energy);
+  const diet = calculateDietFootprint(inputs.diet);
   const shopping = calculateShoppingFootprint(inputs.shopping);
+  const travel = calculateTravelFootprint(inputs.travel);
 
-  const total = Math.round((transport + diet + energy + shopping) * 100) / 100;
-  const comparedToAverage = Math.round((total / GLOBAL_AVERAGE_KG) * 100) / 100;
+  const total = clampEmission(Math.round((transport + energy + diet + shopping + travel) * 100) / 100);
+  const comparedToAverage = clampEmission(Math.round((total / GLOBAL_AVERAGE_KG) * 100) / 100);
   const percentile = estimatePercentile(total);
 
   return {
     transport,
-    diet,
     energy,
+    diet,
     shopping,
+    travel,
     total,
     comparedToAverage,
     percentile,

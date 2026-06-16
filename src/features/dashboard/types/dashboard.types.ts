@@ -19,6 +19,7 @@ export interface AssessmentRecord {
   readonly diet_kg: number;
   readonly energy_kg: number;
   readonly shopping_kg: number;
+  readonly travel_kg: number;
   readonly total_kg: number;
   readonly compared_to_average: number;
   readonly percentile: number;
