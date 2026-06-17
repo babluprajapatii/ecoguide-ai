@@ -12,24 +12,57 @@ export interface UseCoachReturn {
   error: Error | null;
   /** Sends a new chat message to the coaching API. */
   sendMessage: (text: string) => Promise<void>;
-  /** Clears the chat message log and resets error state. */
+  /** Clears the chat message log and resets error state in both client and DB. */
   clearChat: () => void;
+  /** Indicates if initial history is being loaded. */
+  isLoadingHistory: boolean;
 }
 
 /**
  * Custom hook for interacting with the Sustainability Coach API.
- * Handles request aborting, message history slicing, and streaming decode chunks.
+ * Synchronizes client message state with PostgreSQL logs on the Supabase backend.
  */
 export function useCoach(): UseCoachReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Clean up any pending requests on unmount
+  // Load chat history from DB on mount
   useEffect(() => {
+    let active = true;
+
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/coach/history');
+        if (!res.ok) {
+          throw new Error(`Failed to load history: ${res.status}`);
+        }
+        const data = await res.json();
+        if (active) {
+          const mappedHistory: Message[] = (data || []).map((item: any, idx: number) => ({
+            id: `history-${idx}-${item.created_at}`,
+            role: item.role,
+            content: item.message,
+            createdAt: item.created_at,
+          }));
+          setMessages(mappedHistory);
+        }
+      } catch (err) {
+        console.error('[useCoach] Error loading conversation history:', err);
+      } finally {
+        if (active) {
+          setIsLoadingHistory(false);
+        }
+      }
+    }
+
+    void loadHistory();
+
     return () => {
+      active = false;
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -37,13 +70,20 @@ export function useCoach(): UseCoachReturn {
   }, []);
 
   const clearChat = useCallback(() => {
+    // Optimistic UI clear
     setMessages([]);
     setError(null);
+    setIsStreaming(false);
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
-    setIsStreaming(false);
+
+    // Call DELETE API to sync database
+    void fetch('/api/coach/history', { method: 'DELETE' }).catch((err) => {
+      console.error('[useCoach] Failed to clear DB history:', err);
+    });
   }, []);
 
   const sendMessage = useCallback(
@@ -51,11 +91,9 @@ export function useCoach(): UseCoachReturn {
       const trimmedText = text.trim();
       if (!trimmedText) return;
 
-      // Reset error, set loading states
       setError(null);
       setIsStreaming(true);
 
-      // Abort any ongoing request before starting a new one
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -71,8 +109,7 @@ export function useCoach(): UseCoachReturn {
         createdAt: new Date().toISOString(),
       };
 
-      // 2. Prepare conversation history (keep last 5 exchanges, max 10 messages)
-      // Filter out temporary empty messages if they exist
+      // 2. Prepare conversation history (last 10 messages)
       const activeMessages = messages.filter((m) => m.content.length > 0);
       const conversationHistory = activeMessages.slice(-10);
 
@@ -116,8 +153,8 @@ export function useCoach(): UseCoachReturn {
         setMessages((prev) => [...prev, assistantPlaceholder]);
 
         let accumulatedContent = '';
-
         let isReading = true;
+
         while (isReading) {
           const { done, value } = await reader.read();
           if (done) {
@@ -136,7 +173,6 @@ export function useCoach(): UseCoachReturn {
           );
         }
       } catch (err: unknown) {
-        // Ignore AbortController signal cancel exceptions
         if (err instanceof Error && err.name === 'AbortError') {
           return;
         }
@@ -144,7 +180,6 @@ export function useCoach(): UseCoachReturn {
         const resolvedError = err instanceof Error ? err : new Error('An unknown error occurred.');
         setError(resolvedError);
       } finally {
-        // Turn off streaming loader if it's the active request
         if (abortControllerRef.current === abortController) {
           setIsStreaming(false);
           abortControllerRef.current = null;
@@ -160,6 +195,7 @@ export function useCoach(): UseCoachReturn {
     error,
     sendMessage,
     clearChat,
+    isLoadingHistory,
   };
 }
 export default useCoach;

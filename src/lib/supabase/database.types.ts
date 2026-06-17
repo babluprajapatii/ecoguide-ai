@@ -190,7 +190,158 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          },
+          }
+        ];
+      };
+      goals: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          category: string;
+          target_value: number;
+          current_value: number;
+          unit: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          category: string;
+          target_value: number;
+          current_value?: number;
+          unit: string;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          category?: string;
+          target_value?: number;
+          current_value?: number;
+          unit?: string;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'goals_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      community_profiles: {
+        Row: {
+          id: string;
+          opt_in: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          opt_in?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          opt_in?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'community_profiles_id_fkey';
+            columns: ['id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      coach_conversations: {
+        Row: {
+          id: string;
+          user_id: string;
+          role: string;
+          message: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          role: string;
+          message: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          role?: string;
+          message?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'coach_conversations_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      coach_recommendations: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string;
+          priority: string;
+          estimated_savings: number;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          description: string;
+          priority: string;
+          estimated_savings: number;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          description?: string;
+          priority?: string;
+          estimated_savings?: number;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'coach_recommendations_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
         ];
       };
     };

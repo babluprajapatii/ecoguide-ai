@@ -167,6 +167,57 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Seed default goals if this is the user's first completed assessment
+  try {
+    const { count, error: countError } = await supabase
+      .from('assessments')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_complete', true);
+
+    if (!countError && count === 1) {
+      const defaultGoals = [
+        {
+          user_id: user.id,
+          title: 'Reduce carbon footprint by 10%',
+          category: 'total',
+          target_value: 10,
+          current_value: 0,
+          unit: '%',
+          status: 'in_progress',
+        },
+        {
+          user_id: user.id,
+          title: 'Switch to 100% renewable energy',
+          category: 'energy',
+          target_value: 100,
+          current_value: 0,
+          unit: '%',
+          status: 'in_progress',
+        },
+        {
+          user_id: user.id,
+          title: 'Reduce annual travel emissions by 500kg',
+          category: 'travel',
+          target_value: 500,
+          current_value: 0,
+          unit: 'kg',
+          status: 'in_progress',
+        },
+      ];
+
+      const { error: goalsSeedError } = await supabase
+        .from('goals')
+        .insert(defaultGoals);
+
+      if (goalsSeedError) {
+        console.warn('[API /assessment] Failed to seed default goals:', goalsSeedError);
+      }
+    }
+  } catch (err) {
+    console.error('[API /assessment] Error checking/seeding goals:', err);
+  }
+
   // Proactively delete the active draft now that the assessment is complete
   const { error: draftDeleteError } = await supabase
     .from('assessments')
