@@ -39,17 +39,18 @@ function calculateStreak(createdDates: string[]): number {
   }
 
   let streak = 1;
-  let currentDate = new Date(newestDate!);
+  const currentDate = new Date(newestDate!);
+  let hasNext = true;
 
   // Scan backwards day-by-day
-  while (true) {
+  while (hasNext) {
     currentDate.setDate(currentDate.getDate() - 1);
     const targetDateStr = getLocalDateString(currentDate);
 
     if (dates.includes(targetDateStr)) {
       streak++;
     } else {
-      break;
+      hasNext = false;
     }
   }
 
@@ -66,7 +67,7 @@ function getLocalDateString(date: Date): string {
  * GET /api/coach/dashboard
  * Compiles real-time metrics for the AI coach dashboard panel.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = createClient();
     const {

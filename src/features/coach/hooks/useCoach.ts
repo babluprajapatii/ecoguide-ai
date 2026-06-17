@@ -42,7 +42,9 @@ export function useCoach(): UseCoachReturn {
         }
         const data = await res.json();
         if (active) {
-          const mappedHistory: Message[] = (data || []).map((item: any, idx: number) => ({
+          const mappedHistory: Message[] = (
+            (data as Array<{ role: 'user' | 'assistant'; message: string; created_at: string }>) || []
+          ).map((item, idx: number) => ({
             id: `history-${idx}-${item.created_at}`,
             role: item.role,
             content: item.message,

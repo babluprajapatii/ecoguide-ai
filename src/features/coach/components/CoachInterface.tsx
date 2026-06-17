@@ -7,7 +7,7 @@ import { SuggestedPrompts } from './SuggestedPrompts';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useBadges } from '@/features/gamification/hooks/useBadges';
 import { Sparkles, Trash2, Send, Copy, Check, Info } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 interface CoachInterfaceProps {
   /** User's highest footprint category from assessment database */
@@ -224,6 +224,9 @@ export function CoachInterface({
                         : 'bg-muted/60 text-foreground rounded-tl-none border border-border/40'
                     }`}
                   >
+                    <span className="sr-only">
+                      {isUser ? 'Message from user' : 'Message from EcoGuide AI'}
+                    </span>
                     {/* Copy Button for Coach Answers */}
                     {!isUser && msg.content && (
                       <button
@@ -319,12 +322,13 @@ export function CoachInterface({
             onKeyDown={handleKeyDown}
             disabled={isStreaming}
             rows={1}
-            aria-label="Send message to EcoGuide coach"
+            aria-label="Ask EcoGuide coach"
             placeholder="Ask a question about your carbon footprint..."
             className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-input bg-background/50 px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 resize-none font-sans"
           />
           <button
             type="submit"
+            aria-label="Send message to EcoGuide coach"
             disabled={isStreaming || !input.trim()}
             className="inline-flex items-center justify-center rounded-xl bg-emerald-600 h-10 w-10 text-white shadow transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 disabled:pointer-events-none disabled:opacity-40"
           >

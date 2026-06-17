@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/coach/history
  * Loads conversation history for the authenticated user (max 100 rows).
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = createClient();
     const {
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
  * DELETE /api/coach/history
  * Clears the authenticated user's chat logs.
  */
-export async function DELETE(request: NextRequest) {
+export async function DELETE(_request: NextRequest) {
   try {
     const supabase = createClient();
     const {

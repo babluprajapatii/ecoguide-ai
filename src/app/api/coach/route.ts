@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { coachRequestSchema } from '@/features/coach/schemas/coach.schemas';
+import { coachRequestSchema, type MessageSchemaType } from '@/features/coach/schemas/coach.schemas';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -75,7 +75,7 @@ const LEVEL_THRESHOLDS = [
 ] as const;
 
 function getLevelNameAndRank(totalPoints: number): { name: string; rank: number } {
-  let current = LEVEL_THRESHOLDS[0]!;
+  let current: { readonly name: string; readonly rank: number; readonly minPoints: number } = LEVEL_THRESHOLDS[0]!;
   for (const t of LEVEL_THRESHOLDS) {
     if (totalPoints >= t.minPoints) {
       current = t;
@@ -133,6 +133,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Prompt Injection Protections and Message Sanitization
     let sanitizedMessage = rawMessage
+      // eslint-disable-next-line no-control-regex
       .replace(/[\x00-\x1F\x7F-\x9F]/g, '') // Strip ASCII control sequences
       .replace(/\s+/g, ' ')                  // Normalize whitespace
       .trim();
@@ -171,7 +172,7 @@ export async function POST(request: NextRequest) {
     // Latest Completed Assessment
     const { data: latestAssessment } = await supabase
       .from('assessments')
-      .select('transport_kg, diet_kg, energy_kg, shopping_kg, travel_kg, total_kg, compared_to_average, percentile')
+      .select('transport_kg, diet_kg, energy_kg, shopping_kg, travel_score, total_kg, compared_to_average, percentile')
       .eq('is_complete', true)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -230,7 +231,7 @@ export async function POST(request: NextRequest) {
             diet_kg: Number(latestAssessment.diet_kg),
             energy_kg: Number(latestAssessment.energy_kg),
             shopping_kg: Number(latestAssessment.shopping_kg),
-            travel_kg: Number(latestAssessment.travel_kg),
+            travel_kg: Number(latestAssessment.travel_score),
             total_kg: Number(latestAssessment.total_kg),
             compared_to_average: Number(latestAssessment.compared_to_average),
             percentile: Number(latestAssessment.percentile),
@@ -267,7 +268,7 @@ export async function POST(request: NextRequest) {
         { name: 'Diet', val: Number(latestAssessment.diet_kg || 0) },
         { name: 'Energy', val: Number(latestAssessment.energy_kg || 0) },
         { name: 'Shopping', val: Number(latestAssessment.shopping_kg || 0) },
-        { name: 'Travel', val: Number(latestAssessment.travel_kg || 0) },
+        { name: 'Travel', val: Number(latestAssessment.travel_score || 0) },
       ];
       highestCategory = cats.reduce((prev, curr) => (curr.val > prev.val ? curr : prev)).name;
     }
@@ -343,7 +344,7 @@ What specific goals or challenges do you face in reducing your ${highestCategory
     }
 
     // Live Mode: Format chat history for Anthropic Claude
-    const formattedMessages = conversationHistory.map((msg: any) => ({
+    const formattedMessages = conversationHistory.map((msg: MessageSchemaType) => ({
       role: msg.role,
       content: msg.content,
     }));

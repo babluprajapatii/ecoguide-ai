@@ -1,8 +1,8 @@
 'use client';
 
-import { useCoachDashboard, type CoachRecommendation } from '../hooks/useCoachDashboard';
+import { useCoachDashboard } from '../hooks/useCoachDashboard';
 import { Flame, MessageSquare, Lightbulb, CheckCircle2, XCircle, Trash2, Award, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useState } from 'react';
 
 export function CoachStats() {
@@ -46,7 +46,7 @@ export function CoachStats() {
     setShowAddForm(false);
   };
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: {},
     show: {
       transition: {
@@ -55,7 +55,7 @@ export function CoachStats() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 10 },
     show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
   };

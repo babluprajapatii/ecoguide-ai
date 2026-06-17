@@ -25,7 +25,7 @@ const updateRecommendationSchema = z.object({
  * GET /api/coach/recommendations
  * Loads recommendations. Seeds once based on highest carbon footprint category if empty.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = createClient();
     const {
