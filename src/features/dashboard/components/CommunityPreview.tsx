@@ -179,15 +179,27 @@ export function CommunityPreview() {
                       )}
                     </td>
                     <td className="py-2.5 pr-2 text-right font-medium">
-                      {(item.score / 1000).toFixed(1)}t CO₂
+                      {item.score.toLocaleString()} XP
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          {/* Link to full community leaderboard */}
+          <div className="pt-2 border-t border-border/40">
+            <a
+              href="/community"
+              className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center justify-center gap-1 group transition-colors"
+            >
+              <span>View Full Leaderboard</span>
+              <span className="transform group-hover:translate-x-0.5 transition-transform">→</span>
+            </a>
+          </div>
         </div>
       )}
     </div>
   );
 }
+

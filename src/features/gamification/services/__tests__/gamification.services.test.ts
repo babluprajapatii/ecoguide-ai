@@ -5,7 +5,7 @@ import { evaluateStreak } from '../streak.service';
 import { getXpEarnedSummary, getProgressionHistory } from '../gamification-analytics.service';
 
 // Mock Supabase
-const dbStore: Record<string, { data: any; error: any }> = {
+const dbStore: any = {
   points_transactions: { data: [], error: null },
   user_points: { data: null, error: null },
 };

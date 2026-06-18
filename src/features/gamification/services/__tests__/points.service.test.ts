@@ -10,7 +10,7 @@ import {
 import type { GamificationAction } from '@/features/gamification/types/gamification.types';
 
 // Multi-table mock setup
-const dbStore: Record<string, { data: any; error: any }> = {
+const dbStore: any = {
   points_transactions: { data: [], error: null },
   user_points: { data: null, error: null },
   user_badges: { data: [], error: null },

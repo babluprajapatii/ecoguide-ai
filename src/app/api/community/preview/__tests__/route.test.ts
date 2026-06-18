@@ -8,77 +8,82 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
 }));
 
-describe('Community Preview API Route Handlers', () => {
-  let mockResult: { data: any; error: any } = { data: null, error: null };
-  const mockGetUser = vi.fn();
-  const mockFrom = vi.fn();
+const mockGetNearbyRankings = vi.fn();
+const mockGetUserRank = vi.fn();
+const mockGetLeaderboardTotalCount = vi.fn();
+const mockGetVisibilitySettings = vi.fn();
+const mockUpdateCommunitySettings = vi.fn();
 
-  const mockBuilder: any = {
-    select: vi.fn().mockImplementation(function (this: any) { return this; }),
-    eq: vi.fn().mockImplementation(function (this: any) { return this; }),
-    order: vi.fn().mockImplementation(function (this: any) { return this; }),
-    upsert: vi.fn().mockImplementation(function (this: any) { return this; }),
-    then: vi.fn().mockImplementation(function (this: any, onfulfilled: any) {
-      return Promise.resolve(mockResult).then(onfulfilled);
-    }),
-  };
+vi.mock('@/features/community/services/leaderboard.service', () => ({
+  getNearbyRankings: (...args: any[]) => mockGetNearbyRankings(...args),
+  getUserRank: (...args: any[]) => mockGetUserRank(...args),
+  getLeaderboardTotalCount: (...args: any[]) => mockGetLeaderboardTotalCount(...args),
+}));
+
+vi.mock('@/features/community/services/community-profile.service', () => ({
+  getVisibilitySettings: (...args: any[]) => mockGetVisibilitySettings(...args),
+  updateCommunitySettings: (...args: any[]) => mockUpdateCommunitySettings(...args),
+}));
+
+describe('Community Preview API Route Handlers', () => {
+  const mockGetUser = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockResult = { data: null, error: null };
     mockGetUser.mockResolvedValue({ data: { user: { id: 'test-user-id' } }, error: null });
-    mockFrom.mockReturnValue(mockBuilder);
-
-    mockBuilder.then.mockImplementation(function (this: any, onfulfilled: any) {
-      return Promise.resolve(mockResult).then(onfulfilled);
-    });
 
     vi.mocked(createClient).mockReturnValue({
       auth: {
         getUser: mockGetUser,
       },
-      from: mockFrom,
     } as any);
   });
 
   describe('GET /api/community/preview', () => {
     it('returns privacy-safe leaderboard preview of opted-in users', async () => {
-      // 1st database call: community_profiles (opted-in users)
-      const optedInProfiles = [
-        { id: 'test-user-id', opt_in: true },
-        { id: 'user-2', opt_in: true },
-      ];
-      // 2nd database call: completed assessments
-      const assessmentsList = [
-        {
-          user_id: 'test-user-id',
-          total_score: 3000,
-          created_at: '2026-06-17T12:00:00Z',
-          profiles: { display_name: 'Eco Hero 1', avatar_url: '' },
-        },
-        {
-          user_id: 'user-2',
-          total_score: 2500,
-          created_at: '2026-06-17T12:00:00Z',
-          profiles: { display_name: 'Eco Hero 2', avatar_url: '' },
-        },
-        {
-          // User-3 did NOT opt in, and is not current user, so should be excluded
-          user_id: 'user-3',
-          total_score: 1500,
-          created_at: '2026-06-17T12:00:00Z',
-          profiles: { display_name: 'Secret User', avatar_url: '' },
-        },
-      ];
-
-      let isOptInFetchDone = false;
-      mockBuilder.then.mockImplementation(function (this: any, onfulfilled: any) {
-        if (!isOptInFetchDone) {
-          isOptInFetchDone = true;
-          return Promise.resolve({ data: optedInProfiles, error: null }).then(onfulfilled);
-        }
-        return Promise.resolve({ data: assessmentsList, error: null }).then(onfulfilled);
+      mockGetVisibilitySettings.mockResolvedValue({
+        optIn: true,
+        leaderboardOptIn: true,
+        publicProfileVisibility: 'public',
+        bio: '',
       });
+      mockGetUserRank.mockResolvedValue({
+        rank: 2,
+        totalPoints: 3000,
+        level: 4,
+        isOptedIn: true,
+      });
+      mockGetLeaderboardTotalCount.mockResolvedValue(2);
+      mockGetNearbyRankings.mockResolvedValue([
+        {
+          rank: 1,
+          previousRank: null,
+          rankChange: 0,
+          userId: 'user-2',
+          displayName: 'Eco Hero 2',
+          avatarUrl: '',
+          totalPoints: 2500,
+          level: 4,
+          levelName: 'Carbon Reducer',
+          badgeCount: 0,
+          longestStreak: 0,
+          isCurrentUser: false,
+        },
+        {
+          rank: 2,
+          previousRank: null,
+          rankChange: 0,
+          userId: 'test-user-id',
+          displayName: 'Eco Hero 1',
+          avatarUrl: '',
+          totalPoints: 3000,
+          level: 4,
+          levelName: 'Carbon Reducer',
+          badgeCount: 0,
+          longestStreak: 0,
+          isCurrentUser: true,
+        },
+      ]);
 
       const req = new NextRequest('http://localhost/api/community/preview');
       const res = await GET(req);
@@ -88,9 +93,8 @@ describe('Community Preview API Route Handlers', () => {
 
       expect(json.optedIn).toBe(true);
       expect(json.totalOptedInUsers).toBe(2);
-      expect(json.currentUserRank).toBe(2); // user-2 has 2500 (rank 1), test-user-id has 3000 (rank 2)
+      expect(json.currentUserRank).toBe(2);
 
-      // Ensure secret user (user-3) is excluded
       const usernames = json.leaderboardPreview.map((item: any) => item.displayName);
       expect(usernames).not.toContain('Secret User');
       expect(usernames).toContain('Eco Hero 1');
@@ -98,33 +102,49 @@ describe('Community Preview API Route Handlers', () => {
     });
 
     it('always includes the current user in standings preview even if they are not opted in themselves', async () => {
-      // Current user is not opted-in
-      const optedInProfiles = [
-        { id: 'user-2', opt_in: true },
-      ];
-      const assessmentsList = [
-        {
-          user_id: 'test-user-id', // current user, not opted-in
-          total_score: 3000,
-          created_at: '2026-06-17T12:00:00Z',
-          profiles: { display_name: 'Self', avatar_url: '' },
-        },
-        {
-          user_id: 'user-2',
-          total_score: 2500,
-          created_at: '2026-06-17T12:00:00Z',
-          profiles: { display_name: 'Eco Hero 2', avatar_url: '' },
-        },
-      ];
-
-      let isOptInFetchDone = false;
-      mockBuilder.then.mockImplementation(function (this: any, onfulfilled: any) {
-        if (!isOptInFetchDone) {
-          isOptInFetchDone = true;
-          return Promise.resolve({ data: optedInProfiles, error: null }).then(onfulfilled);
-        }
-        return Promise.resolve({ data: assessmentsList, error: null }).then(onfulfilled);
+      mockGetVisibilitySettings.mockResolvedValue({
+        optIn: false,
+        leaderboardOptIn: false,
+        publicProfileVisibility: 'hidden',
+        bio: '',
       });
+      mockGetUserRank.mockResolvedValue({
+        rank: 2,
+        totalPoints: 3000,
+        level: 4,
+        isOptedIn: false,
+      });
+      mockGetLeaderboardTotalCount.mockResolvedValue(1);
+      mockGetNearbyRankings.mockResolvedValue([
+        {
+          rank: 1,
+          previousRank: null,
+          rankChange: 0,
+          userId: 'user-2',
+          displayName: 'Eco Hero 2',
+          avatarUrl: '',
+          totalPoints: 2500,
+          level: 4,
+          levelName: 'Carbon Reducer',
+          badgeCount: 0,
+          longestStreak: 0,
+          isCurrentUser: false,
+        },
+        {
+          rank: 2,
+          previousRank: null,
+          rankChange: 0,
+          userId: 'test-user-id',
+          displayName: 'Self',
+          avatarUrl: '',
+          totalPoints: 3000,
+          level: 4,
+          levelName: 'Carbon Reducer',
+          badgeCount: 0,
+          longestStreak: 0,
+          isCurrentUser: true,
+        },
+      ]);
 
       const req = new NextRequest('http://localhost/api/community/preview');
       const res = await GET(req);
@@ -134,7 +154,7 @@ describe('Community Preview API Route Handlers', () => {
 
       expect(json.optedIn).toBe(false);
       expect(json.totalOptedInUsers).toBe(1);
-      expect(json.currentUserRank).toBe(2); // user-2 (rank 1), test-user-id (rank 2)
+      expect(json.currentUserRank).toBe(2);
 
       const users = json.leaderboardPreview.map((item: any) => item.displayName);
       expect(users).toContain('Self');
@@ -153,7 +173,13 @@ describe('Community Preview API Route Handlers', () => {
     });
 
     it('updates privacy profile successfully', async () => {
-      mockResult = { data: null, error: null };
+      mockGetVisibilitySettings.mockResolvedValue({
+        optIn: false,
+        leaderboardOptIn: false,
+        publicProfileVisibility: 'hidden',
+        bio: 'Old bio',
+      });
+      mockUpdateCommunitySettings.mockResolvedValue(undefined);
 
       const req = new NextRequest('http://localhost/api/community/preview', {
         method: 'POST',
@@ -166,12 +192,13 @@ describe('Community Preview API Route Handlers', () => {
         message: 'Community profile updated successfully.',
         opt_in: true,
       });
-      expect(mockBuilder.upsert).toHaveBeenCalledWith(
+      expect(mockUpdateCommunitySettings).toHaveBeenCalledWith(
+        'test-user-id',
         expect.objectContaining({
-          id: 'test-user-id',
-          opt_in: true,
-        }),
-        { onConflict: 'id' }
+          optIn: true,
+          leaderboardOptIn: true,
+          publicProfileVisibility: 'public',
+        })
       );
     });
   });

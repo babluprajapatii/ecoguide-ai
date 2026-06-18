@@ -329,18 +329,27 @@ export interface Database {
         Row: {
           id: string;
           opt_in: boolean;
+          leaderboard_opt_in: boolean;
+          public_profile_visibility: string;
+          bio: string;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
           opt_in?: boolean;
+          leaderboard_opt_in?: boolean;
+          public_profile_visibility?: string;
+          bio?: string;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           opt_in?: boolean;
+          leaderboard_opt_in?: boolean;
+          public_profile_visibility?: string;
+          bio?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -352,6 +361,148 @@ export interface Database {
             referencedColumns: ['id'];
           }
         ];
+      };
+      leaderboard_rank_cache: {
+        Row: {
+          user_id: string;
+          rank: number;
+          previous_rank: number | null;
+          rank_change: number;
+          total_points: number;
+          current_level: number;
+          longest_streak: number;
+          display_name: string | null;
+          avatar_url: string | null;
+          badge_count: number;
+          cached_at: string;
+        };
+        Insert: {
+          user_id: string;
+          rank: number;
+          previous_rank?: number | null;
+          rank_change?: number;
+          total_points: number;
+          current_level: number;
+          longest_streak: number;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          badge_count?: number;
+          cached_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          rank?: number;
+          previous_rank?: number | null;
+          rank_change?: number;
+          total_points?: number;
+          current_level?: number;
+          longest_streak?: number;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          badge_count?: number;
+          cached_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'leaderboard_rank_cache_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      community_stats_cache: {
+        Row: {
+          id: number;
+          total_users: number;
+          active_users_7d: number;
+          total_xp_earned: number;
+          assessments_completed: number;
+          simulations_saved: number;
+          badges_earned: number;
+          avg_carbon_footprint: number;
+          top_carbon_saver_user_id: string | null;
+          top_carbon_saver_name: string | null;
+          top_carbon_saver_score: number;
+          most_improved_user_id: string | null;
+          most_improved_name: string | null;
+          most_improved_reduction: number;
+          longest_streak_user_id: string | null;
+          longest_streak_name: string | null;
+          longest_streak_days: number;
+          cached_at: string;
+        };
+        Insert: {
+          id?: number;
+          total_users?: number;
+          active_users_7d?: number;
+          total_xp_earned?: number;
+          assessments_completed?: number;
+          simulations_saved?: number;
+          badges_earned?: number;
+          avg_carbon_footprint?: number;
+          top_carbon_saver_user_id?: string | null;
+          top_carbon_saver_name?: string | null;
+          top_carbon_saver_score?: number;
+          most_improved_user_id?: string | null;
+          most_improved_name?: string | null;
+          most_improved_reduction?: number;
+          longest_streak_user_id?: string | null;
+          longest_streak_name?: string | null;
+          longest_streak_days?: number;
+          cached_at?: string;
+        };
+        Update: {
+          id?: number;
+          total_users?: number;
+          active_users_7d?: number;
+          total_xp_earned?: number;
+          assessments_completed?: number;
+          simulations_saved?: number;
+          badges_earned?: number;
+          avg_carbon_footprint?: number;
+          top_carbon_saver_user_id?: string | null;
+          top_carbon_saver_name?: string | null;
+          top_carbon_saver_score?: number;
+          most_improved_user_id?: string | null;
+          most_improved_name?: string | null;
+          most_improved_reduction?: number;
+          longest_streak_user_id?: string | null;
+          longest_streak_name?: string | null;
+          longest_streak_days?: number;
+          cached_at?: string;
+        };
+        Relationships: [];
+      };
+      leaderboard_seasons: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          starts_at: string;
+          ends_at: string;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          starts_at: string;
+          ends_at: string;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          starts_at?: string;
+          ends_at?: string;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
       };
       coach_conversations: {
         Row: {
