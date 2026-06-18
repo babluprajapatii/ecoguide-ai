@@ -13,7 +13,7 @@ import { useCallback, useMemo, useState, useEffect } from 'react';
 import type { FootprintBreakdown, DietType, FuelType, ShoppingLevel } from '@/features/assessment/types/assessment.types';
 import type { MonthlyProjection, SimulatorAdjustments } from '@/features/simulator/types/simulator.types';
 import { DEFAULT_ADJUSTMENTS } from '@/features/simulator/types/simulator.types';
-import { adjustFootprint, projectForecast } from '@/features/simulator/services/simulator.service';
+import { calculateSimulatedImpact, projectForecast } from '@/features/simulator/services/simulation.service';
 
 // ---------------------------------------------------------------------------
 // Debounce utility
@@ -41,12 +41,23 @@ export interface UseSimulatorReturn {
   readonly adjustments: SimulatorAdjustments;
   /** Projected footprint after applying adjustments. */
   readonly projected: FootprintBreakdown;
-  /** 12-month forecast from baseline → projected. */
+  /** Forecast over the selected duration. */
   readonly forecast: MonthlyProjection[];
   /** Total savings in kg CO2/year (positive = reduction). */
   readonly totalSavings: number;
   /** Percentage reduction from baseline. */
   readonly savingsPercent: number;
+
+  // --- Extended Projections ---
+  readonly costSavings: number;
+  readonly waterSavings: number;
+  readonly energySavings: number;
+  readonly wasteSavings: number;
+  readonly impactScore: number;
+  readonly tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
+
+  readonly forecastMonths: number;
+  readonly setForecastMonths: (months: number) => void;
 
   // --- Setters ---
   readonly setCarKmPerWeek: (km: number | null) => void;
@@ -88,6 +99,7 @@ const FALLBACK_BASELINE: FootprintBreakdown = {
 export function useSimulator(baseline?: FootprintBreakdown): UseSimulatorReturn {
   const resolvedBaseline = baseline ?? FALLBACK_BASELINE;
   const [adjustments, setAdjustments] = useState<SimulatorAdjustments>(DEFAULT_ADJUSTMENTS);
+  const [forecastMonths, setForecastMonths] = useState<number>(12);
 
   // Debounce the adjustments for expensive recalculation (200ms)
   const debouncedAdjustments = useDebouncedValue(adjustments, 200);
@@ -125,27 +137,35 @@ export function useSimulator(baseline?: FootprintBreakdown): UseSimulatorReturn 
     setAdjustments(DEFAULT_ADJUSTMENTS);
   }, []);
 
-  // --- Derived values (memoised on debounced adjustments) ---
-  const projected = useMemo(
-    () => adjustFootprint(resolvedBaseline, debouncedAdjustments),
-    [resolvedBaseline, debouncedAdjustments],
+  // --- Derived calculations via centralized engine ---
+  const calculationResult = useMemo(
+    () => calculateSimulatedImpact(resolvedBaseline, debouncedAdjustments),
+    [resolvedBaseline, debouncedAdjustments]
   );
+
+  const {
+    projected,
+    carbonSavings,
+    costSavings,
+    waterSavings,
+    energySavings,
+    wasteSavings,
+    impactScore,
+    tier,
+  } = calculationResult;
 
   const forecast = useMemo(
-    () => projectForecast(resolvedBaseline, projected, 12),
-    [resolvedBaseline, projected],
+    () => projectForecast(resolvedBaseline, projected, forecastMonths),
+    [resolvedBaseline, projected, forecastMonths]
   );
 
-  const totalSavings = useMemo(
-    () => resolvedBaseline.total - projected.total,
-    [resolvedBaseline.total, projected.total],
-  );
+  const totalSavings = carbonSavings;
 
   const savingsPercent = useMemo(
     () => resolvedBaseline.total > 0
       ? Math.round((totalSavings / resolvedBaseline.total) * 100)
       : 0,
-    [totalSavings, resolvedBaseline.total],
+    [totalSavings, resolvedBaseline.total]
   );
 
   // --- URL encoding ---
@@ -170,6 +190,14 @@ export function useSimulator(baseline?: FootprintBreakdown): UseSimulatorReturn 
     forecast,
     totalSavings,
     savingsPercent,
+    costSavings,
+    waterSavings,
+    energySavings,
+    wasteSavings,
+    impactScore,
+    tier,
+    forecastMonths,
+    setForecastMonths,
     setCarKmPerWeek,
     setCarFuelType,
     setDietType,

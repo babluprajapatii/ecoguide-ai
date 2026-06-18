@@ -328,7 +328,27 @@ export async function PUT(request: NextRequest) {
 
     logger.info('Recommendation status updated', { userId: user.id, recId: id, status });
 
-    return NextResponse.json(updatedRec, { status: 200 });
+    // Award XP and check badge unlocks if recommended action was completed
+    let pointsAwarded = 0;
+    let unlockedBadges: unknown[] = [];
+    if (status === 'completed') {
+      try {
+        const { awardPoints, checkBadgeUnlock } = await import('@/features/gamification/services/points.service');
+        pointsAwarded = await awardPoints(user.id, 'complete_recommendation');
+        unlockedBadges = await checkBadgeUnlock(user.id, 'complete_recommendation');
+      } catch (err) {
+        logger.error('Failed to award points/badges for completed recommendation', err, { userId: user.id });
+      }
+    }
+
+    return NextResponse.json(
+      {
+        ...updatedRec,
+        pointsAwarded,
+        unlockedBadges,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     logger.error('[API /api/coach/recommendations PUT] Critical error', error);
     return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });

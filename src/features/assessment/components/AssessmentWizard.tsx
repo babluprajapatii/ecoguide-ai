@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { useAssessmentWizard } from '@/features/assessment/hooks/use-assessment-wizard';
 import { ProgressBar } from '@/features/assessment/components/ProgressBar';
 import { WelcomeStep } from '@/features/assessment/components/steps/WelcomeStep';
@@ -32,36 +31,7 @@ const STEP_LABELS = [
 export function AssessmentWizard() {
   const wizard = useAssessmentWizard();
   const { user } = useAuth();
-  const { checkUnlocks } = useBadges(user?.id ?? null);
-  const processedRef = useRef(false);
-
-  // Trigger gamification badge unlocks when submission completes
-  useEffect(() => {
-    if (wizard.state.result && !processedRef.current) {
-      processedRef.current = true;
-      const breakdown = wizard.state.result;
-
-      // Complete first assessment badge
-      void checkUnlocks('complete_assessment');
-
-      // Under 10 tonnes badge
-      if (breakdown.total < 10000) {
-        void checkUnlocks('achieve_under_10t');
-      }
-
-      // Under 2 tonnes badge
-      if (breakdown.total < 2000) {
-        void checkUnlocks('achieve_under_2t');
-      }
-
-      // 100% clean energy badge
-      if (wizard.state.energy.renewableEnergyPercent === 100) {
-        void checkUnlocks('energy_with_solar');
-      }
-    } else if (!wizard.state.result) {
-      processedRef.current = false;
-    }
-  }, [wizard.state.result, wizard.state.energy, checkUnlocks]);
+  const { showBadgeToast, refresh } = useBadges(user?.id ?? null);
 
   const renderStep = () => {
     switch (wizard.state.currentStep) {
@@ -144,8 +114,18 @@ export function AssessmentWizard() {
               isSubmitting={wizard.state.isSubmitting}
               error={wizard.state.error}
               onBack={wizard.goToPreviousStep}
-              onSubmit={() => {
-                void wizard.submitAssessment();
+              onSubmit={async () => {
+                try {
+                  const data = await wizard.submitAssessment();
+                  if (data && Array.isArray(data.unlockedBadges)) {
+                    for (const badge of data.unlockedBadges) {
+                      showBadgeToast(badge);
+                    }
+                  }
+                  void refresh();
+                } catch (err) {
+                  console.error('Failed to submit assessment:', err);
+                }
               }}
             />
           );

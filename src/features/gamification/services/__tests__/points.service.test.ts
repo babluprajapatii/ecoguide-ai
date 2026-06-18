@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import {
   getUserLevel,
@@ -6,37 +7,70 @@ import {
   fetchEarnedBadges,
   fetchTotalPoints,
 } from '../points.service';
-import { ACTION_TO_BADGE, BADGE_MAP } from '@/features/gamification/data/badges';
 import type { GamificationAction } from '@/features/gamification/types/gamification.types';
 
-// Global mock result that tests can customize before invoking functions
-let mockResult: { data: unknown; error: { message: string } | null } = { data: null, error: null };
-
-const mockBuilder = {
-  insert: vi.fn().mockImplementation(function (this: unknown) {
-    return this;
-  }),
-  select: vi.fn().mockImplementation(function (this: unknown) {
-    return this;
-  }),
-  eq: vi.fn().mockImplementation(function (this: unknown) {
-    return this;
-  }),
-  order: vi.fn().mockImplementation(function (this: unknown) {
-    return this;
-  }),
-  limit: vi.fn().mockImplementation(function (this: unknown) {
-    return this;
-  }),
-  then: vi.fn().mockImplementation(function (this: unknown, onfulfilled: (value: unknown) => unknown) {
-    return Promise.resolve(mockResult).then(onfulfilled);
-  }),
+// Multi-table mock setup
+const dbStore: Record<string, { data: any; error: any }> = {
+  points_transactions: { data: [], error: null },
+  user_points: { data: null, error: null },
+  user_badges: { data: [], error: null },
+  badges: { data: [], error: null },
 };
 
-vi.mock('@/lib/supabase/client', () => {
+const createMockBuilder = (table: string) => {
+  const builder: any = {
+    insert: vi.fn().mockImplementation(function (this: any, val: any) {
+      if (Array.isArray(dbStore[table].data)) {
+        dbStore[table].data.push(val);
+      } else {
+        dbStore[table].data = val;
+      }
+      return this;
+    }),
+    select: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    eq: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    order: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    limit: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    gte: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    update: vi.fn().mockImplementation(function (this: any, val: any) {
+      dbStore[table].data = { ...dbStore[table].data, ...val };
+      return this;
+    }),
+    maybeSingle: vi.fn().mockImplementation(function (this: any) {
+      return Promise.resolve({ data: dbStore[table].data, error: dbStore[table].error });
+    }),
+    single: vi.fn().mockImplementation(function (this: any) {
+      return Promise.resolve({ data: dbStore[table].data, error: dbStore[table].error });
+    }),
+    then: vi.fn().mockImplementation(function (this: any, onfulfilled: any) {
+      const result = { data: dbStore[table].data, error: dbStore[table].error };
+      return Promise.resolve(result).then(onfulfilled);
+    }),
+  };
+  return builder;
+};
+
+const mockBuilders: Record<string, any> = {};
+
+vi.mock('@/lib/supabase/server', () => {
   return {
     createClient: () => ({
-      from: vi.fn().mockReturnValue(mockBuilder),
+      from: vi.fn().mockImplementation((table: string) => {
+        if (!mockBuilders[table]) {
+          mockBuilders[table] = createMockBuilder(table);
+        }
+        return mockBuilders[table];
+      }),
     }),
   };
 });
@@ -44,17 +78,22 @@ vi.mock('@/lib/supabase/client', () => {
 describe('Points & Badge Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockResult = { data: null, error: null };
+    // Reset DB state
+    dbStore.points_transactions = { data: [], error: null };
+    dbStore.user_points = { data: null, error: null };
+    dbStore.user_badges = { data: [], error: null };
+    dbStore.badges = { data: [], error: null };
+    Object.keys(mockBuilders).forEach((k) => delete mockBuilders[k]);
   });
 
   // ---------------------------------------------------------------------------
   // getUserLevel (Pure Function) Tests
   // ---------------------------------------------------------------------------
   describe('getUserLevel', () => {
-    it('should clamp negative points to 0 and return Seedling', () => {
+    it('should clamp negative points to 0 and return Eco Beginner', () => {
       const level = getUserLevel(-50);
       expect(level).toEqual({
-        name: 'Seedling',
+        name: 'Eco Beginner',
         rank: 1,
         minPoints: 0,
         maxPoints: 100,
@@ -62,10 +101,10 @@ describe('Points & Badge Service', () => {
       });
     });
 
-    it('should return Seedling level for 0 points', () => {
+    it('should return Eco Beginner level for 0 points', () => {
       const level = getUserLevel(0);
       expect(level).toEqual({
-        name: 'Seedling',
+        name: 'Eco Beginner',
         rank: 1,
         minPoints: 0,
         maxPoints: 100,
@@ -73,10 +112,10 @@ describe('Points & Badge Service', () => {
       });
     });
 
-    it('should calculate correct progress for Seedling (e.g., 50 points = 50%)', () => {
+    it('should calculate correct progress for Eco Beginner (e.g., 50 points = 50%)', () => {
       const level = getUserLevel(50);
       expect(level).toEqual({
-        name: 'Seedling',
+        name: 'Eco Beginner',
         rank: 1,
         minPoints: 0,
         maxPoints: 100,
@@ -84,10 +123,10 @@ describe('Points & Badge Service', () => {
       });
     });
 
-    it('should transition to Sprout at 100 points', () => {
+    it('should transition to Green Explorer at 100 points', () => {
       const level = getUserLevel(100);
       expect(level).toEqual({
-        name: 'Sprout',
+        name: 'Green Explorer',
         rank: 2,
         minPoints: 100,
         maxPoints: 300,
@@ -95,10 +134,10 @@ describe('Points & Badge Service', () => {
       });
     });
 
-    it('should calculate correct progress for Sprout (e.g., 200 points = 50%)', () => {
+    it('should calculate correct progress for Green Explorer (e.g., 200 points = 50%)', () => {
       const level = getUserLevel(200);
       expect(level).toEqual({
-        name: 'Sprout',
+        name: 'Green Explorer',
         rank: 2,
         minPoints: 100,
         maxPoints: 300,
@@ -106,10 +145,10 @@ describe('Points & Badge Service', () => {
       });
     });
 
-    it('should transition to Sapling at 300 points', () => {
+    it('should transition to Climate Learner at 300 points', () => {
       const level = getUserLevel(300);
       expect(level).toEqual({
-        name: 'Sapling',
+        name: 'Climate Learner',
         rank: 3,
         minPoints: 300,
         maxPoints: 600,
@@ -117,10 +156,10 @@ describe('Points & Badge Service', () => {
       });
     });
 
-    it('should transition to Tree at 600 points', () => {
+    it('should transition to Carbon Reducer at 600 points', () => {
       const level = getUserLevel(600);
       expect(level).toEqual({
-        name: 'Tree',
+        name: 'Carbon Reducer',
         rank: 4,
         minPoints: 600,
         maxPoints: 1000,
@@ -128,23 +167,12 @@ describe('Points & Badge Service', () => {
       });
     });
 
-    it('should transition to Forest at 1000 points and show max progress', () => {
-      const level = getUserLevel(1000);
+    it('should transition to Net-Zero Legend at 5000 points and show max progress', () => {
+      const level = getUserLevel(5000);
       expect(level).toEqual({
-        name: 'Forest',
-        rank: 5,
-        minPoints: 1000,
-        maxPoints: null,
-        progress: 1,
-      });
-    });
-
-    it('should keep Forest level with max progress for >1000 points', () => {
-      const level = getUserLevel(2500);
-      expect(level).toEqual({
-        name: 'Forest',
-        rank: 5,
-        minPoints: 1000,
+        name: 'Net-Zero Legend',
+        rank: 10,
+        minPoints: 5000,
         maxPoints: null,
         progress: 1,
       });
@@ -156,19 +184,38 @@ describe('Points & Badge Service', () => {
   // ---------------------------------------------------------------------------
   describe('awardPoints', () => {
     it('should successfully award points when database insertion succeeds', async () => {
-      mockResult = { data: null, error: null };
-      await expect(awardPoints('user-123', 'complete_assessment', 50)).resolves.not.toThrow();
-      expect(mockBuilder.insert).toHaveBeenCalledWith(
+      const points = await awardPoints('user-123', 'complete_assessment', 100);
+      expect(points).toBe(100);
+      expect(dbStore.points_transactions.data).toHaveLength(1);
+      expect(dbStore.points_transactions.data[0]).toEqual(
         expect.objectContaining({
           user_id: 'user-123',
           action: 'complete_assessment',
-          points: 50,
+          points: 100,
         })
       );
     });
 
-    it('should throw an error when database insertion fails', async () => {
-      mockResult = { data: null, error: { message: 'Database insert failed' } };
+    it('should enforce cooldown limit for coaching messages (max 50 XP/day)', async () => {
+      // Setup: user already earned 40 XP today for coach messages
+      dbStore.points_transactions.data = [
+        { points: 10, action: 'use_coach', awarded_at: new Date().toISOString() },
+        { points: 10, action: 'use_coach', awarded_at: new Date().toISOString() },
+        { points: 10, action: 'use_coach', awarded_at: new Date().toISOString() },
+        { points: 10, action: 'use_coach', awarded_at: new Date().toISOString() },
+      ];
+
+      // Awarding 10 XP works (reaches 50 XP limit)
+      const pointsAwarded1 = await awardPoints('user-123', 'use_coach', 10);
+      expect(pointsAwarded1).toBe(10);
+
+      // Next award gets capped to 0
+      const pointsAwarded2 = await awardPoints('user-123', 'use_coach', 10);
+      expect(pointsAwarded2).toBe(0);
+    });
+
+    it('should throw an error when database transaction fails', async () => {
+      dbStore.points_transactions = { data: [], error: { message: 'Database insert failed' } };
       await expect(awardPoints('user-123', 'complete_assessment', 50)).rejects.toThrow(
         'Failed to award points: Database insert failed'
       );
@@ -185,56 +232,14 @@ describe('Points & Badge Service', () => {
     });
 
     it('should return empty array if badge is already earned by user', async () => {
-      mockResult = {
-        data: [{ badge_slug: 'first_assessment' }],
-        error: null,
-      };
-
-      const result = await checkBadgeUnlock('user-123', 'complete_assessment');
-      expect(result).toEqual([]);
-      expect(mockBuilder.select).toHaveBeenCalledWith('badge_slug');
-    });
-
-    it('should unlock badge, insert to database, award points, and return definition if not earned yet', async () => {
-      // 1. First select returns empty array (not earned yet)
-      // 2. Insert succeeds
-      // 3. awardPoints succeeds
-      mockResult = { data: [], error: null };
-
-      const badgeSlug = ACTION_TO_BADGE.get('complete_assessment');
-      expect(badgeSlug).toBeDefined();
-      const badgeDef = BADGE_MAP.get(badgeSlug!);
-      expect(badgeDef).toBeDefined();
-
-      const result = await checkBadgeUnlock('user-123', 'complete_assessment');
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual(badgeDef);
-
-      expect(mockBuilder.insert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          user_id: 'user-123',
-          badge_slug: badgeSlug,
-          points_awarded: badgeDef?.pointValue,
-        })
-      );
-    });
-
-    it('should return empty array if checking existing badges fails', async () => {
-      mockResult = { data: null, error: { message: 'DB fetch failed' } };
-      const result = await checkBadgeUnlock('user-123', 'complete_assessment');
-      expect(result).toEqual([]);
-    });
-
-    it('should return empty array if badge insertion fails', async () => {
-      // Set up: first mock call (select) succeeds with empty list
-      // But we will mock the insert to fail.
-      // Wait, since both select and insert use the same `mockResult` in our simple promise implementation,
-      // let's dynamically change `mockResult` inside a mock implementation of `insert`.
-      mockResult = { data: [], error: null }; // for select
-      mockBuilder.insert.mockImplementationOnce(function (this: unknown) {
-        mockResult = { data: null, error: { message: 'Insert failed' } };
-        return this;
-      });
+      // Mock badge definitions in DB
+      dbStore.badges.data = [
+        { id: 'badge-123', slug: 'first_assessment' }
+      ];
+      // Mock already earned
+      dbStore.user_badges.data = [
+        { badge_id: 'badge-123' }
+      ];
 
       const result = await checkBadgeUnlock('user-123', 'complete_assessment');
       expect(result).toEqual([]);
@@ -246,16 +251,21 @@ describe('Points & Badge Service', () => {
   // ---------------------------------------------------------------------------
   describe('fetchEarnedBadges', () => {
     it('should fetch and map user badges correctly', async () => {
-      const rawRow = {
-        badge_slug: 'first_assessment',
-        earned_at: '2026-06-11T14:00:00Z',
-        points_awarded: 50,
-      };
-      mockResult = { data: [rawRow], error: null };
+      dbStore.user_badges.data = [
+        {
+          earned_at: '2026-06-11T14:00:00Z',
+          badge_id: 'badge-123',
+          badges: {
+            slug: 'first_assessment',
+            xp_reward: 50,
+          },
+        },
+      ];
 
       const badges = await fetchEarnedBadges('user-123');
       expect(badges).toHaveLength(1);
       expect(badges[0]).toEqual({
+        badgeId: 'badge-123',
         badgeSlug: 'first_assessment',
         earnedAt: '2026-06-11T14:00:00Z',
         pointValue: 50,
@@ -263,7 +273,7 @@ describe('Points & Badge Service', () => {
     });
 
     it('should throw an error if database fetch fails', async () => {
-      mockResult = { data: null, error: { message: 'DB fetch failed' } };
+      dbStore.user_badges = { data: null, error: { message: 'DB fetch failed' } };
       await expect(fetchEarnedBadges('user-123')).rejects.toThrow(
         'Failed to fetch badges: DB fetch failed'
       );
@@ -274,24 +284,21 @@ describe('Points & Badge Service', () => {
   // fetchTotalPoints Tests
   // ---------------------------------------------------------------------------
   describe('fetchTotalPoints', () => {
-    it('should fetch and sum all points correctly', async () => {
-      mockResult = {
-        data: [{ points: 50 }, { points: 100 }, { points: 20 }],
-        error: null,
-      };
+    it('should fetch total points correctly', async () => {
+      dbStore.user_points.data = [{ total_points: 170 }];
 
       const points = await fetchTotalPoints('user-123');
       expect(points).toBe(170);
     });
 
-    it('should return 0 if no points records are returned', async () => {
-      mockResult = { data: [], error: null };
+    it('should return 0 if no points record is found', async () => {
+      dbStore.user_points.data = null;
       const points = await fetchTotalPoints('user-123');
       expect(points).toBe(0);
     });
 
     it('should throw an error if database fetch fails', async () => {
-      mockResult = { data: null, error: { message: 'DB fetch failed' } };
+      dbStore.user_points = { data: null, error: { message: 'DB fetch failed' } };
       await expect(fetchTotalPoints('user-123')).rejects.toThrow(
         'Failed to fetch points: DB fetch failed'
       );

@@ -1,89 +1,57 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Points & Badge Service — gamification business logic.
+ * Points & Streaks Service.
  *
- * Handles point awards, level calculations, and badge unlock
- * checks. All Supabase writes go through this service.
+ * Handles point awards, daily limits (cooldown checks), level recalculations,
+ * streak evaluations, and badge unlock checking hooks.
  *
  * @module points.service
  */
 
-import { createClient } from '@/lib/supabase/client';
-import { ACTION_TO_BADGE, BADGE_MAP } from '@/features/gamification/data/badges';
+import { createClient } from '@/lib/supabase/server';
+import { getLevel } from './level.service';
+import { evaluateStreak } from './streak.service';
 import type {
   BadgeDefinition,
   EarnedBadge,
   GamificationAction,
   Level,
-  LevelName,
   BadgeSlug,
 } from '@/features/gamification/types/gamification.types';
 
 // ---------------------------------------------------------------------------
-// Level Thresholds
+// Action Points & Daily Cooldown Limits
 // ---------------------------------------------------------------------------
 
-interface LevelThreshold {
-  readonly name: LevelName;
-  readonly rank: number;
-  readonly minPoints: number;
-}
+export const ACTION_POINTS: Record<GamificationAction, number> = {
+  complete_assessment: 100,
+  update_assessment: 25,
+  use_coach: 10,
+  complete_recommendation: 50,
+  run_simulator: 20,
+  join_challenge: 50,
+  streak_day: 10,
+};
 
-const LEVEL_THRESHOLDS: readonly LevelThreshold[] = [
-  { name: 'Seedling', rank: 1, minPoints: 0 },
-  { name: 'Sprout', rank: 2, minPoints: 100 },
-  { name: 'Sapling', rank: 3, minPoints: 300 },
-  { name: 'Tree', rank: 4, minPoints: 600 },
-  { name: 'Forest', rank: 5, minPoints: 1000 },
-] as const;
+export const DAILY_LIMITS: Partial<Record<GamificationAction, number>> = {
+  use_coach: 50,       // Max 50 XP per day (5 coach messages)
+  run_simulator: 100,  // Max 100 XP per day (5 simulation runs)
+  update_assessment: 25, // Max 25 XP per day (1 assessment update)
+  streak_day: 10,      // Max 10 XP per day (1 check-in)
+};
 
 // ---------------------------------------------------------------------------
-// getUserLevel — pure function
+// getUserLevel (Pure Wrapper)
 // ---------------------------------------------------------------------------
 
 /**
  * Determines the user's current level from their total points.
  *
- * Levels:
- * - Seedling: 0–99 pts
- * - Sprout: 100–299 pts
- * - Sapling: 300–599 pts
- * - Tree: 600–999 pts
- * - Forest: 1000+ pts
- *
  * @param totalPoints — cumulative points earned.
  * @returns The user's current Level with progress within that level.
  */
 export function getUserLevel(totalPoints: number): Level {
-  const safePoints = Math.max(0, Math.floor(totalPoints));
-
-  let currentThreshold = LEVEL_THRESHOLDS[0]!;
-
-  for (const threshold of LEVEL_THRESHOLDS) {
-    if (safePoints >= threshold.minPoints) {
-      currentThreshold = threshold;
-    }
-  }
-
-  const currentIndex = LEVEL_THRESHOLDS.indexOf(currentThreshold);
-  const nextThreshold = LEVEL_THRESHOLDS[currentIndex + 1] ?? null;
-  const maxPoints = nextThreshold?.minPoints ?? null;
-
-  let progress = 0;
-  if (maxPoints !== null) {
-    const range = maxPoints - currentThreshold.minPoints;
-    progress = range > 0 ? (safePoints - currentThreshold.minPoints) / range : 1;
-  } else {
-    // Max level — always show full progress
-    progress = 1;
-  }
-
-  return {
-    name: currentThreshold.name,
-    rank: currentThreshold.rank,
-    minPoints: currentThreshold.minPoints,
-    maxPoints,
-    progress: Math.min(1, Math.max(0, progress)),
-  };
+  return getLevel(totalPoints);
 }
 
 // ---------------------------------------------------------------------------
@@ -91,34 +59,150 @@ export function getUserLevel(totalPoints: number): Level {
 // ---------------------------------------------------------------------------
 
 /**
- * Awards points to a user for a specific action.
- *
- * Inserts a record into the `user_points` table.
+ * Awards points to a user for a specific action, applying daily limits and
+ * updating streaks.
  *
  * @param userId — The user's ID.
  * @param action — The gamification action performed.
- * @param points — Number of points to award.
+ * @param points — Optional explicit points override (falls back to action default).
+ * @returns The number of points actually awarded after daily limits check.
  */
 export async function awardPoints(
   userId: string,
   action: GamificationAction,
-  points: number,
-): Promise<void> {
+  points?: number
+): Promise<number> {
   const supabase = createClient();
+  const defaultPoints = ACTION_POINTS[action] ?? 0;
+  const pointsToAwardRaw = points !== undefined ? points : defaultPoints;
 
-  const { error } = await supabase
-    .from('user_points')
+  // 1. Check daily limit if applicable
+  let pointsToAward = pointsToAwardRaw;
+  const limit = DAILY_LIMITS[action];
+  if (limit !== undefined) {
+    const now = new Date();
+    const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+
+    let query = supabase
+      .from('points_transactions')
+      .select('points')
+      .eq('user_id', userId)
+      .eq('action', action);
+
+    if (typeof (query as any).gte === 'function') {
+      query = (query as any).gte('awarded_at', startOfDay.toISOString());
+    }
+
+    const { data: txs, error: txError } = await query;
+
+    if (txError) {
+      console.error('[points.service] Failed to fetch daily transactions:', txError.message);
+      throw new Error(`Failed to award points: ${txError.message}`);
+    }
+
+    const txsArray = Array.isArray(txs) ? txs : [];
+    const todayEarned = txsArray.reduce((sum, tx) => sum + (tx.points as number), 0);
+    if (todayEarned >= limit) {
+      return 0; // Daily cap reached
+    }
+    pointsToAward = Math.min(pointsToAward, limit - todayEarned);
+  }
+
+  if (pointsToAward <= 0) {
+    return 0;
+  }
+
+  const nowISO = new Date().toISOString();
+
+  // 2. Log in points_transactions history
+  const { error: txError } = await supabase
+    .from('points_transactions')
     .insert({
       user_id: userId,
       action,
-      points,
-      awarded_at: new Date().toISOString(),
+      points: pointsToAward,
+      awarded_at: nowISO,
     });
 
-  if (error) {
-    console.error('[points.service] Failed to award points:', error.message);
-    throw new Error(`Failed to award points: ${error.message}`);
+  if (txError) {
+    console.error('[points.service] Failed to insert transaction:', txError.message);
+    throw new Error(`Failed to award points: ${txError.message}`);
   }
+
+  // 3. Fetch running totals to update user_points record
+  const { data: userPointsData, error: fetchError } = await supabase
+    .from('user_points')
+    .select('id, total_points, lifetime_points, current_streak, longest_streak, last_activity_at')
+    .eq('user_id', userId);
+
+  const userPoints = userPointsData?.[0] ?? null;
+
+  if (fetchError) {
+    console.error('[points.service] Failed to fetch user points:', fetchError.message);
+    throw new Error(`Failed to award points: ${fetchError.message}`);
+  }
+
+  let finalTotal = pointsToAward;
+  let finalLifetime = pointsToAward;
+  let finalStreak = 1;
+  let finalLongest = 1;
+  let finalLastActivity = nowISO;
+
+  if (userPoints) {
+    const streakResult = evaluateStreak(
+      userPoints.last_activity_at,
+      userPoints.current_streak,
+      userPoints.longest_streak
+    );
+
+    finalTotal = userPoints.total_points + pointsToAward;
+    finalLifetime = userPoints.lifetime_points + pointsToAward;
+    finalStreak = streakResult.currentStreak;
+    finalLongest = streakResult.longestStreak;
+    finalLastActivity = streakResult.lastActivityAt;
+
+    const currentLevel = getLevel(finalTotal).rank;
+
+    const { error: updateError } = await supabase
+      .from('user_points')
+      .update({
+        total_points: finalTotal,
+        lifetime_points: finalLifetime,
+        current_level: currentLevel,
+        current_streak: finalStreak,
+        longest_streak: finalLongest,
+        last_activity_at: finalLastActivity,
+        updated_at: nowISO,
+      })
+      .eq('user_id', userId);
+
+    if (updateError) {
+      console.error('[points.service] Failed to update user points:', updateError.message);
+      throw new Error(`Failed to award points: ${updateError.message}`);
+    }
+  } else {
+    const currentLevel = getLevel(finalTotal).rank;
+    const { error: insertError } = await supabase
+      .from('user_points')
+      .insert({
+        user_id: userId,
+        total_points: finalTotal,
+        lifetime_points: finalLifetime,
+        current_level: currentLevel,
+        current_streak: finalStreak,
+        longest_streak: finalLongest,
+        last_activity_at: finalLastActivity,
+        created_at: nowISO,
+        updated_at: nowISO,
+      });
+
+    if (insertError) {
+      console.error('[points.service] Failed to insert user points:', insertError.message);
+      throw new Error(`Failed to award points: ${insertError.message}`);
+    }
+  }
+
+  return pointsToAward;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,68 +212,23 @@ export async function awardPoints(
 /**
  * Checks if a gamification action unlocks any new badges for the user.
  *
- * 1. Looks up which badge the action maps to.
- * 2. Checks if the user already has that badge.
- * 3. If not, inserts the badge record and awards bonus points.
+ * Delegates to badge.service dynamically to prevent circular imports.
  *
  * @param userId — The user's ID.
  * @param action — The gamification action just performed.
- * @returns Array of newly unlocked `BadgeDefinition` objects (may be empty).
+ * @returns Array of newly unlocked BadgeDefinition objects.
  */
 export async function checkBadgeUnlock(
   userId: string,
   action: GamificationAction,
 ): Promise<BadgeDefinition[]> {
-  const badgeSlug = ACTION_TO_BADGE.get(action);
-  if (!badgeSlug) return [];
-
-  const badge = BADGE_MAP.get(badgeSlug);
-  if (!badge) return [];
-
-  const supabase = createClient();
-
-  // Check if already earned
-  const { data: existingBadges, error: fetchError } = await supabase
-    .from('user_badges')
-    .select('badge_slug')
-    .eq('user_id', userId)
-    .eq('badge_slug', badgeSlug)
-    .limit(1);
-
-  if (fetchError) {
-    console.error('[points.service] Failed to check existing badges:', fetchError.message);
-    return [];
-  }
-
-  if (existingBadges && existingBadges.length > 0) {
-    return []; // Already earned
-  }
-
-  // Award the badge
-  const now = new Date().toISOString();
-  const { error: insertError } = await supabase
-    .from('user_badges')
-    .insert({
-      user_id: userId,
-      badge_slug: badgeSlug,
-      earned_at: now,
-      points_awarded: badge.pointValue,
-    });
-
-  if (insertError) {
-    console.error('[points.service] Failed to insert badge:', insertError.message);
-    return [];
-  }
-
-  // Also award the badge points
   try {
-    await awardPoints(userId, action, badge.pointValue);
-  } catch {
-    // Points failed but badge was awarded — log but don't throw
-    console.error('[points.service] Badge awarded but points failed for:', badgeSlug);
+    const { evaluateBadges } = await import('./badge.service');
+    return await evaluateBadges(userId, action);
+  } catch (error) {
+    console.error('[points.service] Failed to evaluate badges:', error);
+    return [];
   }
-
-  return [badge];
 }
 
 // ---------------------------------------------------------------------------
@@ -197,29 +236,43 @@ export async function checkBadgeUnlock(
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches all badges earned by a user from Supabase.
+ * Fetches all badges earned by a user.
  *
  * @param userId — The user's ID.
- * @returns Array of `EarnedBadge` objects sorted by earned date (newest first).
+ * @returns Array of EarnedBadge objects sorted by earned date (newest first).
  */
 export async function fetchEarnedBadges(userId: string): Promise<EarnedBadge[]> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
+  // Joint query to badges to pull slugs and reward values
+  let query = supabase
     .from('user_badges')
-    .select('badge_slug, earned_at, points_awarded')
-    .eq('user_id', userId)
-    .order('earned_at', { ascending: false });
+    .select(`
+      badge_id,
+      earned_at,
+      badges (
+        slug,
+        xp_reward
+      )
+    `)
+    .eq('user_id', userId);
+
+  if (typeof (query as any).order === 'function') {
+    query = (query as any).order('earned_at', { ascending: false });
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('[points.service] Failed to fetch badges:', error.message);
     throw new Error(`Failed to fetch badges: ${error.message}`);
   }
 
-  return (data ?? []).map((row) => ({
-    badgeSlug: row.badge_slug as BadgeSlug,
+  return (data ?? []).map((row: any) => ({
+    badgeId: row.badge_id ?? '',
+    badgeSlug: (row.badges?.slug ?? '') as BadgeSlug,
     earnedAt: row.earned_at as string,
-    pointValue: row.points_awarded as number,
+    pointValue: (row.badges?.xp_reward ?? 0) as number,
   }));
 }
 
@@ -228,7 +281,7 @@ export async function fetchEarnedBadges(userId: string): Promise<EarnedBadge[]> 
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches the total points for a user from Supabase.
+ * Fetches the total points for a user.
  *
  * @param userId — The user's ID.
  * @returns Total accumulated points.
@@ -238,7 +291,7 @@ export async function fetchTotalPoints(userId: string): Promise<number> {
 
   const { data, error } = await supabase
     .from('user_points')
-    .select('points')
+    .select('total_points')
     .eq('user_id', userId);
 
   if (error) {
@@ -246,5 +299,5 @@ export async function fetchTotalPoints(userId: string): Promise<number> {
     throw new Error(`Failed to fetch points: ${error.message}`);
   }
 
-  return (data ?? []).reduce((sum, row) => sum + (row.points as number), 0);
+  return data?.[0]?.total_points ?? 0;
 }

@@ -1,32 +1,37 @@
 'use client';
 
 /**
- * BadgeGrid — displays all 10 badges in an accessible, keyboard-navigable grid.
+ * BadgeGrid — displays badges in an accessible, tab-filtered, keyboard-navigable grid.
  *
  * Earned badges show in full color; unearned badges appear in grayscale
  * with a lock overlay. Clicking a badge opens a detail modal.
  *
  * Accessibility:
+ * - Tabs use role="tablist" and standard keyboard controls.
  * - Grid uses roving tabIndex for arrow-key navigation.
- * - Each badge has a descriptive aria-label.
- * - Modal uses role="dialog", aria-modal, and focus trapping.
+ * - Focus-trapped detail modal.
+ * - Renders all 16 badges with complete icon mapping.
  *
  * @module BadgeGrid
  */
 
-import { memo, useState, useCallback, useRef, useEffect } from 'react';
+import { memo, useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { FC, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import {
   ClipboardCheck,
+  GraduationCap,
   TrendingDown,
-  Flame,
-  Leaf,
-  Trophy,
-  Bike,
-  Sun,
-  Share2,
-  MessageCircle,
   Award,
+  MessageSquare,
+  MessageCircle,
+  Play,
+  Sliders,
+  Users,
+  Trophy,
+  Flame,
+  Zap,
+  Shield,
+  Leaf,
   Lock,
   X,
 } from 'lucide-react';
@@ -41,15 +46,19 @@ type LucideComponent = FC<LucideProps>;
 
 const ICON_MAP: Record<string, LucideComponent> = {
   ClipboardCheck,
+  GraduationCap,
   TrendingDown,
-  Flame,
-  Leaf,
-  Trophy,
-  Bike,
-  Sun,
-  Share2,
-  MessageCircle,
   Award,
+  MessageSquare,
+  MessageCircle,
+  Play,
+  Sliders,
+  Users,
+  Trophy,
+  Flame,
+  Zap,
+  Shield,
+  Leaf,
 };
 
 function BadgeIcon({ iconName, className }: { readonly iconName: string; readonly className?: string }) {
@@ -132,14 +141,14 @@ function BadgeModal({ badge, isEarned, earnedAt, onClose }: BadgeModalProps) {
         aria-modal="true"
         aria-labelledby="badge-modal-title"
         aria-describedby="badge-modal-description"
-        className="relative mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl"
+        className="relative mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
       >
         {/* Close button */}
         <button
           ref={closeButtonRef}
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           aria-label="Close badge details"
         >
           <X size={18} />
@@ -150,7 +159,7 @@ function BadgeModal({ badge, isEarned, earnedAt, onClose }: BadgeModalProps) {
           <div
             className={`flex h-20 w-20 items-center justify-center rounded-2xl ${
               isEarned
-                ? 'bg-gradient-to-br from-amber-400/20 to-orange-500/20 text-amber-500'
+                ? 'bg-gradient-to-br from-amber-400/20 to-orange-500/20 text-amber-500 shadow-md shadow-amber-500/5'
                 : 'bg-muted text-muted-foreground grayscale'
             }`}
           >
@@ -293,7 +302,24 @@ interface BadgeGridProps {
 export function BadgeGrid({ badges, earnedSlugs, earnedBadgeMap }: BadgeGridProps) {
   const [selectedBadge, setSelectedBadge] = useState<BadgeDefinition | null>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState<'all' | 'earned' | 'locked'>('all');
   const gridRef = useRef<HTMLDivElement>(null);
+  const tabListRef = useRef<HTMLDivElement>(null);
+
+  // Filter badges based on selected tab
+  const filteredBadges = useMemo(() => {
+    return badges.filter((b) => {
+      const isEarned = earnedSlugs.has(b.slug);
+      if (activeTab === 'earned') return isEarned;
+      if (activeTab === 'locked') return !isEarned;
+      return true;
+    });
+  }, [badges, earnedSlugs, activeTab]);
+
+  // Adjust focused index if it goes out of bounds on tab change
+  useEffect(() => {
+    setFocusedIndex(0);
+  }, [activeTab]);
 
   const handleSelect = useCallback((badge: BadgeDefinition) => {
     setSelectedBadge(badge);
@@ -314,7 +340,7 @@ export function BadgeGrid({ badges, earnedSlugs, earnedBadgeMap }: BadgeGridProp
       switch (e.key) {
         case 'ArrowRight':
           e.preventDefault();
-          nextIndex = Math.min(index + 1, badges.length - 1);
+          nextIndex = Math.min(index + 1, filteredBadges.length - 1);
           break;
         case 'ArrowLeft':
           e.preventDefault();
@@ -322,7 +348,7 @@ export function BadgeGrid({ badges, earnedSlugs, earnedBadgeMap }: BadgeGridProp
           break;
         case 'ArrowDown':
           e.preventDefault();
-          nextIndex = Math.min(index + cols, badges.length - 1);
+          nextIndex = Math.min(index + cols, filteredBadges.length - 1);
           break;
         case 'ArrowUp':
           e.preventDefault();
@@ -331,7 +357,9 @@ export function BadgeGrid({ badges, earnedSlugs, earnedBadgeMap }: BadgeGridProp
         case 'Enter':
         case ' ':
           e.preventDefault();
-          handleSelect(badges[index]!);
+          if (filteredBadges[index]) {
+            handleSelect(filteredBadges[index]);
+          }
           return;
         default:
           return;
@@ -341,29 +369,113 @@ export function BadgeGrid({ badges, earnedSlugs, earnedBadgeMap }: BadgeGridProp
       const buttons = gridRef.current?.querySelectorAll<HTMLButtonElement>('button');
       buttons?.[nextIndex]?.focus();
     },
-    [badges, handleSelect],
+    [filteredBadges, handleSelect],
   );
 
+  const handleTabKeyDown = useCallback((e: ReactKeyboardEvent) => {
+    const tabs: Array<'all' | 'earned' | 'locked'> = ['all', 'earned', 'locked'];
+    const currentIndex = tabs.indexOf(activeTab);
+
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const nextIndex = (currentIndex + 1) % tabs.length;
+      setActiveTab(tabs[nextIndex]!);
+      setTimeout(() => {
+        const tabButtons = tabListRef.current?.querySelectorAll<HTMLButtonElement>('button');
+        tabButtons?.[nextIndex]?.focus();
+      }, 0);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+      setActiveTab(tabs[prevIndex]!);
+      setTimeout(() => {
+        const tabButtons = tabListRef.current?.querySelectorAll<HTMLButtonElement>('button');
+        tabButtons?.[prevIndex]?.focus();
+      }, 0);
+    }
+  }, [activeTab]);
+
   return (
-    <>
+    <div className="flex flex-col gap-6">
+      {/* Category Tabs */}
       <div
-        ref={gridRef}
-        className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5"
-        role="grid"
-        aria-label="Achievement badges"
+        ref={tabListRef}
+        role="tablist"
+        aria-label="Filter Badges"
+        className="inline-flex w-fit items-center gap-1 rounded-xl bg-muted p-1"
       >
-        {badges.map((badge, i) => (
-          <BadgeCard
-            key={badge.slug}
-            badge={badge}
-            isEarned={earnedSlugs.has(badge.slug)}
-            tabIndex={i === focusedIndex ? 0 : -1}
-            onSelect={() => handleSelect(badge)}
-            onKeyNavigation={handleKeyNavigation}
-            index={i}
-          />
-        ))}
+        <button
+          role="tab"
+          type="button"
+          aria-selected={activeTab === 'all'}
+          tabIndex={activeTab === 'all' ? 0 : -1}
+          onClick={() => setActiveTab('all')}
+          onKeyDown={handleTabKeyDown}
+          className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary ${
+            activeTab === 'all'
+              ? 'bg-card text-foreground shadow-sm'
+              : 'text-muted-foreground hover:bg-card/40 hover:text-foreground'
+          }`}
+        >
+          All Badges ({badges.length})
+        </button>
+        <button
+          role="tab"
+          type="button"
+          aria-selected={activeTab === 'earned'}
+          tabIndex={activeTab === 'earned' ? 0 : -1}
+          onClick={() => setActiveTab('earned')}
+          onKeyDown={handleTabKeyDown}
+          className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary ${
+            activeTab === 'earned'
+              ? 'bg-card text-foreground shadow-sm'
+              : 'text-muted-foreground hover:bg-card/40 hover:text-foreground'
+          }`}
+        >
+          Earned ({earnedSlugs.size})
+        </button>
+        <button
+          role="tab"
+          type="button"
+          aria-selected={activeTab === 'locked'}
+          tabIndex={activeTab === 'locked' ? 0 : -1}
+          onClick={() => setActiveTab('locked')}
+          onKeyDown={handleTabKeyDown}
+          className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary ${
+            activeTab === 'locked'
+              ? 'bg-card text-foreground shadow-sm'
+              : 'text-muted-foreground hover:bg-card/40 hover:text-foreground'
+          }`}
+        >
+          Locked ({badges.length - earnedSlugs.size})
+        </button>
       </div>
+
+      {/* Badge Grid */}
+      {filteredBadges.length > 0 ? (
+        <div
+          ref={gridRef}
+          className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5"
+          role="grid"
+          aria-label={`${activeTab} badges`}
+        >
+          {filteredBadges.map((badge, i) => (
+            <BadgeCard
+              key={badge.slug}
+              badge={badge}
+              isEarned={earnedSlugs.has(badge.slug)}
+              tabIndex={i === focusedIndex ? 0 : -1}
+              onSelect={() => handleSelect(badge)}
+              onKeyNavigation={handleKeyNavigation}
+              index={i}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/50 p-6 text-center text-muted-foreground">
+          <p className="text-sm">No badges matches the current filter.</p>
+        </div>
+      )}
 
       {/* Detail Modal */}
       {selectedBadge && (
@@ -374,7 +486,7 @@ export function BadgeGrid({ badges, earnedSlugs, earnedBadgeMap }: BadgeGridProp
           onClose={handleCloseModal}
         />
       )}
-    </>
+    </div>
   );
 }
 

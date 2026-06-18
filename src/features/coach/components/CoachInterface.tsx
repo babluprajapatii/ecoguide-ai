@@ -79,19 +79,21 @@ export function CoachInterface({
   const [input, setInput] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { user } = useAuth();
-  const { checkUnlocks } = useBadges(user?.id ?? null);
+  const { refresh } = useBadges(user?.id ?? null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Trigger coach_10_messages badge when user sends 10 messages
+  const prevIsStreamingRef = useRef(false);
+
+  // Automatically refresh badges/XP when the AI stops streaming its response
   useEffect(() => {
-    const userMsgCount = messages.filter((m) => m.role === 'user').length;
-    if (userMsgCount >= 10) {
-      void checkUnlocks('coach_10_messages');
+    if (prevIsStreamingRef.current && !isStreaming) {
+      void refresh();
     }
-  }, [messages, checkUnlocks]);
+    prevIsStreamingRef.current = isStreaming;
+  }, [isStreaming, refresh]);
 
   // Handle external prompts (e.g. from ActionPlans or suggested prompts)
   useEffect(() => {

@@ -66,23 +66,6 @@ function checkRateLimit(userId: string): { allowed: boolean; retryAfterSeconds: 
   return { allowed: true, retryAfterSeconds: 0 };
 }
 
-const LEVEL_THRESHOLDS = [
-  { name: 'Seedling', rank: 1, minPoints: 0 },
-  { name: 'Sprout', rank: 2, minPoints: 100 },
-  { name: 'Sapling', rank: 3, minPoints: 300 },
-  { name: 'Tree', rank: 4, minPoints: 600 },
-  { name: 'Forest', rank: 5, minPoints: 1000 },
-] as const;
-
-function getLevelNameAndRank(totalPoints: number): { name: string; rank: number } {
-  let current: { readonly name: string; readonly rank: number; readonly minPoints: number } = LEVEL_THRESHOLDS[0]!;
-  for (const t of LEVEL_THRESHOLDS) {
-    if (totalPoints >= t.minPoints) {
-      current = t;
-    }
-  }
-  return { name: current.name, rank: current.rank };
-}
 
 /**
  * POST /api/coach
@@ -161,6 +144,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Failed to record message.' }, { status: 500 });
     }
 
+    // Award XP and check badge unlocks for coach conversation (use_coach)
+    try {
+      const { awardPoints, checkBadgeUnlock } = await import('@/features/gamification/services/points.service');
+      await awardPoints(user.id, 'use_coach');
+      await checkBadgeUnlock(user.id, 'use_coach');
+    } catch (err) {
+      logger.error('Failed to award gamification points for coach message', err, { userId: user.id });
+    }
+
     // 5. Gather Database Context (Clean and Sanitize: NO IDs, NO emails, NO credentials)
     // Profile
     const { data: profile } = await supabase
@@ -186,18 +178,18 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id);
 
     // Points & Level
-    const { data: pointsData } = await supabase
+    const { data: pointsRecord } = await supabase
       .from('user_points')
-      .select('points')
-      .eq('user_id', user.id);
-    const totalPoints = (pointsData || []).reduce((sum, p) => sum + p.points, 0);
-    const level = getLevelNameAndRank(totalPoints);
+      .select('total_points')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    const totalPoints = pointsRecord?.total_points ?? 0;
+    const { getLevel } = await import('@/features/gamification/services/level.service');
+    const { fetchEarnedBadges } = await import('@/features/gamification/services/points.service');
+    const level = getLevel(totalPoints);
 
     // Earned Badges
-    const { data: badges } = await supabase
-      .from('user_badges')
-      .select('badge_slug')
-      .eq('user_id', user.id);
+    const earnedBadges = await fetchEarnedBadges(user.id);
 
     // Active Recommendations Checklist
     const { data: recommendations } = await supabase
@@ -249,7 +241,7 @@ export async function POST(request: NextRequest) {
         totalPoints,
         levelName: level.name,
         levelRank: level.rank,
-        badges: (badges || []).map((b) => b.badge_slug),
+        badges: earnedBadges.map((b) => b.badgeSlug),
       },
       recommendations: (recommendations || []).map((r) => ({
         title: r.title,

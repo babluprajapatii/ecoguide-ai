@@ -161,6 +161,35 @@ function ForecastChartComponent({ forecast }: ForecastChartProps) {
           />
         </AreaChart>
       </ResponsiveContainer>
+
+      {/* Screen Reader Table Fallback */}
+      <div className="sr-only">
+        <h4>Projected Footprint Forecast Table</h4>
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th scope="col" className="p-2 border-b border-border">Month</th>
+              <th scope="col" className="p-2 border-b border-border">Transport</th>
+              <th scope="col" className="p-2 border-b border-border">Diet</th>
+              <th scope="col" className="p-2 border-b border-border">Energy</th>
+              <th scope="col" className="p-2 border-b border-border">Shopping</th>
+              <th scope="col" className="p-2 border-b border-border">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {forecast.map((pt) => (
+              <tr key={pt.month}>
+                <td className="p-2 border-b border-border">{pt.month}</td>
+                <td className="p-2 border-b border-border">{(pt.transport / 1000).toFixed(2)}t</td>
+                <td className="p-2 border-b border-border">{(pt.diet / 1000).toFixed(2)}t</td>
+                <td className="p-2 border-b border-border">{(pt.energy / 1000).toFixed(2)}t</td>
+                <td className="p-2 border-b border-border">{(pt.shopping / 1000).toFixed(2)}t</td>
+                <td className="p-2 border-b border-border">{(pt.total / 1000).toFixed(2)}t</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -14,15 +14,21 @@
 /** Unique slug identifier for each badge. */
 export type BadgeSlug =
   | 'first_assessment'
+  | 'assessment_master'
   | 'under_10t'
-  | 'week_streak'
-  | 'vegan_switch'
-  | 'community_top10'
-  | 'transport_hero'
-  | 'energy_saver'
-  | 'share_results'
-  | 'coach_10'
-  | 'carbon_zero';
+  | 'under_2t'
+  | 'ai_coach_explorer'
+  | 'ai_coach_expert'
+  | 'simulator_explorer'
+  | 'simulator_master'
+  | 'community_member'
+  | 'top_10_leaderboard'
+  | 'eco_streak_7'
+  | 'eco_streak_30'
+  | 'eco_streak_90'
+  | 'carbon_reducer'
+  | 'eco_hero'
+  | 'vegan_switch';
 
 /** Definition of a badge including its unlock criteria. */
 export interface BadgeDefinition {
@@ -34,14 +40,18 @@ export interface BadgeDefinition {
   readonly description: string;
   /** Lucide icon name for rendering. */
   readonly icon: string;
-  /** Points awarded upon earning the badge. */
+  /** Points/XP awarded upon earning the badge. */
   readonly pointValue: number;
   /** Machine-readable unlock criteria description. */
   readonly criteria: string;
+  /** Display category for UI grouping. */
+  readonly category: 'assessment' | 'coaching' | 'simulation' | 'community' | 'sustainability_impact' | 'streaks';
 }
 
 /** A badge that has been earned by a user. */
 export interface EarnedBadge {
+  /** The badge database UUID. */
+  readonly badgeId: string;
   /** The badge definition slug. */
   readonly badgeSlug: BadgeSlug;
   /** Timestamp when the badge was earned. */
@@ -57,24 +67,31 @@ export interface EarnedBadge {
 /** Actions that can trigger points or badge unlocks. */
 export type GamificationAction =
   | 'complete_assessment'
-  | 'achieve_under_10t'
-  | 'login_streak_7'
-  | 'switch_vegan'
-  | 'reach_top_10'
-  | 'reduce_transport_25'
-  | 'energy_with_solar'
-  | 'share_scenario'
-  | 'coach_10_messages'
-  | 'achieve_under_2t';
+  | 'update_assessment'
+  | 'use_coach'
+  | 'complete_recommendation'
+  | 'run_simulator'
+  | 'join_challenge'
+  | 'streak_day';
 
 /** Level names in ascending order. */
-export type LevelName = 'Seedling' | 'Sprout' | 'Sapling' | 'Tree' | 'Forest';
+export type LevelName =
+  | 'Eco Beginner'
+  | 'Green Explorer'
+  | 'Climate Learner'
+  | 'Carbon Reducer'
+  | 'Eco Advocate'
+  | 'Green Hero'
+  | 'Climate Warrior'
+  | 'Sustainability Champion'
+  | 'Planet Protector'
+  | 'Net-Zero Legend';
 
 /** A user's current level with thresholds. */
 export interface Level {
   /** The level name. */
   readonly name: LevelName;
-  /** Numeric level (1–5). */
+  /** Numeric level (1–10). */
   readonly rank: number;
   /** Points required to reach this level. */
   readonly minPoints: number;
@@ -84,34 +101,41 @@ export interface Level {
   readonly progress: number;
 }
 
-/** A points transaction record. */
-export interface PointsTransaction {
-  /** The action that triggered the award. */
-  readonly action: GamificationAction;
-  /** Points awarded. */
-  readonly points: number;
-  /** Timestamp of the award. */
-  readonly awardedAt: string;
-}
-
 // ---------------------------------------------------------------------------
 // Supabase Row Shapes
 // ---------------------------------------------------------------------------
+
+/** Row shape for the `badges` table. */
+export interface BadgeRow {
+  readonly id: string;
+  readonly slug: string;
+  readonly name: string;
+  readonly description: string;
+  readonly icon: string;
+  readonly xp_reward: number;
+  readonly unlock_condition: string;
+  readonly category: string;
+  readonly created_at: string;
+}
 
 /** Row shape for the `user_badges` table. */
 export interface UserBadgeRow {
   readonly id: string;
   readonly user_id: string;
-  readonly badge_slug: string;
+  readonly badge_id: string;
   readonly earned_at: string;
-  readonly points_awarded: number;
 }
 
 /** Row shape for the `user_points` table. */
 export interface UserPointsRow {
   readonly id: string;
   readonly user_id: string;
-  readonly action: string;
-  readonly points: number;
-  readonly awarded_at: string;
+  readonly total_points: number;
+  readonly lifetime_points: number;
+  readonly current_level: number;
+  readonly current_streak: number;
+  readonly longest_streak: number;
+  readonly last_activity_at: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
 }

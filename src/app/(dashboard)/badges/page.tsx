@@ -3,6 +3,7 @@
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useBadges } from '@/features/gamification/hooks/useBadges';
 import { BadgeGrid } from '@/features/gamification/components/BadgeGrid';
+import { BadgeToastContainer } from '@/features/gamification/components/BadgeToastContainer';
 import { Trophy, Award, Sparkles, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -21,6 +22,8 @@ export default function BadgesPage() {
     isLoading: badgesLoading,
     level,
     totalPoints,
+    toasts,
+    dismissToast,
   } = useBadges(user?.id ?? null);
 
   const earnedBadgeMap = useMemo(() => {
@@ -140,6 +143,12 @@ export default function BadgesPage() {
         badges={allBadges}
         earnedSlugs={earnedSlugs}
         earnedBadgeMap={earnedBadgeMap}
+      />
+
+      {/* Toast Notifications */}
+      <BadgeToastContainer
+        toasts={toasts}
+        onDismiss={dismissToast}
       />
     </div>
   );

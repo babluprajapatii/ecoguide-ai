@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Auto-generated Supabase database types.
  *
@@ -131,7 +132,123 @@ export interface Database {
           },
         ];
       };
+      badges: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          description: string;
+          icon: string;
+          xp_reward: number;
+          unlock_condition: string;
+          category: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          name: string;
+          description: string;
+          icon: string;
+          xp_reward: number;
+          unlock_condition: string;
+          category: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          slug?: string;
+          name?: string;
+          description?: string;
+          icon?: string;
+          xp_reward?: number;
+          unlock_condition?: string;
+          category?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       user_points: {
+        Row: {
+          id: string;
+          user_id: string;
+          total_points: number;
+          lifetime_points: number;
+          current_level: number;
+          current_streak: number;
+          longest_streak: number;
+          last_activity_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          total_points?: number;
+          lifetime_points?: number;
+          current_level?: number;
+          current_streak?: number;
+          longest_streak?: number;
+          last_activity_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          total_points?: number;
+          lifetime_points?: number;
+          current_level?: number;
+          current_streak?: number;
+          longest_streak?: number;
+          last_activity_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_points_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      user_badges: {
+        Row: {
+          id: string;
+          user_id: string;
+          badge_id: string;
+          earned_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          badge_id: string;
+          earned_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          badge_id?: string;
+          earned_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_badges_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_badges_badge_id_fkey';
+            columns: ['badge_id'];
+            referencedRelation: 'badges';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      points_transactions: {
         Row: {
           id: string;
           user_id: string;
@@ -155,38 +272,7 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'user_points_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      user_badges: {
-        Row: {
-          id: string;
-          user_id: string;
-          badge_slug: string;
-          earned_at: string;
-          points_awarded: number;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          badge_slug: string;
-          earned_at?: string;
-          points_awarded: number;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          badge_slug?: string;
-          earned_at?: string;
-          points_awarded?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'user_badges_user_id_fkey';
+            foreignKeyName: 'points_transactions_user_id_fkey';
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
@@ -338,6 +424,64 @@ export interface Database {
         Relationships: [
           {
             foreignKeyName: 'coach_recommendations_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      saved_simulations: {
+        Row: {
+          id: string;
+          user_id: string;
+          scenario_name: string;
+          scenario_type: string;
+          configuration: Record<string, any>;
+          estimated_carbon_savings: number;
+          estimated_cost_savings: number;
+          estimated_water_savings: number;
+          estimated_energy_savings: number;
+          impact_score: number;
+          is_favorite: boolean;
+          comparison_group_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          scenario_name: string;
+          scenario_type: string;
+          configuration: Record<string, any>;
+          estimated_carbon_savings: number;
+          estimated_cost_savings: number;
+          estimated_water_savings?: number;
+          estimated_energy_savings?: number;
+          impact_score: number;
+          is_favorite?: boolean;
+          comparison_group_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          scenario_name?: string;
+          scenario_type?: string;
+          configuration?: Record<string, any>;
+          estimated_carbon_savings?: number;
+          estimated_cost_savings?: number;
+          estimated_water_savings?: number;
+          estimated_energy_savings?: number;
+          impact_score?: number;
+          is_favorite?: boolean;
+          comparison_group_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'saved_simulations_user_id_fkey';
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];

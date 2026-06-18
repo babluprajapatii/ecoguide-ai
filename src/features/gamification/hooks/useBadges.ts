@@ -3,8 +3,8 @@
 /**
  * useBadges — hook for managing earned badges and new unlock detection.
  *
- * Fetches the user's earned badges from Supabase, provides a method
- * to check for new unlocks after actions, and shows toast-style
+ * Fetches the user's earned badges and points from the secure /api/gamification endpoint,
+ * provides a method to check for new unlocks after actions, and shows toast-style
  * notifications when a new badge is earned.
  *
  * @module useBadges
@@ -12,7 +12,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { BadgeDefinition, EarnedBadge, GamificationAction, Level, BadgeSlug } from '@/features/gamification/types/gamification.types';
-import { fetchEarnedBadges, fetchTotalPoints, checkBadgeUnlock, getUserLevel } from '@/features/gamification/services/points.service';
+import { getLevel } from '@/features/gamification/services/level.service';
 import { BADGES } from '@/features/gamification/data/badges';
 
 // ---------------------------------------------------------------------------
@@ -30,7 +30,7 @@ export interface BadgeToast {
 // ---------------------------------------------------------------------------
 
 export interface UseBadgesReturn {
-  /** All 10 badge definitions. */
+  /** All 16 badge definitions. */
   readonly allBadges: readonly BadgeDefinition[];
   /** Slugs of badges earned by the user. */
   readonly earnedSlugs: ReadonlySet<BadgeSlug>;
@@ -52,6 +52,8 @@ export interface UseBadgesReturn {
   readonly dismissToast: (toastId: string) => void;
   /** Refresh earned badges from the server. */
   readonly refresh: () => Promise<void>;
+  /** Show badge toasts for already unlocked badges */
+  readonly showBadgeToast: (badge: BadgeDefinition) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -68,9 +70,63 @@ export function useBadges(userId: string | null): UseBadgesReturn {
   const [toasts, setToasts] = useState<BadgeToast[]>([]);
   const toastTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
+  const prevEarnedSlugsRef = useRef<Set<BadgeSlug>>(new Set());
+  const isInitialLoadRef = useRef(true);
+
   // Derived
   const earnedSlugs: ReadonlySet<BadgeSlug> = new Set(earnedBadges.map((b) => b.badgeSlug));
-  const level = getUserLevel(totalPoints);
+  const level = getLevel(totalPoints);
+
+  // --- Show toast helper (needed in useEffect) ---
+  // --- Dismiss toast ---
+  const dismissToast = useCallback((toastId: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== toastId));
+    const timer = toastTimersRef.current.get(toastId);
+    if (timer) {
+      clearTimeout(timer);
+      toastTimersRef.current.delete(toastId);
+    }
+  }, []);
+
+  const showBadgeToast = useCallback(
+    (badge: BadgeDefinition) => {
+      const toastId = `badge-toast-${badge.slug}-${Date.now()}`;
+      const toast: BadgeToast = {
+        id: toastId,
+        badge,
+        dismissedAt: null,
+      };
+
+      setToasts((prev) => [...prev, toast]);
+
+      const timer = setTimeout(() => {
+        dismissToast(toastId);
+      }, TOAST_AUTO_DISMISS_MS);
+
+      toastTimersRef.current.set(toastId, timer);
+    },
+    [dismissToast],
+  );
+
+  // Automatically show toasts for newly earned badges when earnedBadges updates
+  useEffect(() => {
+    const currentSlugs = new Set(earnedBadges.map((b) => b.badgeSlug));
+
+    if (isInitialLoadRef.current) {
+      return;
+    }
+
+    const prevSlugs = prevEarnedSlugsRef.current;
+    const newlyEarned = earnedBadges.filter((eb) => !prevSlugs.has(eb.badgeSlug));
+    for (const eb of newlyEarned) {
+      const badgeDef = BADGES.find((b) => b.slug === eb.badgeSlug);
+      if (badgeDef) {
+        showBadgeToast(badgeDef);
+      }
+    }
+
+    prevEarnedSlugsRef.current = currentSlugs;
+  }, [earnedBadges, showBadgeToast]);
 
   // --- Fetch on mount / userId change ---
   const refresh = useCallback(async () => {
@@ -80,12 +136,20 @@ export function useBadges(userId: string | null): UseBadgesReturn {
     setError(null);
 
     try {
-      const [badges, points] = await Promise.all([
-        fetchEarnedBadges(userId),
-        fetchTotalPoints(userId),
-      ]);
-      setEarnedBadges(badges);
-      setTotalPoints(points);
+      const response = await fetch('/api/gamification');
+      if (!response.ok) {
+        throw new Error('Failed to fetch gamification stats');
+      }
+      const data = await response.json();
+      const newBadgesList = data.earnedBadges ?? [];
+
+      if (isInitialLoadRef.current) {
+        prevEarnedSlugsRef.current = new Set(newBadgesList.map((b: EarnedBadge) => b.badgeSlug));
+        isInitialLoadRef.current = false;
+      }
+
+      setEarnedBadges(newBadgesList);
+      setTotalPoints(data.totalPoints ?? 0);
     } catch (err: unknown) {
       const resolvedError = err instanceof Error ? err : new Error('Failed to fetch badges');
       setError(resolvedError);
@@ -107,49 +171,31 @@ export function useBadges(userId: string | null): UseBadgesReturn {
     };
   }, []);
 
-  // --- Dismiss toast ---
-  const dismissToast = useCallback((toastId: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== toastId));
-    const timer = toastTimersRef.current.get(toastId);
-    if (timer) {
-      clearTimeout(timer);
-      toastTimersRef.current.delete(toastId);
-    }
-  }, []);
-
-  // --- Show toast with auto-dismiss ---
-  const showToast = useCallback(
-    (badge: BadgeDefinition) => {
-      const toastId = `badge-toast-${badge.slug}-${Date.now()}`;
-      const toast: BadgeToast = {
-        id: toastId,
-        badge,
-        dismissedAt: null,
-      };
-
-      setToasts((prev) => [...prev, toast]);
-
-      const timer = setTimeout(() => {
-        dismissToast(toastId);
-      }, TOAST_AUTO_DISMISS_MS);
-
-      toastTimersRef.current.set(toastId, timer);
-    },
-    [dismissToast],
-  );
-
   // --- Check for new unlocks ---
   const checkUnlocks = useCallback(
     async (action: GamificationAction): Promise<BadgeDefinition[]> => {
       if (!userId) return [];
 
       try {
-        const newBadges = await checkBadgeUnlock(userId, action);
+        const response = await fetch('/api/gamification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ action }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to post gamification activity');
+        }
+
+        const data = await response.json();
+        const newBadges: BadgeDefinition[] = data.unlockedBadges ?? [];
 
         if (newBadges.length > 0) {
           // Show toast for each new badge
           for (const badge of newBadges) {
-            showToast(badge);
+            showBadgeToast(badge);
           }
 
           // Refresh data to pick up new badges and points
@@ -162,7 +208,7 @@ export function useBadges(userId: string | null): UseBadgesReturn {
         return [];
       }
     },
-    [userId, showToast, refresh],
+    [userId, showBadgeToast, refresh],
   );
 
   return {
@@ -177,5 +223,6 @@ export function useBadges(userId: string | null): UseBadgesReturn {
     checkUnlocks,
     dismissToast,
     refresh,
+    showBadgeToast,
   };
 }

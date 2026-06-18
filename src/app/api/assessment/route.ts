@@ -168,6 +168,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Seed default goals if this is the user's first completed assessment
+  let action: 'complete_assessment' | 'update_assessment' = 'update_assessment';
   try {
     const { count, error: countError } = await supabase
       .from('assessments')
@@ -176,6 +177,7 @@ export async function POST(request: NextRequest) {
       .eq('is_complete', true);
 
     if (!countError && count === 1) {
+      action = 'complete_assessment';
       const defaultGoals = [
         {
           user_id: user.id,
@@ -218,6 +220,17 @@ export async function POST(request: NextRequest) {
     console.error('[API /assessment] Error checking/seeding goals:', err);
   }
 
+  // Award XP and check badge unlocks for assessment completion
+  let pointsAwarded = 0;
+  let unlockedBadges: unknown[] = [];
+  try {
+    const { awardPoints, checkBadgeUnlock } = await import('@/features/gamification/services/points.service');
+    pointsAwarded = await awardPoints(user.id, action);
+    unlockedBadges = await checkBadgeUnlock(user.id, action);
+  } catch (err) {
+    console.error('[API /assessment] Failed to award gamification points/badges:', err);
+  }
+
   // Proactively delete the active draft now that the assessment is complete
   const { error: draftDeleteError } = await supabase
     .from('assessments')
@@ -237,6 +250,8 @@ export async function POST(request: NextRequest) {
       grade,
       recommendations,
       createdAt: insertedRow.created_at as string,
+      pointsAwarded,
+      unlockedBadges,
     },
     { status: 201, headers: rateLimitHeaders(rateLimitResult) },
   );
