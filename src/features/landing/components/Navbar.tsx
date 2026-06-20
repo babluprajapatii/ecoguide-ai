@@ -23,6 +23,8 @@ export function Navbar() {
   useEffect(() => {
     if (!isOpen) return;
 
+    const activeElement = document.activeElement as HTMLElement | null;
+
     // Focus on close button when opened
     closeButtonRef.current?.focus();
 
@@ -35,7 +37,7 @@ export function Navbar() {
       if (e.key === 'Tab') {
         if (!menuRef.current) return;
         const focusableElements = menuRef.current.querySelectorAll(
-          'a[href], button:not([disabled])'
+          'a[href], button:not([disabled])',
         );
         const firstElement = focusableElements[0] as HTMLElement;
         const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
@@ -55,7 +57,12 @@ export function Navbar() {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (activeElement) {
+        activeElement.focus();
+      }
+    };
   }, [isOpen]);
 
   const toggleMenu = () => {
@@ -87,15 +94,15 @@ export function Navbar() {
     <>
       <nav
         id="navbar"
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed left-0 right-0 top-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? 'bg-dark-900/80 backdrop-blur-md border-b border-eco-500/10 shadow-lg py-2'
+            ? 'border-b border-eco-500/10 bg-dark-900/80 py-2 shadow-lg backdrop-blur-md'
             : 'bg-transparent py-4'
         }`}
         aria-label="Main Navigation"
       >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <a
               href="/"
@@ -103,11 +110,11 @@ export function Navbar() {
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded-lg p-1"
+              className="group flex items-center gap-2 rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
               aria-label="EcoGuide AI Home"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-eco-400 to-eco-600 flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
-                <Leaf className="text-white w-4 h-4" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-eco-400 to-eco-600 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
+                <Leaf className="h-4 w-4 text-white" />
               </div>
               <span className="font-serif text-lg font-semibold tracking-tight text-white">
                 EcoGuide<span className="text-eco-400">AI</span>
@@ -115,14 +122,14 @@ export function Navbar() {
             </a>
 
             {/* Desktop Nav Links */}
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden items-center gap-8 md:flex">
               <a
                 href="#dashboard"
                 onClick={(e) => {
                   e.preventDefault();
                   scrollToSection('dashboard');
                 }}
-                className="nav-link text-sm text-stone-400 font-medium hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded px-1.5"
+                className="nav-link rounded px-1.5 text-sm font-medium text-stone-400 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
               >
                 Dashboard
               </a>
@@ -132,7 +139,7 @@ export function Navbar() {
                   e.preventDefault();
                   scrollToSection('features');
                 }}
-                className="nav-link text-sm text-stone-400 font-medium hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded px-1.5"
+                className="nav-link rounded px-1.5 text-sm font-medium text-stone-400 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
               >
                 Features
               </a>
@@ -142,7 +149,7 @@ export function Navbar() {
                   e.preventDefault();
                   scrollToSection('how-it-works');
                 }}
-                className="nav-link text-sm text-stone-400 font-medium hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded px-1.5"
+                className="nav-link rounded px-1.5 text-sm font-medium text-stone-400 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
               >
                 How It Works
               </a>
@@ -152,7 +159,7 @@ export function Navbar() {
                   e.preventDefault();
                   scrollToSection('analytics');
                 }}
-                className="nav-link text-sm text-stone-400 font-medium hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded px-1.5"
+                className="nav-link rounded px-1.5 text-sm font-medium text-stone-400 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
               >
                 Analytics
               </a>
@@ -162,7 +169,7 @@ export function Navbar() {
                   e.preventDefault();
                   scrollToSection('community');
                 }}
-                className="nav-link text-sm text-stone-400 font-medium hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded px-1.5"
+                className="nav-link rounded px-1.5 text-sm font-medium text-stone-400 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
               >
                 Community
               </a>
@@ -172,19 +179,19 @@ export function Navbar() {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => scrollToSection('cta')}
-                className="hidden md:inline-flex btn-primary text-xs font-semibold text-white px-5 py-2.5 rounded-full tracking-wide uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
+                className="btn-primary hidden rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 md:inline-flex"
               >
                 Meet My AI Coach
               </button>
               <button
                 ref={triggerButtonRef}
                 onClick={toggleMenu}
-                className="md:hidden text-stone-400 hover:text-eco-400 transition-colors p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded-lg"
+                className="rounded-lg p-2 text-stone-400 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 md:hidden"
                 aria-label={isOpen ? 'Close mobile menu' : 'Open mobile menu'}
                 aria-expanded={isOpen}
                 aria-controls="mobile-menu"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="h-6 w-6" />
               </button>
             </div>
           </div>
@@ -194,7 +201,7 @@ export function Navbar() {
       {/* Mobile Menu Drawer Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-[55] backdrop-blur-sm transition-opacity duration-300"
+          className="fixed inset-0 z-[55] bg-black/60 backdrop-blur-sm transition-opacity duration-300"
           onClick={closeMenu}
           aria-hidden="true"
         />
@@ -204,32 +211,32 @@ export function Navbar() {
       <div
         id="mobile-menu"
         ref={menuRef}
-        className={`fixed inset-y-0 right-0 w-72 z-[60] bg-dark-800/95 backdrop-blur-xl border-l border-eco-900/50 shadow-2xl transition-transform duration-300 transform ${
+        className={`fixed inset-y-0 right-0 z-[60] w-72 transform border-l border-eco-900/50 bg-dark-800/95 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
         aria-modal="true"
         aria-label="Mobile Navigation Menu"
       >
-        <div className="flex items-center justify-between p-6 border-b border-eco-500/10">
+        <div className="flex items-center justify-between border-b border-eco-500/10 p-6">
           <span className="font-serif text-lg font-semibold text-white">Menu</span>
           <button
             ref={closeButtonRef}
             onClick={closeMenu}
-            className="text-stone-400 hover:text-eco-400 transition-colors p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded-lg"
+            className="rounded-lg p-2 text-stone-400 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
             aria-label="Close mobile menu"
           >
-            <X className="w-6 h-6" />
+            <X className="h-6 w-6" />
           </button>
         </div>
-        <div className="flex flex-col gap-1 px-4 mt-6">
+        <div className="mt-6 flex flex-col gap-1 px-4">
           <a
             href="#dashboard"
             onClick={(e) => {
               e.preventDefault();
               scrollToSection('dashboard');
             }}
-            className="px-4 py-3 rounded-lg text-stone-300 hover:bg-eco-900/30 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 transition-all font-medium"
+            className="rounded-lg px-4 py-3 font-medium text-stone-300 transition-all hover:bg-eco-900/30 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
           >
             Dashboard
           </a>
@@ -239,7 +246,7 @@ export function Navbar() {
               e.preventDefault();
               scrollToSection('features');
             }}
-            className="px-4 py-3 rounded-lg text-stone-300 hover:bg-eco-900/30 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 transition-all font-medium"
+            className="rounded-lg px-4 py-3 font-medium text-stone-300 transition-all hover:bg-eco-900/30 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
           >
             Features
           </a>
@@ -249,7 +256,7 @@ export function Navbar() {
               e.preventDefault();
               scrollToSection('how-it-works');
             }}
-            className="px-4 py-3 rounded-lg text-stone-300 hover:bg-eco-900/30 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 transition-all font-medium"
+            className="rounded-lg px-4 py-3 font-medium text-stone-300 transition-all hover:bg-eco-900/30 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
           >
             How It Works
           </a>
@@ -259,7 +266,7 @@ export function Navbar() {
               e.preventDefault();
               scrollToSection('analytics');
             }}
-            className="px-4 py-3 rounded-lg text-stone-300 hover:bg-eco-900/30 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 transition-all font-medium"
+            className="rounded-lg px-4 py-3 font-medium text-stone-300 transition-all hover:bg-eco-900/30 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
           >
             Analytics
           </a>
@@ -269,14 +276,14 @@ export function Navbar() {
               e.preventDefault();
               scrollToSection('community');
             }}
-            className="px-4 py-3 rounded-lg text-stone-300 hover:bg-eco-900/30 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 transition-all font-medium"
+            className="rounded-lg px-4 py-3 font-medium text-stone-300 transition-all hover:bg-eco-900/30 hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
           >
             Community
           </a>
           <div className="mt-6 px-4">
             <button
               onClick={() => scrollToSection('cta')}
-              className="btn-primary w-full text-sm font-semibold text-white px-5 py-3 rounded-full tracking-wide uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
+              className="btn-primary w-full rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-wide text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
             >
               Meet My AI Coach
             </button>

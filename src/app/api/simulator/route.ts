@@ -1,39 +1,20 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { createSimulationSchema, updateSimulationSchema } from '@/features/simulator/schemas/simulator.schemas';
+import {
+  createSimulationSchema,
+  updateSimulationSchema,
+} from '@/features/simulator/schemas/simulator.schemas';
 import { calculateSimulatedImpact } from '@/features/simulator/services/simulation.service';
 import { logger } from '@/lib/logger';
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limiter';
+import { z } from 'zod';
 import type { FootprintBreakdown } from '@/features/assessment/types/assessment.types';
 import type { Database } from '@/lib/supabase/database.types';
 
 export const dynamic = 'force-dynamic';
 
-interface RateLimitData {
-  readonly timestamps: number[];
-}
-
-/** In-memory sliding window rate limits for saving simulations */
-const rateLimitStore = new Map<string, RateLimitData>();
-
-function checkRateLimit(userId: string): { allowed: boolean; retryAfterSeconds: number } {
-  const now = Date.now();
-  const oneMinute = 60 * 1000;
-  const limit = 10; // Max 10 saves/updates per minute
-
-  const data = rateLimitStore.get(userId) || { timestamps: [] };
-  const validTimestamps = data.timestamps.filter((t) => now - t < oneMinute);
-
-  if (validTimestamps.length >= limit) {
-    const earliest = validTimestamps[0] || now;
-    const retryAfter = Math.ceil((earliest + oneMinute - now) / 1000);
-    return { allowed: false, retryAfterSeconds: Math.max(1, retryAfter) };
-  }
-
-  validTimestamps.push(now);
-  rateLimitStore.set(userId, { timestamps: validTimestamps });
-  return { allowed: true, retryAfterSeconds: 0 };
-}
+const deleteParamSchema = z.string().uuid('Invalid simulation ID format');
 
 const FALLBACK_BASELINE: FootprintBreakdown = {
   transport: 2000,
@@ -50,7 +31,14 @@ const FALLBACK_BASELINE: FootprintBreakdown = {
  * GET /api/simulator
  * Retrieves all saved simulations for the authenticated user, sorted by creation date descending.
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const rateLimitRes = checkRateLimit(request);
+  const headers = rateLimitHeaders(rateLimitRes);
+
+  if (!rateLimitRes.allowed) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers });
+  }
+
   try {
     const supabase = createClient();
     const {
@@ -59,7 +47,7 @@ export async function GET(_request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
     }
 
     const { data: simulations, error: dbError } = await supabase
@@ -70,13 +58,16 @@ export async function GET(_request: NextRequest) {
 
     if (dbError) {
       logger.error('[API /api/simulator GET] Database fetch error', dbError, { userId: user.id });
-      return NextResponse.json({ message: 'Failed to retrieve saved simulations.' }, { status: 500 });
+      return NextResponse.json(
+        { message: 'Failed to retrieve saved simulations.' },
+        { status: 500, headers },
+      );
     }
 
-    return NextResponse.json(simulations || [], { status: 200 });
+    return NextResponse.json(simulations || [], { status: 200, headers });
   } catch (error) {
     logger.error('[API /api/simulator GET] Critical error', error);
-    return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal server error.' }, { status: 500, headers });
   }
 }
 
@@ -85,6 +76,13 @@ export async function GET(_request: NextRequest) {
  * Saves a new lifestyle simulation scenario. Recomputes all calculations on the server side.
  */
 export async function POST(request: NextRequest) {
+  const rateLimitRes = checkRateLimit(request);
+  const headers = rateLimitHeaders(rateLimitRes);
+
+  if (!rateLimitRes.allowed) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers });
+  }
+
   try {
     const supabase = createClient();
     const {
@@ -93,17 +91,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
-    }
-
-    // Rate Limiting
-    const { allowed, retryAfterSeconds } = checkRateLimit(user.id);
-    if (!allowed) {
-      logger.warn('Simulator rate limit exceeded', { userId: user.id });
-      return NextResponse.json(
-        { message: `Too many save requests. Please wait ${retryAfterSeconds} seconds.` },
-        { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
-      );
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
     }
 
     const body = await request.json();
@@ -111,16 +99,19 @@ export async function POST(request: NextRequest) {
     if (!parseResult.success) {
       return NextResponse.json(
         { message: 'Validation failed.', errors: parseResult.error.flatten().fieldErrors },
-        { status: 400 }
+        { status: 400, headers },
       );
     }
 
-    const { scenario_name, scenario_type, configuration, is_favorite, comparison_group_id } = parseResult.data;
+    const { scenario_name, scenario_type, configuration, is_favorite, comparison_group_id } =
+      parseResult.data;
 
-    // Fetch user's actual baseline to calculate savings on the server (never trust client metrics)
+    // Fetch user's actual baseline to calculate savings on the server
     const { data: latestAssessment } = await supabase
       .from('assessments')
-      .select('transport_kg, diet_kg, energy_kg, shopping_kg, travel_score, total_kg, compared_to_average, percentile')
+      .select(
+        'transport_kg, diet_kg, energy_kg, shopping_kg, travel_score, total_kg, compared_to_average, percentile',
+      )
       .eq('is_complete', true)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -164,16 +155,22 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       logger.error('[API /api/simulator POST] Insert error', insertError, { userId: user.id });
-      return NextResponse.json({ message: 'Failed to save simulation.' }, { status: 500 });
+      return NextResponse.json({ message: 'Failed to save simulation.' }, { status: 500, headers });
     }
 
-    logger.info('Simulation created', { userId: user.id, scenarioId: newSimulation.id, scenarioType: scenario_type, impactScore: results.impactScore });
+    logger.info('Simulation created', {
+      userId: user.id,
+      scenarioId: newSimulation.id,
+      scenarioType: scenario_type,
+      impactScore: results.impactScore,
+    });
 
     // Award XP and check badge unlocks for running simulator
     let pointsAwarded = 0;
     let unlockedBadges: unknown[] = [];
     try {
-      const { awardPoints, checkBadgeUnlock } = await import('@/features/gamification/services/points.service');
+      const { awardPoints, checkBadgeUnlock } =
+        await import('@/features/gamification/services/points.service');
       pointsAwarded = await awardPoints(user.id, 'run_simulator');
       unlockedBadges = await checkBadgeUnlock(user.id, 'run_simulator');
     } catch (err) {
@@ -186,11 +183,11 @@ export async function POST(request: NextRequest) {
         pointsAwarded,
         unlockedBadges,
       },
-      { status: 201 }
+      { status: 201, headers },
     );
   } catch (error) {
     logger.error('[API /api/simulator POST] Critical error', error);
-    return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal server error.' }, { status: 500, headers });
   }
 }
 
@@ -199,6 +196,13 @@ export async function POST(request: NextRequest) {
  * Updates configuration, name, or favorite status of a saved simulation. Re-verifies user ownership.
  */
 export async function PUT(request: NextRequest) {
+  const rateLimitRes = checkRateLimit(request);
+  const headers = rateLimitHeaders(rateLimitRes);
+
+  if (!rateLimitRes.allowed) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers });
+  }
+
   try {
     const supabase = createClient();
     const {
@@ -207,7 +211,7 @@ export async function PUT(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
     }
 
     const body = await request.json();
@@ -215,7 +219,7 @@ export async function PUT(request: NextRequest) {
     if (!parseResult.success) {
       return NextResponse.json(
         { message: 'Validation failed.', errors: parseResult.error.flatten().fieldErrors },
-        { status: 400 }
+        { status: 400, headers },
       );
     }
 
@@ -229,11 +233,14 @@ export async function PUT(request: NextRequest) {
       .maybeSingle();
 
     if (fetchError || !existingSim) {
-      return NextResponse.json({ message: 'Simulation not found.' }, { status: 404 });
+      return NextResponse.json({ message: 'Simulation not found.' }, { status: 404, headers });
     }
 
     if (existingSim.user_id !== user.id) {
-      return NextResponse.json({ message: 'Forbidden: You do not own this simulation.' }, { status: 403 });
+      return NextResponse.json(
+        { message: 'Forbidden: You do not own this simulation.' },
+        { status: 403, headers },
+      );
     }
 
     const updatePayload: Database['public']['Tables']['saved_simulations']['Update'] = {};
@@ -249,16 +256,26 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (updateError) {
-      logger.error('[API /api/simulator PUT] Update error', updateError, { userId: user.id, simId: id });
-      return NextResponse.json({ message: 'Failed to update simulation.' }, { status: 500 });
+      logger.error('[API /api/simulator PUT] Update error', updateError, {
+        userId: user.id,
+        simId: id,
+      });
+      return NextResponse.json(
+        { message: 'Failed to update simulation.' },
+        { status: 500, headers },
+      );
     }
 
-    logger.info('Simulation updated', { userId: user.id, scenarioId: id, updates: Object.keys(updatePayload) });
+    logger.info('Simulation updated', {
+      userId: user.id,
+      scenarioId: id,
+      updates: Object.keys(updatePayload),
+    });
 
-    return NextResponse.json(updatedSim, { status: 200 });
+    return NextResponse.json(updatedSim, { status: 200, headers });
   } catch (error) {
     logger.error('[API /api/simulator PUT] Critical error', error);
-    return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal server error.' }, { status: 500, headers });
   }
 }
 
@@ -267,6 +284,13 @@ export async function PUT(request: NextRequest) {
  * Deletes a saved simulation. Verifies ownership.
  */
 export async function DELETE(request: NextRequest) {
+  const rateLimitRes = checkRateLimit(request);
+  const headers = rateLimitHeaders(rateLimitRes);
+
+  if (!rateLimitRes.allowed) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers });
+  }
+
   try {
     const supabase = createClient();
     const {
@@ -275,14 +299,23 @@ export async function DELETE(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
     }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ message: 'Missing simulation ID.' }, { status: 400 });
+      return NextResponse.json({ message: 'Missing simulation ID.' }, { status: 400, headers });
+    }
+
+    // Zod validation for UUID
+    const parsedId = deleteParamSchema.safeParse(id);
+    if (!parsedId.success) {
+      return NextResponse.json(
+        { message: parsedId.error.errors[0]?.message || 'Invalid simulation ID format.' },
+        { status: 400, headers },
+      );
     }
 
     // Verify ownership
@@ -293,28 +326,37 @@ export async function DELETE(request: NextRequest) {
       .maybeSingle();
 
     if (fetchError || !existingSim) {
-      return NextResponse.json({ message: 'Simulation not found.' }, { status: 404 });
+      return NextResponse.json({ message: 'Simulation not found.' }, { status: 404, headers });
     }
 
     if (existingSim.user_id !== user.id) {
-      return NextResponse.json({ message: 'Forbidden: You do not own this simulation.' }, { status: 403 });
+      return NextResponse.json(
+        { message: 'Forbidden: You do not own this simulation.' },
+        { status: 403, headers },
+      );
     }
 
-    const { error: deleteError } = await supabase
-      .from('saved_simulations')
-      .delete()
-      .eq('id', id);
+    const { error: deleteError } = await supabase.from('saved_simulations').delete().eq('id', id);
 
     if (deleteError) {
-      logger.error('[API /api/simulator DELETE] Delete error', deleteError, { userId: user.id, simId: id });
-      return NextResponse.json({ message: 'Failed to delete simulation.' }, { status: 500 });
+      logger.error('[API /api/simulator DELETE] Delete error', deleteError, {
+        userId: user.id,
+        simId: id,
+      });
+      return NextResponse.json(
+        { message: 'Failed to delete simulation.' },
+        { status: 500, headers },
+      );
     }
 
     logger.info('Simulation deleted', { userId: user.id, scenarioId: id });
 
-    return NextResponse.json({ message: 'Simulation deleted successfully.' }, { status: 200 });
+    return NextResponse.json(
+      { message: 'Simulation deleted successfully.' },
+      { status: 200, headers },
+    );
   } catch (error) {
     logger.error('[API /api/simulator DELETE] Critical error', error);
-    return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal server error.' }, { status: 500, headers });
   }
 }

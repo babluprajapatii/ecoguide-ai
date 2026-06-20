@@ -1,7 +1,16 @@
 'use client';
 
 import { useCoachDashboard } from '../hooks/useCoachDashboard';
-import { Flame, MessageSquare, Lightbulb, CheckCircle2, XCircle, Trash2, Award, Zap } from 'lucide-react';
+import {
+  Flame,
+  MessageSquare,
+  Lightbulb,
+  CheckCircle2,
+  XCircle,
+  Trash2,
+  Award,
+  Zap,
+} from 'lucide-react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useState } from 'react';
 
@@ -62,10 +71,13 @@ export function CoachStats() {
 
   if (isLoadingStats || isLoadingRecs) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+      <div className="animate-pulse space-y-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 rounded-2xl border border-border/80 bg-card/40 backdrop-blur-md" />
+            <div
+              key={i}
+              className="h-24 rounded-2xl border border-border/80 bg-card/40 backdrop-blur-md"
+            />
           ))}
         </div>
         <div className="h-64 rounded-2xl border border-border/80 bg-card/40 backdrop-blur-md" />
@@ -104,7 +116,7 @@ export function CoachStats() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid gap-4 grid-cols-1 sm:grid-cols-3"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-3"
       >
         {statCards.map((card) => {
           const Icon = card.icon;
@@ -115,10 +127,12 @@ export function CoachStats() {
               className="group relative rounded-2xl border border-border/80 bg-card/40 p-4 shadow-sm backdrop-blur-md transition-all hover:border-emerald-500/20 dark:bg-card/25"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground tracking-tight">
+                <span className="text-xs font-semibold tracking-tight text-muted-foreground">
                   {card.title}
                 </span>
-                <div className={`p-2 rounded-lg ${card.iconColor} transition-transform group-hover:scale-105`}>
+                <div
+                  className={`rounded-lg p-2 ${card.iconColor} transition-transform group-hover:scale-105`}
+                >
                   <Icon size={16} />
                 </div>
               </div>
@@ -127,17 +141,17 @@ export function CoachStats() {
                   {card.value}
                 </span>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{card.description}</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">{card.description}</p>
             </motion.div>
           );
         })}
       </motion.div>
 
       {/* Recommendations Checklist Container */}
-      <div className="rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-3 gap-3">
+      <div className="space-y-4 rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25">
+        <div className="flex flex-col gap-3 border-b border-border/60 pb-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-0.5">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
               <Award size={16} className="text-emerald-500" />
               <span>Recommended Eco Actions</span>
             </h3>
@@ -150,14 +164,14 @@ export function CoachStats() {
             <button
               type="button"
               onClick={() => setShowCompleted(!showCompleted)}
-              className="text-xs font-bold rounded-lg border border-border/80 px-2.5 py-1 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
+              className="rounded-lg border border-border/80 px-2.5 py-1 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground"
             >
               {showCompleted ? 'Show Pending' : 'Show Completed'}
             </button>
             <button
               type="button"
               onClick={() => setShowAddForm(!showAddForm)}
-              className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg px-2.5 py-1 transition-colors"
+              className="rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-emerald-500"
             >
               {showAddForm ? 'Cancel' : 'Add Custom'}
             </button>
@@ -172,11 +186,14 @@ export function CoachStats() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               onSubmit={handleAddRecommendation}
-              className="overflow-hidden border border-border/60 bg-muted/20 rounded-xl p-4 space-y-3"
+              className="space-y-3 overflow-hidden rounded-xl border border-border/60 bg-muted/20 p-4"
             >
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1">
-                  <label htmlFor="rec-title" className="text-[11px] font-bold text-muted-foreground uppercase">
+                  <label
+                    htmlFor="rec-title"
+                    className="text-[11px] font-bold uppercase text-muted-foreground"
+                  >
                     Action Title
                   </label>
                   <input
@@ -190,7 +207,10 @@ export function CoachStats() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="rec-savings" className="text-[11px] font-bold text-muted-foreground uppercase">
+                  <label
+                    htmlFor="rec-savings"
+                    className="text-[11px] font-bold uppercase text-muted-foreground"
+                  >
                     Annual CO₂ Savings (kg)
                   </label>
                   <input
@@ -206,7 +226,10 @@ export function CoachStats() {
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="rec-desc" className="text-[11px] font-bold text-muted-foreground uppercase">
+                <label
+                  htmlFor="rec-desc"
+                  className="text-[11px] font-bold uppercase text-muted-foreground"
+                >
                   Description
                 </label>
                 <textarea
@@ -216,7 +239,7 @@ export function CoachStats() {
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
                   placeholder="Summarize the action step and frequency details..."
-                  className="w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 resize-none"
+                  className="w-full resize-none rounded-lg border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500"
                 />
               </div>
 
@@ -227,10 +250,10 @@ export function CoachStats() {
                       key={p}
                       type="button"
                       onClick={() => setNewPriority(p)}
-                      className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border transition-all ${
+                      className={`rounded-full border px-2 py-0.5 text-[10px] font-extrabold uppercase transition-all ${
                         newPriority === p
-                          ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25 dark:text-emerald-400'
-                          : 'bg-transparent text-muted-foreground border-border/80'
+                          ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                          : 'border-border/80 bg-transparent text-muted-foreground'
                       }`}
                     >
                       {p}
@@ -239,7 +262,7 @@ export function CoachStats() {
                 </div>
                 <button
                   type="submit"
-                  className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 px-4 py-1.5 rounded-lg shadow transition-colors"
+                  className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white shadow transition-colors hover:bg-emerald-500"
                 >
                   Save Action
                 </button>
@@ -249,10 +272,12 @@ export function CoachStats() {
         </AnimatePresence>
 
         {/* Action List */}
-        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+        <div className="max-h-[300px] space-y-2 overflow-y-auto pr-1">
           {visibleRecs.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-xs font-medium border border-dashed border-border/80 rounded-xl">
-              {showCompleted ? 'No completed recommended actions yet.' : 'No pending recommended actions.'}
+            <div className="rounded-xl border border-dashed border-border/80 py-8 text-center text-xs font-medium text-muted-foreground">
+              {showCompleted
+                ? 'No completed recommended actions yet.'
+                : 'No pending recommended actions.'}
             </div>
           ) : (
             <motion.div
@@ -265,31 +290,33 @@ export function CoachStats() {
                 <motion.div
                   key={rec.id}
                   variants={itemVariants}
-                  className="flex items-start gap-3 rounded-xl border border-border/40 bg-card/50 p-3.5 transition-all hover:border-emerald-500/15"
+                  className="recommendation-card flex items-start gap-3 rounded-xl border border-border/40 bg-card/50 p-3.5 transition-all hover:border-emerald-500/15"
                 >
-                  <div className="flex-1 min-w-0 space-y-1">
+                  <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full ${
+                        className={`rounded-full px-1.5 py-0.5 text-[9px] font-extrabold uppercase ${
                           rec.priority === 'high'
                             ? 'bg-red-500/10 text-red-500'
                             : rec.priority === 'medium'
-                            ? 'bg-yellow-500/10 text-yellow-500'
-                            : 'bg-emerald-500/10 text-emerald-500'
+                              ? 'bg-yellow-500/10 text-yellow-500'
+                              : 'bg-emerald-500/10 text-emerald-500'
                         }`}
                       >
                         {rec.priority} priority
                       </span>
-                      <span className="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                      <span className="flex items-center gap-0.5 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400">
                         <Zap size={8} />
                         {rec.estimated_savings} kg/yr
                       </span>
                     </div>
 
-                    <h4 className={`text-xs font-bold text-foreground ${rec.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
+                    <h4
+                      className={`text-xs font-bold text-foreground ${rec.status === 'completed' ? 'text-muted-foreground line-through' : ''}`}
+                    >
                       {rec.title}
                     </h4>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
                       {rec.description}
                     </p>
                   </div>
@@ -301,7 +328,7 @@ export function CoachStats() {
                           type="button"
                           aria-label="Mark action as completed"
                           onClick={() => void updateStatus(rec.id, 'completed')}
-                          className="p-1 text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/5 rounded-lg transition-all"
+                          className="rounded-lg p-1 text-muted-foreground transition-all hover:bg-emerald-500/5 hover:text-emerald-500"
                         >
                           <CheckCircle2 size={16} />
                         </button>
@@ -309,7 +336,7 @@ export function CoachStats() {
                           type="button"
                           aria-label="Dismiss recommended action"
                           onClick={() => void updateStatus(rec.id, 'dismissed')}
-                          className="p-1 text-muted-foreground hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all"
+                          className="rounded-lg p-1 text-muted-foreground transition-all hover:bg-red-500/5 hover:text-red-500"
                         >
                           <XCircle size={16} />
                         </button>
@@ -319,7 +346,7 @@ export function CoachStats() {
                       type="button"
                       aria-label="Delete recommended action"
                       onClick={() => void deleteRecommendation(rec.id)}
-                      className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg transition-all"
+                      className="rounded-lg p-1 text-muted-foreground transition-all hover:bg-destructive/5 hover:text-destructive"
                     >
                       <Trash2 size={15} />
                     </button>

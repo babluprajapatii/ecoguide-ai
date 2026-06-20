@@ -25,14 +25,17 @@ export async function GET(request: NextRequest) {
   if (!rateLimitResult.allowed) {
     return new NextResponse(
       JSON.stringify({ error: 'Too many requests. Please try again later.' }),
-      { status: 429, headers }
+      { status: 429, headers },
     );
   }
 
   try {
     // 2. Authentication
     const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers });
@@ -50,7 +53,7 @@ export async function GET(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: 'Invalid query parameters', details: parsed.error.format() },
-        { status: 400, headers }
+        { status: 400, headers },
       );
     }
 
@@ -99,13 +102,12 @@ export async function GET(request: NextRequest) {
           totalPages,
         },
       },
-      { status: 200, headers }
+      { status: 200, headers },
     );
   } catch (err) {
-    logger.error('Error in leaderboard GET endpoint', { error: err });
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500, headers }
-    );
+    logger.error('Error in leaderboard GET endpoint', {
+      error: err instanceof Error ? { message: err.message, stack: err.stack } : err,
+    });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers });
   }
 }

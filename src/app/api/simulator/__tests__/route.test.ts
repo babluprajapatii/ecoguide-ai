@@ -3,6 +3,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { GET, POST, PUT, DELETE } from '../route';
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest } from 'next/server';
+import { clearRateLimitStore } from '@/lib/rate-limiter';
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
@@ -14,15 +15,33 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
   const mockFrom = vi.fn();
 
   const mockBuilder: any = {
-    insert: vi.fn().mockImplementation(function (this: any) { return this; }),
-    select: vi.fn().mockImplementation(function (this: any) { return this; }),
-    update: vi.fn().mockImplementation(function (this: any) { return this; }),
-    delete: vi.fn().mockImplementation(function (this: any) { return this; }),
-    eq: vi.fn().mockImplementation(function (this: any) { return this; }),
-    order: vi.fn().mockImplementation(function (this: any) { return this; }),
-    limit: vi.fn().mockImplementation(function (this: any) { return this; }),
-    single: vi.fn().mockImplementation(function (this: any) { return this; }),
-    maybeSingle: vi.fn().mockImplementation(function (this: any) { return this; }),
+    insert: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    select: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    update: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    delete: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    eq: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    order: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    limit: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    single: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    maybeSingle: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
     then: vi.fn().mockImplementation(function (this: any, onfulfilled: any) {
       return Promise.resolve({ data: mockResult.data, error: mockResult.error }).then(onfulfilled);
     }),
@@ -30,6 +49,7 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    clearRateLimitStore();
     mockResult = { data: null, error: null };
     mockGetUser.mockResolvedValue({ data: { user: { id: 'test-simulator-user' } }, error: null });
     mockFrom.mockReturnValue(mockBuilder);
@@ -61,7 +81,12 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
 
     it('returns user saved simulations successfully', async () => {
       const mockSimulations = [
-        { id: 'sim-1', user_id: 'test-simulator-user', scenario_name: 'EV Transition', scenario_type: 'ev' },
+        {
+          id: 'sim-1',
+          user_id: 'test-simulator-user',
+          scenario_name: 'EV Transition',
+          scenario_type: 'ev',
+        },
       ];
       mockResult = { data: mockSimulations, error: null };
 
@@ -192,7 +217,7 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
       expect(mockBuilder.insert).toHaveBeenCalled();
     });
 
-    it('enforces rate limiting (returns 429 after 10 requests)', async () => {
+    it('enforces rate limiting (returns 429 after 20 requests)', async () => {
       // Create a unique user to test rate limit
       mockGetUser.mockResolvedValue({ data: { user: { id: 'rate-limited-user' } }, error: null });
 
@@ -217,7 +242,7 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
 
       mockResult = { data: { id: 'new-sim-id' }, error: null };
 
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 20; i++) {
         const req = new NextRequest('http://localhost/api/simulator', {
           method: 'POST',
           body: JSON.stringify(validPayload),
@@ -226,15 +251,15 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
         expect(res.status).toBe(201);
       }
 
-      // 11th request must fail with 429
-      const req11 = new NextRequest('http://localhost/api/simulator', {
+      // 21st request must fail with 429
+      const req21 = new NextRequest('http://localhost/api/simulator', {
         method: 'POST',
         body: JSON.stringify(validPayload),
       });
-      const res11 = await POST(req11);
-      expect(res11.status).toBe(429);
-      const json = await res11.json();
-      expect(json.message).toContain('Too many save requests');
+      const res21 = await POST(req21);
+      expect(res21.status).toBe(429);
+      const json = await res21.json();
+      expect(json.error).toBe('Too Many Requests');
     });
   });
 
@@ -254,7 +279,8 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
           return {
             select: () => ({
               eq: () => ({
-                maybeSingle: () => Promise.resolve({ data: { user_id: 'someone-else' }, error: null }),
+                maybeSingle: () =>
+                  Promise.resolve({ data: { user_id: 'someone-else' }, error: null }),
               }),
             }),
           };
@@ -288,7 +314,8 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
               if (sel === 'user_id') {
                 return {
                   eq: () => ({
-                    maybeSingle: () => Promise.resolve({ data: { user_id: 'test-simulator-user' }, error: null }),
+                    maybeSingle: () =>
+                      Promise.resolve({ data: { user_id: 'test-simulator-user' }, error: null }),
                   }),
                 };
               }
@@ -296,7 +323,14 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
               return {
                 eq: () => ({
                   select: () => ({
-                    single: () => Promise.resolve({ data: { id: '11111111-2222-3333-4444-555555555555', scenario_name: 'My New Sim Name' }, error: null }),
+                    single: () =>
+                      Promise.resolve({
+                        data: {
+                          id: '11111111-2222-3333-4444-555555555555',
+                          scenario_name: 'My New Sim Name',
+                        },
+                        error: null,
+                      }),
                   }),
                 }),
               };
@@ -304,7 +338,14 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
             update: () => ({
               eq: () => ({
                 select: () => ({
-                  single: () => Promise.resolve({ data: { id: '11111111-2222-3333-4444-555555555555', scenario_name: 'My New Sim Name' }, error: null }),
+                  single: () =>
+                    Promise.resolve({
+                      data: {
+                        id: '11111111-2222-3333-4444-555555555555',
+                        scenario_name: 'My New Sim Name',
+                      },
+                      error: null,
+                    }),
                 }),
               }),
             }),
@@ -344,7 +385,8 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
           return {
             select: () => ({
               eq: () => ({
-                maybeSingle: () => Promise.resolve({ data: { user_id: 'someone-else' }, error: null }),
+                maybeSingle: () =>
+                  Promise.resolve({ data: { user_id: 'someone-else' }, error: null }),
               }),
             }),
           };
@@ -352,9 +394,12 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
         return mockBuilder;
       });
 
-      const req = new NextRequest('http://localhost/api/simulator?id=11111111-2222-3333-4444-555555555555', {
-        method: 'DELETE',
-      });
+      const req = new NextRequest(
+        'http://localhost/api/simulator?id=11111111-2222-3333-4444-555555555555',
+        {
+          method: 'DELETE',
+        },
+      );
 
       const res = await DELETE(req);
       expect(res.status).toBe(403);
@@ -367,7 +412,8 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
           return {
             select: () => ({
               eq: () => ({
-                maybeSingle: () => Promise.resolve({ data: { user_id: 'test-simulator-user' }, error: null }),
+                maybeSingle: () =>
+                  Promise.resolve({ data: { user_id: 'test-simulator-user' }, error: null }),
               }),
             }),
             delete: () => ({
@@ -378,9 +424,12 @@ describe('Carbon Impact Simulator API Routes (/api/simulator)', () => {
         return mockBuilder;
       });
 
-      const req = new NextRequest('http://localhost/api/simulator?id=11111111-2222-3333-4444-555555555555', {
-        method: 'DELETE',
-      });
+      const req = new NextRequest(
+        'http://localhost/api/simulator?id=11111111-2222-3333-4444-555555555555',
+        {
+          method: 'DELETE',
+        },
+      );
 
       const res = await DELETE(req);
       expect(res.status).toBe(200);

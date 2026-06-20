@@ -27,14 +27,32 @@ export const logger = {
   },
 
   error(message: string, error?: unknown, meta?: Record<string, unknown>): void {
+    let resolvedError = error;
+    let resolvedMeta = meta || {};
+
+    if (error && typeof error === 'object' && !(error instanceof Error)) {
+      const errObj = error as Record<string, unknown>;
+      if (errObj.error) {
+        resolvedError = errObj.error;
+        const { error: _removed, ...rest } = errObj;
+        void _removed;
+        resolvedMeta = { ...rest, ...resolvedMeta };
+      }
+    }
+
     console.error(
       JSON.stringify({
         timestamp: new Date().toISOString(),
         level: 'ERROR',
         message,
-        error: error instanceof Error ? error.message : String(error || ''),
-        stack: error instanceof Error ? error.stack : undefined,
-        ...meta,
+        error:
+          resolvedError instanceof Error
+            ? resolvedError.message
+            : resolvedError
+              ? String(resolvedError)
+              : '',
+        stack: resolvedError instanceof Error ? resolvedError.stack : undefined,
+        ...resolvedMeta,
       }),
     );
   },

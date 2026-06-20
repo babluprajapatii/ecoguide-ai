@@ -15,7 +15,13 @@ vi.mock('@/features/auth/hooks/useAuth', () => ({
 vi.mock('@/features/gamification/hooks/useBadges', () => ({
   useBadges: () => ({
     allBadges: [
-      { slug: 'eco-hero', name: 'Eco Hero', description: 'Be sustainable', pointValue: 100, icon: 'Award' },
+      {
+        slug: 'eco-hero',
+        name: 'Eco Hero',
+        description: 'Be sustainable',
+        pointValue: 100,
+        icon: 'Award',
+      },
     ],
     earnedSlugs: new Set(['eco-hero']),
     totalPoints: 120,
@@ -34,9 +40,28 @@ vi.mock('recharts', async (importOriginal) => {
   const original: any = await importOriginal();
   return {
     ...original,
-    ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
+    ResponsiveContainer: ({ children }: any) => (
+      <div data-testid="responsive-container">{children}</div>
+    ),
   };
 });
+
+// Mock framer-motion to render synchronously in tests
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: ({ children, ...props }: any) => {
+      const {
+        initial: _initial,
+        animate: _animate,
+        exit: _exit,
+        transition: _transition,
+        ...rest
+      } = props;
+      return <div {...rest}>{children}</div>;
+    },
+  },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
+}));
 
 describe('Dashboard Component Accessibility Tests', () => {
   describe('AchievementsPreview Accessibility', () => {
@@ -71,11 +96,7 @@ describe('Dashboard Component Accessibility Tests', () => {
 
     it('renders a screen-reader-only table for Carbon Breakdown in the breakdown view', () => {
       render(
-        <AnalyticsCharts
-          latestAssessment={mockLatest}
-          history={mockHistory}
-          targetTotal={2000}
-        />
+        <AnalyticsCharts latestAssessment={mockLatest} history={mockHistory} targetTotal={2000} />,
       );
 
       // Verify that the table is present in the document
@@ -96,11 +117,7 @@ describe('Dashboard Component Accessibility Tests', () => {
 
     it('toggles screen-reader table content when user changes chart views', () => {
       render(
-        <AnalyticsCharts
-          latestAssessment={mockLatest}
-          history={mockHistory}
-          targetTotal={2000}
-        />
+        <AnalyticsCharts latestAssessment={mockLatest} history={mockHistory} targetTotal={2000} />,
       );
 
       // Switch to Category Comparison tab

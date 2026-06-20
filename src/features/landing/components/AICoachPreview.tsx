@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { Bot, Check, Send } from 'lucide-react';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 interface ChatMessage {
   id: number;
@@ -21,12 +22,12 @@ export function AICoachPreview() {
     {
       id: 2,
       sender: 'ai',
-      text: "Set your thermostat to 72°F before 5 PM, then raise to 76°F during peak hours. Estimated savings: **$3.20 tonight** 🌿",
+      text: 'Set your thermostat to 72°F before 5 PM, then raise to 76°F during peak hours. Estimated savings: **$3.20 tonight** 🌿',
     },
     {
       id: 3,
       sender: 'user',
-      text: "Apply that setting please! 👍",
+      text: 'Apply that setting please! 👍',
     },
     {
       id: 4,
@@ -86,45 +87,50 @@ export function AICoachPreview() {
   };
 
   return (
-    <section id="ai-coach" className="relative py-20 md:py-32 overflow-hidden bg-dark-900 border-t border-eco-500/10">
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-eco-500/5 rounded-full blur-[150px] pointer-events-none" />
+    <section
+      id="ai-coach"
+      className="relative overflow-hidden border-t border-eco-500/10 bg-dark-900 py-20 md:py-32"
+    >
+      <div className="pointer-events-none absolute bottom-0 left-0 h-[600px] w-[600px] rounded-full bg-eco-500/5 blur-[150px]" />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="relative z-10 mx-auto max-w-6xl px-6">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
           {/* Left: Product Info */}
           <div>
-            <span className="text-xs font-semibold text-eco-400 tracking-[0.2em] uppercase">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-eco-400">
               AI Coach
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl tracking-tight mt-3 text-white leading-tight">
+            <h2 className="mt-3 font-serif text-3xl leading-tight tracking-tight text-white md:text-4xl">
               Personalized Carbon Coaching, <span className="text-gradient">Available 24/7</span>
             </h2>
-            <p className="text-stone-400 mt-5 font-light leading-relaxed">
-              Your AI sustainability coach connects to utility APIs and smart appliances to deliver real-time, personalized energy-saving pathways. It learns your patterns and proactively suggests actions.
+            <p className="mt-5 font-light leading-relaxed text-stone-400">
+              Your AI sustainability coach connects to utility APIs and smart appliances to deliver
+              real-time, personalized energy-saving pathways. It learns your patterns and
+              proactively suggests actions.
             </p>
 
             <div className="mt-8 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-eco-500/10 flex items-center justify-center shrink-0">
-                  <Check className="text-eco-400 w-4 h-4" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-eco-500/10">
+                  <Check className="h-4 w-4 text-eco-400" />
                 </div>
-                <span className="text-stone-300 text-sm font-light">
+                <span className="text-sm font-light text-stone-300">
                   Proactive peak-hour alerts & recommendations
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-eco-500/10 flex items-center justify-center shrink-0">
-                  <Check className="text-eco-400 w-4 h-4" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-eco-500/10">
+                  <Check className="h-4 w-4 text-eco-400" />
                 </div>
-                <span className="text-stone-300 text-sm font-light">
+                <span className="text-sm font-light text-stone-300">
                   Smart thermostat & appliance automation
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-eco-500/10 flex items-center justify-center shrink-0">
-                  <Check className="text-eco-400 w-4 h-4" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-eco-500/10">
+                  <Check className="h-4 w-4 text-eco-400" />
                 </div>
-                <span className="text-stone-300 text-sm font-light">
+                <span className="text-sm font-light text-stone-300">
                   Utility bill optimization & ROI tracking
                 </span>
               </div>
@@ -132,33 +138,33 @@ export function AICoachPreview() {
 
             <button
               onClick={scrollToCTA}
-              className="btn-primary mt-8 text-sm font-semibold text-white px-7 py-3.5 rounded-full tracking-wide inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
+              className="btn-primary mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold tracking-wide text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
             >
-              <Bot className="w-4 h-4" />
+              <Bot className="h-4 w-4" />
               <span>Meet My AI Coach</span>
             </button>
           </div>
 
           {/* Right: Chat UI Simulator */}
           <div className="w-full">
-            <div className="glass-card rounded-2xl overflow-hidden shadow-2xl border border-eco-500/15">
+            <div className="glass-card overflow-hidden rounded-2xl border border-eco-500/15 shadow-2xl">
               {/* Chat Header */}
-              <div className="flex items-center gap-3 px-6 py-4 border-b border-eco-500/10 bg-dark-800/50">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-eco-400 to-eco-600 flex items-center justify-center">
-                  <Bot className="text-white w-5 h-5" />
+              <div className="flex items-center gap-3 border-b border-eco-500/10 bg-dark-800/50 px-6 py-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-eco-400 to-eco-600">
+                  <Bot className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-white">EcoGuide AI Coach</p>
                   <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-eco-400 animate-pulse" />
-                    <span className="text-xs text-eco-400 font-medium">Online</span>
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-eco-400" />
+                    <span className="text-xs font-medium text-eco-400">Online</span>
                   </div>
                 </div>
               </div>
 
               {/* Chat Messages */}
               <div
-                className="px-6 py-5 space-y-4 h-[350px] overflow-y-auto"
+                className="h-[350px] space-y-4 overflow-y-auto px-6 py-5"
                 aria-label="Coach conversation history"
               >
                 {messages.map((msg) => (
@@ -167,22 +173,24 @@ export function AICoachPreview() {
                     className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     {msg.sender === 'ai' && (
-                      <div className="w-7 h-7 rounded-full bg-eco-500/20 flex items-center justify-center shrink-0 mr-3 mt-1">
-                        <Bot className="text-eco-400 w-4 h-4" />
+                      <div className="mr-3 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-eco-500/20">
+                        <Bot className="h-4 w-4 text-eco-400" />
                       </div>
                     )}
                     <div
-                      className={`rounded-2xl px-4 py-3 max-w-[85%] text-sm leading-relaxed ${
+                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                         msg.sender === 'user'
-                          ? 'bg-eco-600/30 rounded-tr-sm text-eco-200'
-                          : 'bg-dark-600/80 rounded-tl-sm text-stone-300'
+                          ? 'rounded-tr-sm bg-eco-600/30 text-eco-200'
+                          : 'rounded-tl-sm bg-dark-600/80 text-stone-300'
                       }`}
                     >
                       <p
                         dangerouslySetInnerHTML={{
-                          __html: msg.text
-                            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
-                            .replace(/\* (.*?):/g, ' <strong class="text-eco-400">$1:</strong>'),
+                          __html: sanitizeHtml(
+                            msg.text
+                              .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+                              .replace(/\* (.*?):/g, ' <strong class="text-eco-400">$1:</strong>'),
+                          ),
                         }}
                       />
                     </div>
@@ -192,11 +200,14 @@ export function AICoachPreview() {
                 {/* Typing Indicator */}
                 {isTyping && (
                   <div className="flex justify-start">
-                    <div className="w-7 h-7 rounded-full bg-eco-500/20 flex items-center justify-center shrink-0 mr-3 mt-1">
-                      <Bot className="text-eco-400 w-4 h-4" />
+                    <div className="mr-3 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-eco-500/20">
+                      <Bot className="h-4 w-4 text-eco-400" />
                     </div>
-                    <div className="bg-dark-600/80 rounded-2xl rounded-tl-sm px-4 py-3 text-stone-300">
-                      <div className="typing-indicator flex items-center h-4" aria-label="AI Coach is typing">
+                    <div className="rounded-2xl rounded-tl-sm bg-dark-600/80 px-4 py-3 text-stone-300">
+                      <div
+                        className="typing-indicator flex h-4 items-center"
+                        aria-label="AI Coach is typing"
+                      >
                         <span />
                         <span />
                         <span />
@@ -208,7 +219,10 @@ export function AICoachPreview() {
               </div>
 
               {/* Chat Input Bar */}
-              <form onSubmit={handleSendMessage} className="px-6 py-4 border-t border-eco-500/10 bg-dark-800/30">
+              <form
+                onSubmit={handleSendMessage}
+                className="border-t border-eco-500/10 bg-dark-800/30 px-6 py-4"
+              >
                 <div className="flex items-center gap-3">
                   <label htmlFor="coach-message-input" className="sr-only">
                     Ask a question to your AI Coach
@@ -220,14 +234,14 @@ export function AICoachPreview() {
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Ask your AI coach..."
-                    className="flex-1 bg-dark-700/80 border border-eco-500/15 rounded-full px-4 py-2.5 text-sm text-white placeholder-stone-500 focus:outline-none focus:border-eco-500/30 transition-all focus-visible:ring-2 focus-visible:ring-eco-400"
+                    className="flex-1 rounded-full border border-eco-500/15 bg-dark-700/80 px-4 py-2.5 text-sm text-white placeholder-stone-500 transition-all focus:border-eco-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                   />
                   <button
                     type="submit"
-                    className="w-10 h-10 rounded-full bg-eco-500 hover:bg-eco-600 flex items-center justify-center transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-eco-500 transition-colors hover:bg-eco-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                     aria-label="Send message"
                   >
-                    <Send className="text-white w-4 h-4" />
+                    <Send className="h-4 w-4 text-white" />
                   </button>
                 </div>
               </form>

@@ -63,9 +63,7 @@ function TrendChartInner({ history }: TrendChartProps) {
   if (chartData.length < 2) {
     return (
       <div className="rounded-xl border border-border bg-card p-6">
-        <h3 className="mb-4 text-sm font-medium text-muted-foreground">
-          Footprint Trend
-        </h3>
+        <h3 className="mb-4 text-sm font-medium text-muted-foreground">Footprint Trend</h3>
         <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
           <p>Complete at least 2 assessments to see your trend.</p>
         </div>
@@ -74,21 +72,25 @@ function TrendChartInner({ history }: TrendChartProps) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6">
-      <h3 className="mb-4 text-sm font-medium text-muted-foreground">
+    <figure className="rounded-xl border border-border bg-card p-6">
+      <figcaption className="mb-4 text-sm font-medium text-muted-foreground">
         Footprint Trend
-      </h3>
+      </figcaption>
       <div
         role="img"
         aria-label={`Line chart showing carbon footprint trend over ${chartData.length} assessments`}
+        aria-describedby="trend-desc-id"
       >
+        {/* Screen Reader description */}
+        <div id="trend-desc-id" className="sr-only">
+          Line chart detailing your carbon footprint trend across {chartData.length} assessments.
+          Values range from oldest to newest:{' '}
+          {chartData.map((d) => `${d.date}: ${d.total} tonnes`).join(', ')}.
+        </div>
+
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="hsl(var(--border))"
-              vertical={false}
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
             <XAxis
               dataKey="date"
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
@@ -126,7 +128,28 @@ function TrendChartInner({ history }: TrendChartProps) {
           </LineChart>
         </ResponsiveContainer>
       </div>
-    </div>
+
+      {/* Visually Hidden Screen Reader Table alternative */}
+      <div className="sr-only">
+        <h4>Footprint Trend Table</h4>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Annual CO₂ (tonnes)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {chartData.map((d) => (
+              <tr key={d.fullDate}>
+                <td>{d.date}</td>
+                <td>{d.total} t</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </figure>
   );
 }
 

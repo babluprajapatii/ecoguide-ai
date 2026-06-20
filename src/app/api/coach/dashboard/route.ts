@@ -3,6 +3,8 @@ import type { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limiter';
+
 export const dynamic = 'force-dynamic';
 
 /**
@@ -67,7 +69,15 @@ function getLocalDateString(date: Date): string {
  * GET /api/coach/dashboard
  * Compiles real-time metrics for the AI coach dashboard panel.
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  // 1. Rate limiting
+  const rateLimitRes = checkRateLimit(request);
+  const headers = rateLimitHeaders(rateLimitRes);
+
+  if (!rateLimitRes.allowed) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers });
+  }
+
   try {
     const supabase = createClient();
     const {
@@ -76,7 +86,7 @@ export async function GET(_request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
     }
 
     // 1. Fetch conversations count and last conversation date
@@ -86,7 +96,9 @@ export async function GET(_request: NextRequest) {
       .eq('user_id', user.id);
 
     if (convError) {
-      logger.error('[API /api/coach/dashboard GET] Conversations query error', convError, { userId: user.id });
+      logger.error('[API /api/coach/dashboard GET] Conversations query error', convError, {
+        userId: user.id,
+      });
       return NextResponse.json({ message: 'Failed to query conversations data.' }, { status: 500 });
     }
 
@@ -94,7 +106,8 @@ export async function GET(_request: NextRequest) {
     const conversationCount = userMessages.length;
     const lastConversationDate =
       userMessages.length > 0
-        ? userMessages.reduce((max, curr) => (curr.created_at > max.created_at ? curr : max)).created_at
+        ? userMessages.reduce((max, curr) => (curr.created_at > max.created_at ? curr : max))
+            .created_at
         : null;
 
     // 2. Fetch recommendations status breakdowns
@@ -104,8 +117,13 @@ export async function GET(_request: NextRequest) {
       .eq('user_id', user.id);
 
     if (recError) {
-      logger.error('[API /api/coach/dashboard GET] Recommendations query error', recError, { userId: user.id });
-      return NextResponse.json({ message: 'Failed to query recommendations data.' }, { status: 500 });
+      logger.error('[API /api/coach/dashboard GET] Recommendations query error', recError, {
+        userId: user.id,
+      });
+      return NextResponse.json(
+        { message: 'Failed to query recommendations data.' },
+        { status: 500 },
+      );
     }
 
     const insightsCount = recommendations.length;
@@ -121,7 +139,9 @@ export async function GET(_request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (assessmentError) {
-      logger.error('[API /api/coach/dashboard GET] Assessments query error', assessmentError, { userId: user.id });
+      logger.error('[API /api/coach/dashboard GET] Assessments query error', assessmentError, {
+        userId: user.id,
+      });
       return NextResponse.json({ message: 'Failed to query assessments data.' }, { status: 500 });
     }
 

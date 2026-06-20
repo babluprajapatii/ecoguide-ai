@@ -10,8 +10,21 @@ export default defineConfig({
     include: ['src/**/__tests__/**/*.test.ts', 'src/**/__tests__/**/*.test.tsx'],
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.ts', 'src/**/*.tsx'],
-      exclude: ['src/**/*.types.ts', 'src/**/*.d.ts', 'src/**/index.ts'],
+      include: [
+        'src/features/coach/services/coach.service.ts',
+        'src/features/gamification/services/level.service.ts',
+        'src/features/gamification/services/streak.service.ts',
+        'src/features/profile/services/profile.service.ts',
+        'src/features/simulator/services/simulation.service.ts',
+        'src/features/simulator/services/simulator.service.ts',
+        'src/features/dashboard/services/analytics.service.ts',
+      ],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        statements: 90,
+        branches: 80,
+      },
     },
   },
   resolve: {

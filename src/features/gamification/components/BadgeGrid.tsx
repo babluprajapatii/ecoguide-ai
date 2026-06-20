@@ -61,7 +61,13 @@ const ICON_MAP: Record<string, LucideComponent> = {
   Leaf,
 };
 
-function BadgeIcon({ iconName, className }: { readonly iconName: string; readonly className?: string }) {
+function BadgeIcon({
+  iconName,
+  className,
+}: {
+  readonly iconName: string;
+  readonly className?: string;
+}) {
   const IconComponent = ICON_MAP[iconName];
   if (!IconComponent) return null;
   return <IconComponent className={className} size={28} strokeWidth={1.8} />;
@@ -82,9 +88,15 @@ function BadgeModal({ badge, isEarned, earnedAt, onClose }: BadgeModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Focus the close button on mount
+  // Focus the close button on mount & return focus on unmount
   useEffect(() => {
+    const activeElement = document.activeElement as HTMLElement | null;
     closeButtonRef.current?.focus();
+    return () => {
+      if (activeElement) {
+        activeElement.focus();
+      }
+    };
   }, []);
 
   // Trap focus and handle Escape
@@ -141,7 +153,7 @@ function BadgeModal({ badge, isEarned, earnedAt, onClose }: BadgeModalProps) {
         aria-modal="true"
         aria-labelledby="badge-modal-title"
         aria-describedby="badge-modal-description"
-        className="relative mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+        className="relative mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl duration-200 animate-in fade-in zoom-in-95"
       >
         {/* Close button */}
         <button
@@ -168,16 +180,10 @@ function BadgeModal({ badge, isEarned, earnedAt, onClose }: BadgeModalProps) {
         </div>
 
         {/* Badge info */}
-        <h2
-          id="badge-modal-title"
-          className="mt-4 text-center text-lg font-bold text-foreground"
-        >
+        <h2 id="badge-modal-title" className="mt-4 text-center text-lg font-bold text-foreground">
           {badge.name}
         </h2>
-        <p
-          id="badge-modal-description"
-          className="mt-1 text-center text-sm text-muted-foreground"
-        >
+        <p id="badge-modal-description" className="mt-1 text-center text-sm text-muted-foreground">
           {badge.description}
         </p>
 
@@ -278,9 +284,7 @@ const BadgeCard = memo(function BadgeCard({
       {/* Points pill */}
       <span
         className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-          isEarned
-            ? 'bg-emerald-500/10 text-emerald-500'
-            : 'bg-muted text-muted-foreground'
+          isEarned ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground'
         }`}
       >
         {badge.pointValue} pts
@@ -372,28 +376,31 @@ export function BadgeGrid({ badges, earnedSlugs, earnedBadgeMap }: BadgeGridProp
     [filteredBadges, handleSelect],
   );
 
-  const handleTabKeyDown = useCallback((e: ReactKeyboardEvent) => {
-    const tabs: Array<'all' | 'earned' | 'locked'> = ['all', 'earned', 'locked'];
-    const currentIndex = tabs.indexOf(activeTab);
+  const handleTabKeyDown = useCallback(
+    (e: ReactKeyboardEvent) => {
+      const tabs: Array<'all' | 'earned' | 'locked'> = ['all', 'earned', 'locked'];
+      const currentIndex = tabs.indexOf(activeTab);
 
-    if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      const nextIndex = (currentIndex + 1) % tabs.length;
-      setActiveTab(tabs[nextIndex]!);
-      setTimeout(() => {
-        const tabButtons = tabListRef.current?.querySelectorAll<HTMLButtonElement>('button');
-        tabButtons?.[nextIndex]?.focus();
-      }, 0);
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-      setActiveTab(tabs[prevIndex]!);
-      setTimeout(() => {
-        const tabButtons = tabListRef.current?.querySelectorAll<HTMLButtonElement>('button');
-        tabButtons?.[prevIndex]?.focus();
-      }, 0);
-    }
-  }, [activeTab]);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const nextIndex = (currentIndex + 1) % tabs.length;
+        setActiveTab(tabs[nextIndex]!);
+        setTimeout(() => {
+          const tabButtons = tabListRef.current?.querySelectorAll<HTMLButtonElement>('button');
+          tabButtons?.[nextIndex]?.focus();
+        }, 0);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        setActiveTab(tabs[prevIndex]!);
+        setTimeout(() => {
+          const tabButtons = tabListRef.current?.querySelectorAll<HTMLButtonElement>('button');
+          tabButtons?.[prevIndex]?.focus();
+        }, 0);
+      }
+    },
+    [activeTab],
+  );
 
   return (
     <div className="flex flex-col gap-6">

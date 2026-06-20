@@ -21,15 +21,33 @@ describe('Coach Features Integration Tests', () => {
   const mockFrom = vi.fn();
 
   const mockBuilder: any = {
-    insert: vi.fn().mockImplementation(function (this: any) { return this; }),
-    select: vi.fn().mockImplementation(function (this: any) { return this; }),
-    eq: vi.fn().mockImplementation(function (this: any) { return this; }),
-    order: vi.fn().mockImplementation(function (this: any) { return this; }),
-    limit: vi.fn().mockImplementation(function (this: any) { return this; }),
-    delete: vi.fn().mockImplementation(function (this: any) { return this; }),
-    update: vi.fn().mockImplementation(function (this: any) { return this; }),
-    maybeSingle: vi.fn().mockImplementation(function (this: any) { return this; }),
-    single: vi.fn().mockImplementation(function (this: any) { return this; }),
+    insert: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    select: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    eq: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    order: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    limit: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    delete: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    update: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    maybeSingle: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    single: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
     then: vi.fn().mockImplementation(function (this: any, onfulfilled: any) {
       return Promise.resolve({ data: mockResult.data, error: mockResult.error }).then(onfulfilled);
     }),
@@ -89,20 +107,17 @@ describe('Coach Features Integration Tests', () => {
         if (queryIdx === 0) {
           // conversations query
           data = [
-            { created_at: '2026-06-17T12:00:00Z', role: 'user' },
-            { created_at: '2026-06-16T12:00:00Z', role: 'user' },
+            { created_at: new Date().toISOString(), role: 'user' },
+            { created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), role: 'user' },
           ];
         } else if (queryIdx === 1) {
           // recommendations breakdown query
-          data = [
-            { status: 'pending' },
-            { status: 'completed' },
-          ];
+          data = [{ status: 'pending' }, { status: 'completed' }];
         } else if (queryIdx === 2) {
           // assessments completed query (for streak calculation)
           data = [
-            { created_at: '2026-06-17T12:00:00Z' },
-            { created_at: '2026-06-16T12:00:00Z' },
+            { created_at: new Date().toISOString() },
+            { created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
           ];
         }
         queryIdx++;
@@ -205,9 +220,12 @@ describe('Coach Features Integration Tests', () => {
         return Promise.resolve({ data, error: null }).then(onfulfilled);
       });
 
-      const req = new NextRequest('http://localhost/api/coach/recommendations?id=11111111-2222-3333-4444-555555555555', {
-        method: 'DELETE',
-      });
+      const req = new NextRequest(
+        'http://localhost/api/coach/recommendations?id=11111111-2222-3333-4444-555555555555',
+        {
+          method: 'DELETE',
+        },
+      );
       const res = await deleteRec(req);
 
       expect(res.status).toBe(200);

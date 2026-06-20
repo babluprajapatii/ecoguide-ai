@@ -26,7 +26,8 @@ function ComparisonChartComponent({ selectedSimulations }: ComparisonChartProps)
   }));
 
   return (
-    <div className="space-y-4">
+    <figure className="space-y-4">
+      <figcaption className="sr-only">Scenario Comparison Chart</figcaption>
       {/* Visual Chart */}
       <div
         role="img"
@@ -36,9 +37,36 @@ function ComparisonChartComponent({ selectedSimulations }: ComparisonChartProps)
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border/60" />
-            <XAxis dataKey="name" stroke="currentColor" className="text-[10px] text-muted-foreground" />
-            <YAxis yAxisId="left" stroke="#10b981" className="text-[10px]" label={{ value: 'Savings (t / $)', angle: -90, position: 'insideLeft', offset: 10, fill: '#10b981' }} />
-            <YAxis yAxisId="right" orientation="right" stroke="#f59e0b" className="text-[10px]" label={{ value: 'Impact Score', angle: 90, position: 'insideRight', offset: 10, fill: '#f59e0b' }} />
+            <XAxis
+              dataKey="name"
+              stroke="currentColor"
+              className="text-[10px] text-muted-foreground"
+            />
+            <YAxis
+              yAxisId="left"
+              stroke="#10b981"
+              className="text-[10px]"
+              label={{
+                value: 'Savings (t / $)',
+                angle: -90,
+                position: 'insideLeft',
+                offset: 10,
+                fill: '#10b981',
+              }}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              stroke="#f59e0b"
+              className="text-[10px]"
+              label={{
+                value: 'Impact Score',
+                angle: 90,
+                position: 'insideRight',
+                offset: 10,
+                fill: '#f59e0b',
+              }}
+            />
             <Tooltip
               contentStyle={{
                 backgroundColor: 'var(--background)',
@@ -48,9 +76,27 @@ function ComparisonChartComponent({ selectedSimulations }: ComparisonChartProps)
               }}
             />
             <Legend wrapperStyle={{ fontSize: '11px' }} />
-            <Bar yAxisId="left" dataKey="Carbon Savings (t/yr)" fill="#10b981" radius={[4, 4, 0, 0]} name="Carbon Savings (t)" />
-            <Bar yAxisId="left" dataKey="Cost Savings ($/yr)" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Cost Savings ($)" />
-            <Bar yAxisId="right" dataKey="Impact Score" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Impact Score" />
+            <Bar
+              yAxisId="left"
+              dataKey="Carbon Savings (t/yr)"
+              fill="#10b981"
+              radius={[4, 4, 0, 0]}
+              name="Carbon Savings (t)"
+            />
+            <Bar
+              yAxisId="left"
+              dataKey="Cost Savings ($/yr)"
+              fill="#3b82f6"
+              radius={[4, 4, 0, 0]}
+              name="Cost Savings ($)"
+            />
+            <Bar
+              yAxisId="right"
+              dataKey="Impact Score"
+              fill="#f59e0b"
+              radius={[4, 4, 0, 0]}
+              name="Impact Score"
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -58,28 +104,40 @@ function ComparisonChartComponent({ selectedSimulations }: ComparisonChartProps)
       {/* Screen Reader Table Fallback */}
       <div className="sr-only">
         <h4>Scenario Comparison Data Table</h4>
-        <table className="w-full text-left border-collapse">
+        <table className="w-full border-collapse text-left">
           <thead>
             <tr>
-              <th scope="col" className="p-2 border-b border-border">Scenario Name</th>
-              <th scope="col" className="p-2 border-b border-border">Carbon Savings</th>
-              <th scope="col" className="p-2 border-b border-border">Cost Savings</th>
-              <th scope="col" className="p-2 border-b border-border">Impact Score</th>
+              <th scope="col" className="border-b border-border p-2">
+                Scenario Name
+              </th>
+              <th scope="col" className="border-b border-border p-2">
+                Carbon Savings
+              </th>
+              <th scope="col" className="border-b border-border p-2">
+                Cost Savings
+              </th>
+              <th scope="col" className="border-b border-border p-2">
+                Impact Score
+              </th>
             </tr>
           </thead>
           <tbody>
             {selectedSimulations.map((sim) => (
               <tr key={sim.id}>
-                <td className="p-2 border-b border-border">{sim.scenario_name}</td>
-                <td className="p-2 border-b border-border">{(sim.estimated_carbon_savings / 1000).toFixed(2)} tonnes CO₂/yr</td>
-                <td className="p-2 border-b border-border">${sim.estimated_cost_savings.toFixed(0)}/yr</td>
-                <td className="p-2 border-b border-border">{sim.impact_score}/100</td>
+                <td className="border-b border-border p-2">{sim.scenario_name}</td>
+                <td className="border-b border-border p-2">
+                  {(sim.estimated_carbon_savings / 1000).toFixed(2)} tonnes CO₂/yr
+                </td>
+                <td className="border-b border-border p-2">
+                  ${sim.estimated_cost_savings.toFixed(0)}/yr
+                </td>
+                <td className="border-b border-border p-2">{sim.impact_score}/100</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
+    </figure>
   );
 }
 

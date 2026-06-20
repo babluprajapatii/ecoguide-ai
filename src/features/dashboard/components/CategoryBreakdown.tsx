@@ -91,15 +91,25 @@ function CategoryBreakdownInner({
     [transportKg, dietKg, energyKg, shoppingKg, travelKg],
   );
 
+  const total = transportKg + dietKg + energyKg + shoppingKg + travelKg;
+
   return (
-    <div className="rounded-xl border border-border bg-card p-6">
-      <h3 className="mb-4 text-sm font-medium text-muted-foreground">
+    <figure className="rounded-xl border border-border bg-card p-6">
+      <figcaption className="mb-4 text-sm font-medium text-muted-foreground">
         Category Breakdown
-      </h3>
+      </figcaption>
       <div
         role="img"
         aria-label="Radar chart showing carbon breakdown by category"
+        aria-describedby="radar-desc-id"
       >
+        {/* Screen Reader description */}
+        <div id="radar-desc-id" className="sr-only">
+          Radar chart showing carbon breakdown by category: Transport accounts for{' '}
+          {formatKg(transportKg)}, Diet for {formatKg(dietKg)}, Home Energy for {formatKg(energyKg)}
+          , Shopping for {formatKg(shoppingKg)}, and Travel for {formatKg(travelKg)}.
+        </div>
+
         <ResponsiveContainer width="100%" height={300}>
           <RadarChart data={chartData} cx="50%" cy="50%" outerRadius="75%">
             <PolarGrid stroke="hsl(var(--border))" />
@@ -107,12 +117,7 @@ function CategoryBreakdownInner({
               dataKey="category"
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             />
-            <PolarRadiusAxis
-              angle={90}
-              domain={[0, 'dataMax']}
-              tick={false}
-              axisLine={false}
-            />
+            <PolarRadiusAxis angle={90} domain={[0, 'dataMax']} tick={false} axisLine={false} />
             <Radar
               name="CO₂ Emissions"
               dataKey="value"
@@ -142,13 +147,52 @@ function CategoryBreakdownInner({
           <div key={point.category} className="flex items-center gap-2 text-sm">
             <div className="h-2 w-2 rounded-full bg-primary" />
             <span className="text-muted-foreground">{point.category}</span>
-            <span className="ml-auto font-medium text-foreground">
-              {formatKg(point.value)}
-            </span>
+            <span className="ml-auto font-medium text-foreground">{formatKg(point.value)}</span>
           </div>
         ))}
       </div>
-    </div>
+
+      {/* Visually Hidden Screen Reader Table alternative */}
+      <div className="sr-only">
+        <h4>Category Breakdown Table</h4>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col">Annual CO₂ (kg)</th>
+              <th scope="col">Percentage (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Transport</td>
+              <td>{transportKg.toLocaleString()} kg</td>
+              <td>{total > 0 ? ((transportKg / total) * 100).toFixed(1) : 0}%</td>
+            </tr>
+            <tr>
+              <td>Diet</td>
+              <td>{dietKg.toLocaleString()} kg</td>
+              <td>{total > 0 ? ((dietKg / total) * 100).toFixed(1) : 0}%</td>
+            </tr>
+            <tr>
+              <td>Energy</td>
+              <td>{energyKg.toLocaleString()} kg</td>
+              <td>{total > 0 ? ((energyKg / total) * 100).toFixed(1) : 0}%</td>
+            </tr>
+            <tr>
+              <td>Shopping</td>
+              <td>{shoppingKg.toLocaleString()} kg</td>
+              <td>{total > 0 ? ((shoppingKg / total) * 100).toFixed(1) : 0}%</td>
+            </tr>
+            <tr>
+              <td>Travel</td>
+              <td>{travelKg.toLocaleString()} kg</td>
+              <td>{total > 0 ? ((travelKg / total) * 100).toFixed(1) : 0}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </figure>
   );
 }
 

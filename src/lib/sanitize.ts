@@ -67,6 +67,31 @@ const DEFAULT_CONFIG: DOMPurify.Config = {
   FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onmouseover', 'onfocus', 'onblur'],
 };
 
+interface CustomWindow {
+  trustedTypes?: {
+    defaultPolicy?: unknown;
+    createPolicy: (name: string, rules: { createHTML: (html: string) => string }) => unknown;
+  };
+}
+
+const win = typeof window !== 'undefined' ? (window as unknown as CustomWindow) : null;
+if (win && win.trustedTypes) {
+  try {
+    if (!win.trustedTypes.defaultPolicy) {
+      win.trustedTypes.createPolicy('default', {
+        createHTML: (toSanitize: string) => {
+          return DOMPurify.sanitize(
+            toSanitize,
+            DEFAULT_CONFIG as unknown as Parameters<typeof DOMPurify.sanitize>[1],
+          ) as unknown as string;
+        },
+      });
+    }
+  } catch (err) {
+    console.error('Error creating trustedTypes policy:', err);
+  }
+}
+
 /**
  * Sanitizes an HTML string to prevent XSS attacks.
  *
@@ -76,7 +101,7 @@ const DEFAULT_CONFIG: DOMPurify.Config = {
  *
  * @param dirty - The untrusted HTML string to sanitize.
  * @param config - Optional DOMPurify config to override defaults.
- * @returns A sanitized HTML string safe for `dangerouslySetInnerHTML`.
+ * @returns A sanitized HTML string or TrustedHTML object safe for `dangerouslySetInnerHTML`.
  *
  * @example
  * ```tsx
@@ -89,9 +114,23 @@ const DEFAULT_CONFIG: DOMPurify.Config = {
  * }
  * ```
  */
-export function sanitizeHtml(dirty: string, config?: DOMPurify.Config): string {
-  const mergedConfig = config ? { ...DEFAULT_CONFIG, ...config } : DEFAULT_CONFIG;
-  return DOMPurify.sanitize(dirty, mergedConfig as Parameters<typeof DOMPurify.sanitize>[1]);
+export function sanitizeHtml(
+  dirty: string,
+  config?: DOMPurify.Config,
+): ReturnType<typeof DOMPurify.sanitize> {
+  const isBrowser = typeof window !== 'undefined';
+  const hasTrustedTypes = isBrowser && (window as unknown as CustomWindow).trustedTypes;
+
+  const mergedConfig: DOMPurify.Config = {
+    ...DEFAULT_CONFIG,
+    ...config,
+    RETURN_TRUSTED_TYPE: !!hasTrustedTypes,
+  };
+
+  return DOMPurify.sanitize(
+    dirty,
+    mergedConfig as unknown as Parameters<typeof DOMPurify.sanitize>[1],
+  );
 }
 
 /**

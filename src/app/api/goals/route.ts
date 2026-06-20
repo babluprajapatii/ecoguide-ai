@@ -28,11 +28,17 @@ export async function GET(request: NextRequest) {
   const rateLimitResult = checkRateLimit(request);
   const headers = rateLimitHeaders(rateLimitResult);
   if (!rateLimitResult.allowed) {
-    return NextResponse.json({ message: 'Too many requests. Please try again later.' }, { status: 429, headers });
+    return NextResponse.json(
+      { message: 'Too many requests. Please try again later.' },
+      { status: 429, headers },
+    );
   }
 
   const supabase = createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
@@ -60,11 +66,17 @@ export async function POST(request: NextRequest) {
   const rateLimitResult = checkRateLimit(request);
   const headers = rateLimitHeaders(rateLimitResult);
   if (!rateLimitResult.allowed) {
-    return NextResponse.json({ message: 'Too many requests. Please try again later.' }, { status: 429, headers });
+    return NextResponse.json(
+      { message: 'Too many requests. Please try again later.' },
+      { status: 429, headers },
+    );
   }
 
   const supabase = createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
@@ -74,14 +86,17 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ message: 'Invalid JSON in request body.' }, { status: 400, headers });
+    return NextResponse.json(
+      { message: 'Invalid JSON in request body.' },
+      { status: 400, headers },
+    );
   }
 
   const parseResult = createGoalSchema.safeParse(body);
   if (!parseResult.success) {
     return NextResponse.json(
       { message: 'Validation failed.', errors: parseResult.error.flatten().fieldErrors },
-      { status: 400, headers }
+      { status: 400, headers },
     );
   }
 
@@ -103,7 +118,7 @@ export async function POST(request: NextRequest) {
   if (existingGoals && existingGoals.length > 0) {
     return NextResponse.json(
       { message: 'A goal with this title already exists.' },
-      { status: 409, headers }
+      { status: 409, headers },
     );
   }
 
@@ -137,11 +152,17 @@ export async function PUT(request: NextRequest) {
   const rateLimitResult = checkRateLimit(request);
   const headers = rateLimitHeaders(rateLimitResult);
   if (!rateLimitResult.allowed) {
-    return NextResponse.json({ message: 'Too many requests. Please try again later.' }, { status: 429, headers });
+    return NextResponse.json(
+      { message: 'Too many requests. Please try again later.' },
+      { status: 429, headers },
+    );
   }
 
   const supabase = createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
@@ -151,14 +172,17 @@ export async function PUT(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ message: 'Invalid JSON in request body.' }, { status: 400, headers });
+    return NextResponse.json(
+      { message: 'Invalid JSON in request body.' },
+      { status: 400, headers },
+    );
   }
 
   const parseResult = updateGoalSchema.safeParse(body);
   if (!parseResult.success) {
     return NextResponse.json(
       { message: 'Validation failed.', errors: parseResult.error.flatten().fieldErrors },
-      { status: 400, headers }
+      { status: 400, headers },
     );
   }
 
@@ -176,11 +200,15 @@ export async function PUT(request: NextRequest) {
   }
 
   if (existingGoal.user_id !== user.id) {
-    return NextResponse.json({ message: 'Forbidden: You do not own this goal.' }, { status: 403, headers });
+    return NextResponse.json(
+      { message: 'Forbidden: You do not own this goal.' },
+      { status: 403, headers },
+    );
   }
 
   // Auto-complete if current value meets or exceeds target value
-  const nextStatus = status ?? (current_value >= existingGoal.target_value ? 'completed' : 'in_progress');
+  const nextStatus =
+    status ?? (current_value >= existingGoal.target_value ? 'completed' : 'in_progress');
 
   const { data: updatedGoal, error: updateError } = await supabase
     .from('goals')
@@ -210,11 +238,17 @@ export async function DELETE(request: NextRequest) {
   const rateLimitResult = checkRateLimit(request);
   const headers = rateLimitHeaders(rateLimitResult);
   if (!rateLimitResult.allowed) {
-    return NextResponse.json({ message: 'Too many requests. Please try again later.' }, { status: 429, headers });
+    return NextResponse.json(
+      { message: 'Too many requests. Please try again later.' },
+      { status: 429, headers },
+    );
   }
 
   const supabase = createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
@@ -225,6 +259,16 @@ export async function DELETE(request: NextRequest) {
 
   if (!id) {
     return NextResponse.json({ message: 'Missing goal ID.' }, { status: 400, headers });
+  }
+
+  // Zod validation for UUID
+  const deleteParamSchema = z.string().uuid('Invalid goal ID format');
+  const parsedId = deleteParamSchema.safeParse(id);
+  if (!parsedId.success) {
+    return NextResponse.json(
+      { message: parsedId.error.errors[0]?.message || 'Invalid goal ID format.' },
+      { status: 400, headers },
+    );
   }
 
   // Retrieve existing goal for ownership verification
@@ -239,13 +283,13 @@ export async function DELETE(request: NextRequest) {
   }
 
   if (existingGoal.user_id !== user.id) {
-    return NextResponse.json({ message: 'Forbidden: You do not own this goal.' }, { status: 403, headers });
+    return NextResponse.json(
+      { message: 'Forbidden: You do not own this goal.' },
+      { status: 403, headers },
+    );
   }
 
-  const { error: deleteError } = await supabase
-    .from('goals')
-    .delete()
-    .eq('id', id);
+  const { error: deleteError } = await supabase.from('goals').delete().eq('id', id);
 
   if (deleteError) {
     console.error('[API /api/goals DELETE] Delete database error:', deleteError);

@@ -14,9 +14,11 @@ interface TransportStepProps {
 export function TransportStep({ initialData, onNext, isSaving }: TransportStepProps) {
   const [fuelType, setFuelType] = useState<FuelType>(initialData.fuelType);
   const [weeklyKm, setWeeklyKm] = useState(initialData.weeklyKm);
-  const [publicTransportWeeklyHours, setPublicTransportWeeklyHours] = useState(initialData.publicTransportWeeklyHours);
+  const [publicTransportWeeklyHours, setPublicTransportWeeklyHours] = useState(
+    initialData.publicTransportWeeklyHours,
+  );
   const [rideShareWeeklyKm, setRideShareWeeklyKm] = useState(initialData.rideShareWeeklyKm);
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,10 +32,16 @@ export function TransportStep({ initialData, onNext, isSaving }: TransportStepPr
 
     const result = transportInputSchema.safeParse(data);
     if (!result.success) {
-      setError(result.error.errors[0]?.message ?? 'Invalid transport data');
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setFieldErrors(errors);
       return;
     }
-    setError(null);
+    setFieldErrors({});
     onNext(result.data);
   };
 
@@ -67,7 +75,12 @@ export function TransportStep({ initialData, onNext, isSaving }: TransportStepPr
           <select
             id="fuelType"
             value={fuelType}
-            onChange={(e) => setFuelType(e.target.value as FuelType)}
+            onChange={(e) => {
+              setFuelType(e.target.value as FuelType);
+              setFieldErrors((prev) => ({ ...prev, fuelType: '' }));
+            }}
+            aria-invalid={!!fieldErrors.fuelType}
+            aria-describedby={fieldErrors.fuelType ? 'fuelType-error' : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
             {fuelOptions.map((opt) => (
@@ -76,6 +89,11 @@ export function TransportStep({ initialData, onNext, isSaving }: TransportStepPr
               </option>
             ))}
           </select>
+          {fieldErrors.fuelType && (
+            <p id="fuelType-error" className="mt-1 text-xs text-destructive" role="alert">
+              {fieldErrors.fuelType}
+            </p>
+          )}
         </div>
 
         {fuelType !== 'none' && (
@@ -89,14 +107,27 @@ export function TransportStep({ initialData, onNext, isSaving }: TransportStepPr
               min={0}
               max={10000}
               value={weeklyKm}
-              onChange={(e) => setWeeklyKm(Number(e.target.value))}
+              onChange={(e) => {
+                setWeeklyKm(Number(e.target.value));
+                setFieldErrors((prev) => ({ ...prev, weeklyKm: '' }));
+              }}
+              aria-invalid={!!fieldErrors.weeklyKm}
+              aria-describedby={fieldErrors.weeklyKm ? 'weeklyKm-error' : undefined}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            {fieldErrors.weeklyKm && (
+              <p id="weeklyKm-error" className="mt-1 text-xs text-destructive" role="alert">
+                {fieldErrors.weeklyKm}
+              </p>
+            )}
           </div>
         )}
 
         <div>
-          <label htmlFor="publicTransportWeeklyHours" className="mb-1 block text-sm font-medium text-foreground">
+          <label
+            htmlFor="publicTransportWeeklyHours"
+            className="mb-1 block text-sm font-medium text-foreground"
+          >
             Public Transport (hours/week)
           </label>
           <input
@@ -105,13 +136,34 @@ export function TransportStep({ initialData, onNext, isSaving }: TransportStepPr
             min={0}
             max={168}
             value={publicTransportWeeklyHours}
-            onChange={(e) => setPublicTransportWeeklyHours(Number(e.target.value))}
+            onChange={(e) => {
+              setPublicTransportWeeklyHours(Number(e.target.value));
+              setFieldErrors((prev) => ({ ...prev, publicTransportWeeklyHours: '' }));
+            }}
+            aria-invalid={!!fieldErrors.publicTransportWeeklyHours}
+            aria-describedby={
+              fieldErrors.publicTransportWeeklyHours
+                ? 'publicTransportWeeklyHours-error'
+                : undefined
+            }
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
+          {fieldErrors.publicTransportWeeklyHours && (
+            <p
+              id="publicTransportWeeklyHours-error"
+              className="mt-1 text-xs text-destructive"
+              role="alert"
+            >
+              {fieldErrors.publicTransportWeeklyHours}
+            </p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="rideShareWeeklyKm" className="mb-1 block text-sm font-medium text-foreground">
+          <label
+            htmlFor="rideShareWeeklyKm"
+            className="mb-1 block text-sm font-medium text-foreground"
+          >
             Ride Sharing / Carpooling (km/week)
           </label>
           <input
@@ -120,13 +172,21 @@ export function TransportStep({ initialData, onNext, isSaving }: TransportStepPr
             min={0}
             max={5000}
             value={rideShareWeeklyKm}
-            onChange={(e) => setRideShareWeeklyKm(Number(e.target.value))}
+            onChange={(e) => {
+              setRideShareWeeklyKm(Number(e.target.value));
+              setFieldErrors((prev) => ({ ...prev, rideShareWeeklyKm: '' }));
+            }}
+            aria-invalid={!!fieldErrors.rideShareWeeklyKm}
+            aria-describedby={fieldErrors.rideShareWeeklyKm ? 'rideShareWeeklyKm-error' : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
+          {fieldErrors.rideShareWeeklyKm && (
+            <p id="rideShareWeeklyKm-error" className="mt-1 text-xs text-destructive" role="alert">
+              {fieldErrors.rideShareWeeklyKm}
+            </p>
+          )}
         </div>
       </div>
-
-      {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
 
       <button
         type="submit"
@@ -136,7 +196,7 @@ export function TransportStep({ initialData, onNext, isSaving }: TransportStepPr
       </button>
 
       {isSaving && (
-        <p className="text-center text-xs text-muted-foreground animate-pulse mt-2">
+        <p className="mt-2 animate-pulse text-center text-xs text-muted-foreground">
           Saving draft...
         </p>
       )}

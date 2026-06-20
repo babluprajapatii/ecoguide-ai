@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import type { FootprintBreakdown } from '@/features/assessment/types/assessment.types';
 
@@ -9,13 +10,13 @@ interface ResultsChartsProps {
 
 const COLORS = [
   'hsl(217, 91%, 60%)', // Transport: Blue
-  'hsl(45, 93%, 47%)',  // Energy: Warm Gold
+  'hsl(45, 93%, 47%)', // Energy: Warm Gold
   'hsl(142, 72%, 29%)', // Diet: Forest Green
   'hsl(271, 91%, 65%)', // Shopping: Vibrant Purple
   'hsl(175, 77%, 40%)', // Travel: Sleek Teal
 ];
 
-export function ResultsCharts({ breakdown }: ResultsChartsProps) {
+export const ResultsCharts = memo(function ResultsCharts({ breakdown }: ResultsChartsProps) {
   const data = [
     { name: 'Transport', value: breakdown.transport },
     { name: 'Energy', value: breakdown.energy },
@@ -41,7 +42,9 @@ export function ResultsCharts({ breakdown }: ResultsChartsProps) {
         return (
           <div className="rounded-lg border border-border bg-background/95 p-3 shadow-md backdrop-blur-sm">
             <p className="text-sm font-semibold text-foreground">{first.name}</p>
-            <p className="text-xs text-primary font-bold">{value.toLocaleString()} kg CO₂/yr ({percentage}%)</p>
+            <p className="text-xs font-bold text-primary">
+              {value.toLocaleString()} kg CO₂/yr ({percentage}%)
+            </p>
           </div>
         );
       }
@@ -51,23 +54,22 @@ export function ResultsCharts({ breakdown }: ResultsChartsProps) {
 
   return (
     <div className="space-y-6">
-      <div
+      <figure
         role="img"
         aria-labelledby="chart-title-id"
         aria-describedby="chart-desc-id"
-        className="w-full relative rounded-xl border border-border bg-card p-4 shadow-sm"
+        className="relative w-full rounded-xl border border-border bg-card p-4 shadow-sm"
       >
+        <figcaption id="chart-title-id" className="mb-4 text-base font-semibold text-foreground">
+          Carbon Footprint Breakdown
+        </figcaption>
         {/* Screen Reader accessible descriptors */}
-        <div id="chart-title-id" className="sr-only">
-          Category Emissions Pie Chart
-        </div>
         <div id="chart-desc-id" className="sr-only">
-          A visual breakdown of your annual carbon emissions. Transport accounts for {breakdown.transport} kg,
-          Home Energy for {breakdown.energy} kg, Diet for {breakdown.diet} kg, Shopping for {breakdown.shopping} kg,
-          and Travel for {breakdown.travel} kg. Total is {breakdown.total} kg.
+          A visual breakdown of your annual carbon emissions. Transport accounts for{' '}
+          {breakdown.transport} kg, Home Energy for {breakdown.energy} kg, Diet for {breakdown.diet}{' '}
+          kg, Shopping for {breakdown.shopping} kg, and Travel for {breakdown.travel} kg. Total is{' '}
+          {breakdown.total} kg.
         </div>
-
-        <h3 className="text-base font-semibold text-foreground mb-4">Carbon Footprint Breakdown</h3>
 
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -89,12 +91,14 @@ export function ResultsCharts({ breakdown }: ResultsChartsProps) {
               <Legend
                 verticalAlign="bottom"
                 height={36}
-                formatter={(value) => <span className="text-xs text-muted-foreground">{value}</span>}
+                formatter={(value) => (
+                  <span className="text-xs text-muted-foreground">{value}</span>
+                )}
               />
             </PieChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </figure>
 
       {/* Visually Hidden Screen Reader Table (satisfies keyboard/screen-reader accessibility) */}
       <div className="sr-only">
@@ -135,7 +139,9 @@ export function ResultsCharts({ breakdown }: ResultsChartsProps) {
             </tr>
             <tr>
               <th scope="row">Total</th>
-              <td><strong>{breakdown.total.toLocaleString()} kg</strong></td>
+              <td>
+                <strong>{breakdown.total.toLocaleString()} kg</strong>
+              </td>
               <td>100%</td>
             </tr>
           </tbody>
@@ -143,4 +149,4 @@ export function ResultsCharts({ breakdown }: ResultsChartsProps) {
       </div>
     </div>
   );
-}
+});

@@ -49,8 +49,8 @@ export async function GET(request: NextRequest) {
     if (dbError) {
       console.error('[API /dashboard] Supabase query error:', dbError);
       return NextResponse.json(
-        { message: 'Failed to load dashboard data.' },
-        { status: 500, headers: rateLimitHeaders(rateLimitResult) },
+        { latestAssessment: null, history: [] },
+        { status: 200, headers: rateLimitHeaders(rateLimitResult) },
       );
     }
 

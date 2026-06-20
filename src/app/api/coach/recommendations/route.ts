@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limiter';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,11 +22,20 @@ const updateRecommendationSchema = z.object({
   status: recommendationStatusSchema,
 });
 
+const deleteParamSchema = z.string().uuid('Invalid recommendation ID format');
+
 /**
  * GET /api/coach/recommendations
  * Loads recommendations. Seeds once based on highest carbon footprint category if empty.
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const rateLimitRes = checkRateLimit(request);
+  const headers = rateLimitHeaders(rateLimitRes);
+
+  if (!rateLimitRes.allowed) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers });
+  }
+
   try {
     const supabase = createClient();
     const {
@@ -34,7 +44,7 @@ export async function GET(_request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
     }
 
     // 1. Fetch current recommendations
@@ -45,18 +55,25 @@ export async function GET(_request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (fetchError) {
-      logger.error('[API /api/coach/recommendations GET] Database fetch error', fetchError, { userId: user.id });
-      return NextResponse.json({ message: 'Failed to query recommendations.' }, { status: 500 });
+      logger.error('[API /api/coach/recommendations GET] Database fetch error', fetchError, {
+        userId: user.id,
+      });
+      return NextResponse.json(
+        { message: 'Failed to query recommendations.' },
+        { status: 500, headers },
+      );
     }
 
     if (currentRecs && currentRecs.length > 0) {
-      return NextResponse.json(currentRecs, { status: 200 });
+      return NextResponse.json(currentRecs, { status: 200, headers });
     }
 
     // 2. No recommendations exist yet: Seed recommendations idempotently based on highest category
     const { data: assessment, error: assessmentError } = await supabase
       .from('assessments')
-      .select('transport_score, diet_score, energy_score, shopping_score, travel_score, transport_kg, diet_kg, energy_kg, shopping_kg, total_kg')
+      .select(
+        'transport_score, diet_score, energy_score, shopping_score, travel_score, transport_kg, diet_kg, energy_kg, shopping_kg, total_kg',
+      )
       .eq('is_complete', true)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -66,7 +83,10 @@ export async function GET(_request: NextRequest) {
     let highestCategory = 'default';
     if (!assessmentError && assessment) {
       const cats = [
-        { name: 'transport', val: Number(assessment.transport_score ?? assessment.transport_kg ?? 0) },
+        {
+          name: 'transport',
+          val: Number(assessment.transport_score ?? assessment.transport_kg ?? 0),
+        },
         { name: 'diet', val: Number(assessment.diet_score ?? assessment.diet_kg ?? 0) },
         { name: 'energy', val: Number(assessment.energy_score ?? assessment.energy_kg ?? 0) },
         { name: 'shopping', val: Number(assessment.shopping_score ?? assessment.shopping_kg ?? 0) },
@@ -75,23 +95,34 @@ export async function GET(_request: NextRequest) {
       highestCategory = cats.reduce((prev, curr) => (curr.val > prev.val ? curr : prev)).name;
     }
 
-    const defaultSeedData: Record<string, Array<{ title: string; description: string; priority: 'high' | 'medium' | 'low'; estimated_savings: number }>> = {
+    const defaultSeedData: Record<
+      string,
+      Array<{
+        title: string;
+        description: string;
+        priority: 'high' | 'medium' | 'low';
+        estimated_savings: number;
+      }>
+    > = {
       transport: [
         {
           title: 'Switch to Public Transit or Bike Commutes',
-          description: 'Shifting at least 50% of your weekly driving miles to public transit or cycling can save up to 600kg CO₂/year.',
+          description:
+            'Shifting at least 50% of your weekly driving miles to public transit or cycling can save up to 600kg CO₂/year.',
           priority: 'high',
           estimated_savings: 600,
         },
         {
           title: 'Form Commute Carpools',
-          description: 'Carpooling with coworkers for weekly commutes can share emissions and reduce footprint by 300kg CO₂/year.',
+          description:
+            'Carpooling with coworkers for weekly commutes can share emissions and reduce footprint by 300kg CO₂/year.',
           priority: 'medium',
           estimated_savings: 300,
         },
         {
           title: 'Maintain Eco-Driving Practices',
-          description: 'Using cruise control, keeping tires properly inflated, and avoiding aggressive acceleration saves up to 100kg CO₂/year.',
+          description:
+            'Using cruise control, keeping tires properly inflated, and avoiding aggressive acceleration saves up to 100kg CO₂/year.',
           priority: 'low',
           estimated_savings: 100,
         },
@@ -99,19 +130,22 @@ export async function GET(_request: NextRequest) {
       energy: [
         {
           title: 'Upgrade to Renewable Utility Plan',
-          description: 'Switching your electricity account to a 100% wind/solar green utility plan offsets up to 1,200kg CO₂/year.',
+          description:
+            'Switching your electricity account to a 100% wind/solar green utility plan offsets up to 1,200kg CO₂/year.',
           priority: 'high',
           estimated_savings: 1200,
         },
         {
           title: 'Install a Smart Thermostat',
-          description: 'Smart thermostats automatically manage HVAC heating and cooling to reduce wasted energy, saving 400kg CO₂/year.',
+          description:
+            'Smart thermostats automatically manage HVAC heating and cooling to reduce wasted energy, saving 400kg CO₂/year.',
           priority: 'medium',
           estimated_savings: 400,
         },
         {
           title: 'Install LED Lighting',
-          description: 'Replacing standard incandescent bulbs with LED alternatives across high-use areas saves 100kg CO₂/year.',
+          description:
+            'Replacing standard incandescent bulbs with LED alternatives across high-use areas saves 100kg CO₂/year.',
           priority: 'low',
           estimated_savings: 100,
         },
@@ -119,19 +153,22 @@ export async function GET(_request: NextRequest) {
       diet: [
         {
           title: 'Adopt Vegetarian Days',
-          description: 'Shifting to vegetarian or plant-based meals at least 3-4 days a week reduces food-related emissions by 800kg CO₂/year.',
+          description:
+            'Shifting to vegetarian or plant-based meals at least 3-4 days a week reduces food-related emissions by 800kg CO₂/year.',
           priority: 'high',
           estimated_savings: 800,
         },
         {
           title: 'Minimize Red Meat Purchases',
-          description: 'Beef and lamb produce high methane emissions. Swapping red meat for poultry or seafood saves 400kg CO₂/year.',
+          description:
+            'Beef and lamb produce high methane emissions. Swapping red meat for poultry or seafood saves 400kg CO₂/year.',
           priority: 'medium',
           estimated_savings: 400,
         },
         {
           title: 'Compost Organic Scraps',
-          description: 'Composting food waste prevents organic matter from producing landfill methane, saving up to 150kg CO₂/year.',
+          description:
+            'Composting food waste prevents organic matter from producing landfill methane, saving up to 150kg CO₂/year.',
           priority: 'low',
           estimated_savings: 150,
         },
@@ -139,19 +176,22 @@ export async function GET(_request: NextRequest) {
       travel: [
         {
           title: 'Choose Rail Over Short Flights',
-          description: 'Selecting trains instead of regional flight connections reduces transit footprint by 1,000kg CO₂/year.',
+          description:
+            'Selecting trains instead of regional flight connections reduces transit footprint by 1,000kg CO₂/year.',
           priority: 'high',
           estimated_savings: 1000,
         },
         {
           title: 'Select Green-Certified Hotels',
-          description: 'Staying at hotels with LEED certifications, solar installations, and low-waste laundry saves 300kg CO₂/year.',
+          description:
+            'Staying at hotels with LEED certifications, solar installations, and low-waste laundry saves 300kg CO₂/year.',
           priority: 'medium',
           estimated_savings: 300,
         },
         {
           title: 'Consolidate Flight Itineraries',
-          description: 'Combining business or leisure trips to reduce flight frequency saves up to 200kg CO₂/year.',
+          description:
+            'Combining business or leisure trips to reduce flight frequency saves up to 200kg CO₂/year.',
           priority: 'low',
           estimated_savings: 200,
         },
@@ -159,19 +199,22 @@ export async function GET(_request: NextRequest) {
       default: [
         {
           title: 'Practice Mindful Shopping Habits',
-          description: 'Opting out of fast fashion, repairing existing garments, and buying secondhand items saves 400kg CO₂/year.',
+          description:
+            'Opting out of fast fashion, repairing existing garments, and buying secondhand items saves 400kg CO₂/year.',
           priority: 'high',
           estimated_savings: 400,
         },
         {
           title: 'Choose Refurbished Tech',
-          description: 'Buying certified secondhand electronics instead of brand new devices saves 200kg CO₂/year.',
+          description:
+            'Buying certified secondhand electronics instead of brand new devices saves 200kg CO₂/year.',
           priority: 'medium',
           estimated_savings: 200,
         },
         {
           title: 'Repair Household Goods First',
-          description: 'Extending product lifecycles by repairing appliances before replacing them saves 100kg CO₂/year.',
+          description:
+            'Extending product lifecycles by repairing appliances before replacing them saves 100kg CO₂/year.',
           priority: 'low',
           estimated_savings: 100,
         },
@@ -196,21 +239,26 @@ export async function GET(_request: NextRequest) {
       .select('*');
 
     if (insertError) {
-      logger.warn('Failed to insert seeded recommendations due to concurrency, fetching existing', { userId: user.id });
+      logger.warn('Failed to insert seeded recommendations due to concurrency, fetching existing', {
+        userId: user.id,
+      });
       const { data: fallbackFetch } = await supabase
         .from('coach_recommendations')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-      return NextResponse.json(fallbackFetch || [], { status: 200 });
+      return NextResponse.json(fallbackFetch || [], { status: 200, headers });
     }
 
-    logger.info('Idempotently seeded coach recommendations', { userId: user.id, category: highestCategory });
+    logger.info('Idempotently seeded coach recommendations', {
+      userId: user.id,
+      category: highestCategory,
+    });
 
-    return NextResponse.json(insertedRecs || [], { status: 201 });
+    return NextResponse.json(insertedRecs || [], { status: 201, headers });
   } catch (error) {
     logger.error('[API /api/coach/recommendations GET] Critical error', error);
-    return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal server error.' }, { status: 500, headers });
   }
 }
 
@@ -219,6 +267,13 @@ export async function GET(_request: NextRequest) {
  * Creates a new custom recommended action.
  */
 export async function POST(request: NextRequest) {
+  const rateLimitRes = checkRateLimit(request);
+  const headers = rateLimitHeaders(rateLimitRes);
+
+  if (!rateLimitRes.allowed) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers });
+  }
+
   try {
     const supabase = createClient();
     const {
@@ -227,7 +282,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
     }
 
     const body = await request.json();
@@ -235,7 +290,7 @@ export async function POST(request: NextRequest) {
     if (!parseResult.success) {
       return NextResponse.json(
         { message: 'Validation failed.', errors: parseResult.error.flatten().fieldErrors },
-        { status: 400 }
+        { status: 400, headers },
       );
     }
 
@@ -255,16 +310,21 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError) {
-      logger.error('[API /api/coach/recommendations POST] Insert error', insertError, { userId: user.id });
-      return NextResponse.json({ message: 'Failed to create recommended action.' }, { status: 500 });
+      logger.error('[API /api/coach/recommendations POST] Insert error', insertError, {
+        userId: user.id,
+      });
+      return NextResponse.json(
+        { message: 'Failed to create recommended action.' },
+        { status: 500, headers },
+      );
     }
 
     logger.info('Custom recommendation created', { userId: user.id, recId: newRecommendation.id });
 
-    return NextResponse.json(newRecommendation, { status: 201 });
+    return NextResponse.json(newRecommendation, { status: 201, headers });
   } catch (error) {
     logger.error('[API /api/coach/recommendations POST] Critical error', error);
-    return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal server error.' }, { status: 500, headers });
   }
 }
 
@@ -273,6 +333,13 @@ export async function POST(request: NextRequest) {
  * Updates the status of a recommended action ('pending', 'completed', 'dismissed').
  */
 export async function PUT(request: NextRequest) {
+  const rateLimitRes = checkRateLimit(request);
+  const headers = rateLimitHeaders(rateLimitRes);
+
+  if (!rateLimitRes.allowed) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers });
+  }
+
   try {
     const supabase = createClient();
     const {
@@ -281,7 +348,7 @@ export async function PUT(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
     }
 
     const body = await request.json();
@@ -289,7 +356,7 @@ export async function PUT(request: NextRequest) {
     if (!parseResult.success) {
       return NextResponse.json(
         { message: 'Validation failed.', errors: parseResult.error.flatten().fieldErrors },
-        { status: 400 }
+        { status: 400, headers },
       );
     }
 
@@ -303,11 +370,17 @@ export async function PUT(request: NextRequest) {
       .maybeSingle();
 
     if (fetchError || !existingRec) {
-      return NextResponse.json({ message: 'Recommended action not found.' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Recommended action not found.' },
+        { status: 404, headers },
+      );
     }
 
     if (existingRec.user_id !== user.id) {
-      return NextResponse.json({ message: 'Forbidden: You do not own this recommended action.' }, { status: 403 });
+      return NextResponse.json(
+        { message: 'Forbidden: You do not own this recommended action.' },
+        { status: 403, headers },
+      );
     }
 
     // Update status
@@ -322,8 +395,14 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (updateError) {
-      logger.error('[API /api/coach/recommendations PUT] Update error', updateError, { userId: user.id, recId: id });
-      return NextResponse.json({ message: 'Failed to update recommended action.' }, { status: 500 });
+      logger.error('[API /api/coach/recommendations PUT] Update error', updateError, {
+        userId: user.id,
+        recId: id,
+      });
+      return NextResponse.json(
+        { message: 'Failed to update recommended action.' },
+        { status: 500, headers },
+      );
     }
 
     logger.info('Recommendation status updated', { userId: user.id, recId: id, status });
@@ -333,11 +412,14 @@ export async function PUT(request: NextRequest) {
     let unlockedBadges: unknown[] = [];
     if (status === 'completed') {
       try {
-        const { awardPoints, checkBadgeUnlock } = await import('@/features/gamification/services/points.service');
+        const { awardPoints, checkBadgeUnlock } =
+          await import('@/features/gamification/services/points.service');
         pointsAwarded = await awardPoints(user.id, 'complete_recommendation');
         unlockedBadges = await checkBadgeUnlock(user.id, 'complete_recommendation');
       } catch (err) {
-        logger.error('Failed to award points/badges for completed recommendation', err, { userId: user.id });
+        logger.error('Failed to award points/badges for completed recommendation', err, {
+          userId: user.id,
+        });
       }
     }
 
@@ -347,11 +429,11 @@ export async function PUT(request: NextRequest) {
         pointsAwarded,
         unlockedBadges,
       },
-      { status: 200 }
+      { status: 200, headers },
     );
   } catch (error) {
     logger.error('[API /api/coach/recommendations PUT] Critical error', error);
-    return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal server error.' }, { status: 500, headers });
   }
 }
 
@@ -360,6 +442,13 @@ export async function PUT(request: NextRequest) {
  * Deletes a recommended action. Accepts `id` in query parameters.
  */
 export async function DELETE(request: NextRequest) {
+  const rateLimitRes = checkRateLimit(request);
+  const headers = rateLimitHeaders(rateLimitRes);
+
+  if (!rateLimitRes.allowed) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers });
+  }
+
   try {
     const supabase = createClient();
     const {
@@ -368,14 +457,26 @@ export async function DELETE(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ message: 'Authentication required.' }, { status: 401 });
+      return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
     }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ message: 'Missing recommended action ID.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Missing recommended action ID.' },
+        { status: 400, headers },
+      );
+    }
+
+    // Zod validation for UUID
+    const parsedId = deleteParamSchema.safeParse(id);
+    if (!parsedId.success) {
+      return NextResponse.json(
+        { message: parsedId.error.errors[0]?.message || 'Invalid recommendation ID format.' },
+        { status: 400, headers },
+      );
     }
 
     // Verify ownership first
@@ -386,11 +487,17 @@ export async function DELETE(request: NextRequest) {
       .maybeSingle();
 
     if (fetchError || !existingRec) {
-      return NextResponse.json({ message: 'Recommended action not found.' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Recommended action not found.' },
+        { status: 404, headers },
+      );
     }
 
     if (existingRec.user_id !== user.id) {
-      return NextResponse.json({ message: 'Forbidden: You do not own this recommended action.' }, { status: 403 });
+      return NextResponse.json(
+        { message: 'Forbidden: You do not own this recommended action.' },
+        { status: 403, headers },
+      );
     }
 
     const { error: deleteError } = await supabase
@@ -399,15 +506,24 @@ export async function DELETE(request: NextRequest) {
       .eq('id', id);
 
     if (deleteError) {
-      logger.error('[API /api/coach/recommendations DELETE] Delete error', deleteError, { userId: user.id, recId: id });
-      return NextResponse.json({ message: 'Failed to delete recommended action.' }, { status: 500 });
+      logger.error('[API /api/coach/recommendations DELETE] Delete error', deleteError, {
+        userId: user.id,
+        recId: id,
+      });
+      return NextResponse.json(
+        { message: 'Failed to delete recommended action.' },
+        { status: 500, headers },
+      );
     }
 
     logger.info('Recommendation deleted', { userId: user.id, recId: id });
 
-    return NextResponse.json({ message: 'Recommended action deleted successfully.' }, { status: 200 });
+    return NextResponse.json(
+      { message: 'Recommended action deleted successfully.' },
+      { status: 200, headers },
+    );
   } catch (error) {
     logger.error('[API /api/coach/recommendations DELETE] Critical error', error);
-    return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal server error.' }, { status: 500, headers });
   }
 }

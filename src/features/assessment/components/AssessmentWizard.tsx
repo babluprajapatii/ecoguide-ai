@@ -9,11 +9,22 @@ import { DietStep } from '@/features/assessment/components/steps/DietStep';
 import { ShoppingStep } from '@/features/assessment/components/steps/ShoppingStep';
 import { TravelStep } from '@/features/assessment/components/steps/TravelStep';
 import { ReviewStep } from '@/features/assessment/components/steps/ReviewStep';
-import { ResultsCharts } from '@/features/assessment/components/ResultsCharts';
 import { RecommendationsList } from '@/features/assessment/components/RecommendationsList';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useBadges } from '@/features/gamification/hooks/useBadges';
+import { useA11y } from '@/providers/a11y-announcer-provider';
 import { motion, AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
+
+const ResultsCharts = dynamic(
+  () => import('@/features/assessment/components/ResultsCharts').then((mod) => mod.ResultsCharts),
+  {
+    loading: () => (
+      <div className="h-[300px] animate-pulse rounded-2xl border border-border/80 bg-muted/20" />
+    ),
+    ssr: false,
+  },
+);
 
 const STEP_LABELS = [
   'Welcome',
@@ -32,15 +43,12 @@ export function AssessmentWizard() {
   const wizard = useAssessmentWizard();
   const { user } = useAuth();
   const { showBadgeToast, refresh } = useBadges(user?.id ?? null);
+  const { announce } = useA11y();
 
   const renderStep = () => {
     switch (wizard.state.currentStep) {
       case 'welcome':
-        return (
-          <WelcomeStep
-            onNext={wizard.goToNextStep}
-          />
-        );
+        return <WelcomeStep onNext={wizard.goToNextStep} />;
       case 'transport':
         return (
           <TransportStep
@@ -117,9 +125,15 @@ export function AssessmentWizard() {
               onSubmit={async () => {
                 try {
                   const data = await wizard.submitAssessment();
-                  if (data && Array.isArray(data.unlockedBadges)) {
-                    for (const badge of data.unlockedBadges) {
-                      showBadgeToast(badge);
+                  if (data) {
+                    announce(
+                      `Assessment completed! Your carbon footprint is ${Math.round(data.breakdown.total)} kilograms of CO2 per year, grade ${data.grade}.`,
+                      'assertive',
+                    );
+                    if (Array.isArray(data.unlockedBadges)) {
+                      for (const badge of data.unlockedBadges) {
+                        showBadgeToast(badge);
+                      }
                     }
                   }
                   void refresh();
@@ -138,23 +152,23 @@ export function AssessmentWizard() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
           >
-            <div className="text-center space-y-2">
-              <h2 className="text-3xl font-extrabold text-foreground">Your Carbon Footprint is Ready!</h2>
-              <p className="text-muted-foreground text-sm">
+            <div className="space-y-2 text-center">
+              <h2 className="text-3xl font-extrabold text-foreground">
+                Your Carbon Footprint is Ready!
+              </h2>
+              <p className="text-sm text-muted-foreground">
                 Here is your localized annual emissions overview compared to global baselines.
               </p>
               {wizard.state.grade && (
-                <div className="inline-block mt-2 rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-4 py-1.5 text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                <div className="mt-2 inline-block rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-bold text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
                   Environmental Impact Grade: {wizard.state.grade}
                 </div>
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <ResultsCharts breakdown={wizard.state.result} />
-              <RecommendationsList
-                recommendations={wizard.state.recommendations}
-              />
+              <RecommendationsList recommendations={wizard.state.recommendations} />
             </div>
 
             <div className="flex justify-center pt-4">
@@ -174,13 +188,13 @@ export function AssessmentWizard() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl p-6 space-y-6">
+    <div className="mx-auto w-full max-w-4xl space-y-6 p-6">
       <ProgressBar
         currentStep={wizard.currentStepIndex}
         totalSteps={wizard.totalSteps}
         stepLabels={STEP_LABELS}
       />
-      <div className="relative rounded-2xl border border-border bg-card/60 p-6 md:p-8 shadow-xl backdrop-blur-md">
+      <div className="relative rounded-2xl border border-border bg-card/60 p-6 shadow-xl backdrop-blur-md md:p-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={wizard.state.currentStep + (wizard.state.result ? '_submitted' : '')}

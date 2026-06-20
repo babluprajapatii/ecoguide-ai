@@ -16,21 +16,27 @@ export function TravelStep({ initialData, onNext, onBack, isSaving }: TravelStep
   const [flightsPerYear, setFlightsPerYear] = useState(initialData.flightsPerYear);
   const [avgDistanceKm, setAvgDistanceKm] = useState(initialData.avgDistanceKm);
   const [hotelStaysPerYear, setHotelStaysPerYear] = useState(initialData.hotelStaysPerYear);
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const result = travelInputSchema.safeParse({
       flightsPerYear,
-      avgDistanceKm,
+      avgDistanceKm: flightsPerYear > 0 ? avgDistanceKm : 0,
       hotelStaysPerYear,
     });
 
     if (!result.success) {
-      setError(result.error.errors[0]?.message ?? 'Invalid travel data');
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setFieldErrors(errors);
       return;
     }
-    setError(null);
+    setFieldErrors({});
     onNext(result.data);
   };
 
@@ -50,7 +56,10 @@ export function TravelStep({ initialData, onNext, onBack, isSaving }: TravelStep
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="flightsPerYear" className="mb-1 block text-sm font-medium text-foreground">
+          <label
+            htmlFor="flightsPerYear"
+            className="mb-1 block text-sm font-medium text-foreground"
+          >
             Flights per year
           </label>
           <input
@@ -59,14 +68,27 @@ export function TravelStep({ initialData, onNext, onBack, isSaving }: TravelStep
             min={0}
             max={200}
             value={flightsPerYear}
-            onChange={(e) => setFlightsPerYear(Number(e.target.value))}
+            onChange={(e) => {
+              setFlightsPerYear(Number(e.target.value));
+              setFieldErrors((prev) => ({ ...prev, flightsPerYear: '' }));
+            }}
+            aria-invalid={!!fieldErrors.flightsPerYear}
+            aria-describedby={fieldErrors.flightsPerYear ? 'flightsPerYear-error' : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
+          {fieldErrors.flightsPerYear && (
+            <p id="flightsPerYear-error" className="mt-1 text-xs text-destructive" role="alert">
+              {fieldErrors.flightsPerYear}
+            </p>
+          )}
         </div>
 
         {flightsPerYear > 0 && (
           <div>
-            <label htmlFor="avgDistanceKm" className="mb-1 block text-sm font-medium text-foreground">
+            <label
+              htmlFor="avgDistanceKm"
+              className="mb-1 block text-sm font-medium text-foreground"
+            >
               Average flight distance (km)
             </label>
             <input
@@ -75,17 +97,31 @@ export function TravelStep({ initialData, onNext, onBack, isSaving }: TravelStep
               min={0}
               max={20000}
               value={avgDistanceKm}
-              onChange={(e) => setAvgDistanceKm(Number(e.target.value))}
+              onChange={(e) => {
+                setAvgDistanceKm(Number(e.target.value));
+                setFieldErrors((prev) => ({ ...prev, avgDistanceKm: '' }));
+              }}
+              aria-invalid={!!fieldErrors.avgDistanceKm}
+              aria-describedby={fieldErrors.avgDistanceKm ? 'avgDistanceKm-error' : undefined}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            {fieldErrors.avgDistanceKm && (
+              <p id="avgDistanceKm-error" className="mt-1 text-xs text-destructive" role="alert">
+                {fieldErrors.avgDistanceKm}
+              </p>
+            )}
             <p className="mt-1 text-xs text-muted-foreground">
-              Short-haul: &lt;1,500 km (e.g. domestic/regional). Long-haul: &ge;1,500 km (transcontinental).
+              Short-haul: &lt;1,500 km (e.g. domestic/regional). Long-haul: &ge;1,500 km
+              (transcontinental).
             </p>
           </div>
         )}
 
         <div>
-          <label htmlFor="hotelStaysPerYear" className="mb-1 block text-sm font-medium text-foreground">
+          <label
+            htmlFor="hotelStaysPerYear"
+            className="mb-1 block text-sm font-medium text-foreground"
+          >
             Hotel stays (nights per year)
           </label>
           <input
@@ -94,13 +130,21 @@ export function TravelStep({ initialData, onNext, onBack, isSaving }: TravelStep
             min={0}
             max={365}
             value={hotelStaysPerYear}
-            onChange={(e) => setHotelStaysPerYear(Number(e.target.value))}
+            onChange={(e) => {
+              setHotelStaysPerYear(Number(e.target.value));
+              setFieldErrors((prev) => ({ ...prev, hotelStaysPerYear: '' }));
+            }}
+            aria-invalid={!!fieldErrors.hotelStaysPerYear}
+            aria-describedby={fieldErrors.hotelStaysPerYear ? 'hotelStaysPerYear-error' : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
+          {fieldErrors.hotelStaysPerYear && (
+            <p id="hotelStaysPerYear-error" className="mt-1 text-xs text-destructive" role="alert">
+              {fieldErrors.hotelStaysPerYear}
+            </p>
+          )}
         </div>
       </div>
-
-      {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
 
       <div className="flex gap-3">
         <button
@@ -119,7 +163,7 @@ export function TravelStep({ initialData, onNext, onBack, isSaving }: TravelStep
       </div>
 
       {isSaving && (
-        <p className="text-center text-xs text-muted-foreground animate-pulse mt-2">
+        <p className="mt-2 animate-pulse text-center text-xs text-muted-foreground">
           Saving draft...
         </p>
       )}

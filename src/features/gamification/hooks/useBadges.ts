@@ -11,9 +11,16 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import type { BadgeDefinition, EarnedBadge, GamificationAction, Level, BadgeSlug } from '@/features/gamification/types/gamification.types';
+import type {
+  BadgeDefinition,
+  EarnedBadge,
+  GamificationAction,
+  Level,
+  BadgeSlug,
+} from '@/features/gamification/types/gamification.types';
 import { getLevel } from '@/features/gamification/services/level.service';
 import { BADGES } from '@/features/gamification/data/badges';
+import { useA11y } from '@/providers/a11y-announcer-provider';
 
 // ---------------------------------------------------------------------------
 // Toast notification type
@@ -63,6 +70,7 @@ export interface UseBadgesReturn {
 const TOAST_AUTO_DISMISS_MS = 5000;
 
 export function useBadges(userId: string | null): UseBadgesReturn {
+  const { announce } = useA11y();
   const [earnedBadges, setEarnedBadges] = useState<EarnedBadge[]>([]);
   const [totalPoints, setTotalPoints] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,6 +84,21 @@ export function useBadges(userId: string | null): UseBadgesReturn {
   // Derived
   const earnedSlugs: ReadonlySet<BadgeSlug> = new Set(earnedBadges.map((b) => b.badgeSlug));
   const level = getLevel(totalPoints);
+
+  const prevLevelRankRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (totalPoints > 0) {
+      const currentLevel = getLevel(totalPoints);
+      if (prevLevelRankRef.current !== null && currentLevel.rank > prevLevelRankRef.current) {
+        announce(
+          `Level up! You are now Level ${currentLevel.rank} - ${currentLevel.name}!`,
+          'polite',
+        );
+      }
+      prevLevelRankRef.current = currentLevel.rank;
+    }
+  }, [totalPoints, announce]);
 
   // --- Show toast helper (needed in useEffect) ---
   // --- Dismiss toast ---
@@ -98,6 +121,7 @@ export function useBadges(userId: string | null): UseBadgesReturn {
       };
 
       setToasts((prev) => [...prev, toast]);
+      announce(`New badge unlocked: ${badge.name}! ${badge.description}`, 'polite');
 
       const timer = setTimeout(() => {
         dismissToast(toastId);
@@ -105,7 +129,7 @@ export function useBadges(userId: string | null): UseBadgesReturn {
 
       toastTimersRef.current.set(toastId, timer);
     },
-    [dismissToast],
+    [dismissToast, announce],
   );
 
   // Automatically show toasts for newly earned badges when earnedBadges updates

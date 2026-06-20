@@ -115,6 +115,7 @@ export function useAssessmentWizard() {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
   const lastSavedInputsRef = useRef<string>('');
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasInteractedRef = useRef<boolean>(false);
 
   const currentStepIndex = STEP_ORDER.indexOf(state.currentStep);
   const totalSteps = STEP_ORDER.length;
@@ -123,6 +124,7 @@ export function useAssessmentWizard() {
   const isResultsStep = state.currentStep === 'results';
 
   const goToNextStep = useCallback(() => {
+    hasInteractedRef.current = true;
     const nextIndex = STEP_ORDER.indexOf(state.currentStep) + 1;
     const nextStep = STEP_ORDER[nextIndex];
     if (nextStep) {
@@ -131,6 +133,7 @@ export function useAssessmentWizard() {
   }, [state.currentStep]);
 
   const goToPreviousStep = useCallback(() => {
+    hasInteractedRef.current = true;
     const prevIndex = STEP_ORDER.indexOf(state.currentStep) - 1;
     const prevStep = STEP_ORDER[prevIndex];
     if (prevStep) {
@@ -139,42 +142,50 @@ export function useAssessmentWizard() {
   }, [state.currentStep]);
 
   const goToStep = useCallback((step: WizardStep) => {
+    hasInteractedRef.current = true;
     dispatch({ type: 'GO_TO_STEP', payload: step });
   }, []);
 
   const setTransport = useCallback((data: TransportInput) => {
+    hasInteractedRef.current = true;
     dispatch({ type: 'SET_TRANSPORT', payload: data });
   }, []);
 
   const setEnergy = useCallback((data: EnergyInput) => {
+    hasInteractedRef.current = true;
     dispatch({ type: 'SET_ENERGY', payload: data });
   }, []);
 
   const setDiet = useCallback((data: DietInput) => {
+    hasInteractedRef.current = true;
     dispatch({ type: 'SET_DIET', payload: data });
   }, []);
 
   const setShopping = useCallback((data: ShoppingInput) => {
+    hasInteractedRef.current = true;
     dispatch({ type: 'SET_SHOPPING', payload: data });
   }, []);
 
   const setTravel = useCallback((data: TravelInput) => {
+    hasInteractedRef.current = true;
     dispatch({ type: 'SET_TRAVEL', payload: data });
   }, []);
 
   // Restore draft on mount
   const loadDraft = useCallback(async () => {
+    if (hasInteractedRef.current) return;
     try {
       const response = await fetch('/api/assessment/draft');
+      if (hasInteractedRef.current) return;
       let serverDraft: DraftApiResponse | null = null;
       if (response.ok) {
-        serverDraft = await response.json() as DraftApiResponse;
+        serverDraft = (await response.json()) as DraftApiResponse;
       }
 
       const localDraftStr = localStorage.getItem('ecoguide_assessment_draft');
       let localDraft: (DraftApiResponse & { isUnsynced?: boolean }) | null = null;
       if (localDraftStr) {
-        localDraft = JSON.parse(localDraftStr) as (DraftApiResponse & { isUnsynced?: boolean });
+        localDraft = JSON.parse(localDraftStr) as DraftApiResponse & { isUnsynced?: boolean };
       }
 
       if (serverDraft && serverDraft.inputs && localDraft && localDraft.inputs) {
@@ -190,7 +201,10 @@ export function useAssessmentWizard() {
               version: localVersion,
             },
           });
-          lastSavedInputsRef.current = JSON.stringify({ ...localDraft.inputs, currentStep: localDraft.currentStep });
+          lastSavedInputsRef.current = JSON.stringify({
+            ...localDraft.inputs,
+            currentStep: localDraft.currentStep,
+          });
           return;
         }
       }
@@ -204,7 +218,10 @@ export function useAssessmentWizard() {
             version: serverDraft.draftVersion,
           },
         });
-        lastSavedInputsRef.current = JSON.stringify({ ...serverDraft.inputs, currentStep: serverDraft.currentStep });
+        lastSavedInputsRef.current = JSON.stringify({
+          ...serverDraft.inputs,
+          currentStep: serverDraft.currentStep,
+        });
       } else if (localDraft && localDraft.inputs) {
         dispatch({
           type: 'RESTORE_DRAFT',
@@ -214,7 +231,10 @@ export function useAssessmentWizard() {
             version: localDraft.draftVersion,
           },
         });
-        lastSavedInputsRef.current = JSON.stringify({ ...localDraft.inputs, currentStep: localDraft.currentStep });
+        lastSavedInputsRef.current = JSON.stringify({
+          ...localDraft.inputs,
+          currentStep: localDraft.currentStep,
+        });
       }
     } catch (err) {
       console.error('Failed to load assessment draft:', err);
@@ -283,7 +303,10 @@ export function useAssessmentWizard() {
 
         if (response.status === 409) {
           const conflictData = await response.json();
-          console.warn('Draft conflict detected. Syncing with version:', conflictData.storedVersion);
+          console.warn(
+            'Draft conflict detected. Syncing with version:',
+            conflictData.storedVersion,
+          );
           dispatch({
             type: 'RESTORE_DRAFT',
             payload: {
@@ -302,21 +325,27 @@ export function useAssessmentWizard() {
         lastSavedInputsRef.current = currentInputsStr;
         dispatch({ type: 'INCREMENT_DRAFT_VERSION' });
 
-        localStorage.setItem('ecoguide_assessment_draft', JSON.stringify({
-          inputs: currentInputs,
-          currentStep: state.currentStep,
-          draftVersion: nextVersion,
-          lastSavedAt: new Date().toISOString(),
-        }));
+        localStorage.setItem(
+          'ecoguide_assessment_draft',
+          JSON.stringify({
+            inputs: currentInputs,
+            currentStep: state.currentStep,
+            draftVersion: nextVersion,
+            lastSavedAt: new Date().toISOString(),
+          }),
+        );
       } catch (err) {
         console.error('Autosave offline/failed, buffering to localStorage:', err);
-        localStorage.setItem('ecoguide_assessment_draft', JSON.stringify({
-          inputs: currentInputs,
-          currentStep: state.currentStep,
-          draftVersion: state.draftVersion + 1,
-          lastSavedAt: new Date().toISOString(),
-          isUnsynced: true,
-        }));
+        localStorage.setItem(
+          'ecoguide_assessment_draft',
+          JSON.stringify({
+            inputs: currentInputs,
+            currentStep: state.currentStep,
+            draftVersion: state.draftVersion + 1,
+            lastSavedAt: new Date().toISOString(),
+            isUnsynced: true,
+          }),
+        );
       } finally {
         dispatch({ type: 'SET_SAVING', payload: false });
       }
@@ -337,47 +366,52 @@ export function useAssessmentWizard() {
     state.draftVersion,
   ]);
 
-  const submitAssessment = useCallback(async (finalTravel?: TravelInput) => {
-    dispatch({ type: 'SUBMIT_START' });
-    try {
-      const response = await fetch('/api/assessment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transport: state.transport,
-          energy: state.energy,
-          diet: state.diet,
-          shopping: state.shopping,
-          travel: finalTravel ?? state.travel,
-        }),
-      });
+  const submitAssessment = useCallback(
+    async (finalTravel?: TravelInput) => {
+      dispatch({ type: 'SUBMIT_START' });
+      try {
+        const response = await fetch('/api/assessment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transport: state.transport,
+            energy: state.energy,
+            diet: state.diet,
+            shopping: state.shopping,
+            travel: finalTravel ?? state.travel,
+          }),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Submission failed' })) as { message?: string };
-        throw new Error(errorData.message ?? `HTTP ${response.status}`);
+        if (!response.ok) {
+          const errorData = (await response
+            .json()
+            .catch(() => ({ message: 'Submission failed' }))) as { message?: string };
+          throw new Error(errorData.message ?? `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        dispatch({
+          type: 'SUBMIT_SUCCESS',
+          payload: {
+            breakdown: data.breakdown,
+            grade: data.grade,
+            recommendations: data.recommendations,
+          },
+        });
+
+        // Clean local draft
+        localStorage.removeItem('ecoguide_assessment_draft');
+
+        dispatch({ type: 'GO_TO_STEP', payload: 'results' });
+        return data;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+        dispatch({ type: 'SUBMIT_ERROR', payload: message });
+        throw err;
       }
-
-      const data = await response.json();
-      dispatch({
-        type: 'SUBMIT_SUCCESS',
-        payload: {
-          breakdown: data.breakdown,
-          grade: data.grade,
-          recommendations: data.recommendations,
-        },
-      });
-
-      // Clean local draft
-      localStorage.removeItem('ecoguide_assessment_draft');
-
-      dispatch({ type: 'GO_TO_STEP', payload: 'results' });
-      return data;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'An unexpected error occurred';
-      dispatch({ type: 'SUBMIT_ERROR', payload: message });
-      throw err;
-    }
-  }, [state.transport, state.energy, state.diet, state.shopping, state.travel]);
+    },
+    [state.transport, state.energy, state.diet, state.shopping, state.travel],
+  );
 
   const reset = useCallback(async () => {
     localStorage.removeItem('ecoguide_assessment_draft');

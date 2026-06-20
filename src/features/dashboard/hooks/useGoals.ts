@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
+import { useA11y } from '@/providers/a11y-announcer-provider';
 
 export interface Goal {
   id: string;
@@ -28,15 +29,24 @@ async function fetchGoals(): Promise<Goal[]> {
 
 export function useGoals() {
   const queryClient = useQueryClient();
+  const { announce } = useA11y();
 
-  const { data: goals = [], isLoading, error } = useQuery<Goal[], Error>({
+  const {
+    data: goals = [],
+    isLoading,
+    error,
+  } = useQuery<Goal[], Error>({
     queryKey: GOALS_QUERY_KEY,
     queryFn: fetchGoals,
     staleTime: 60 * 1000, // 1 minute stale time
   });
 
   // Create Goal Mutation
-  const createMutation = useMutation<Goal, Error, Omit<Goal, 'id' | 'user_id' | 'created_at' | 'updated_at'>>({
+  const createMutation = useMutation<
+    Goal,
+    Error,
+    Omit<Goal, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+  >({
     mutationFn: async (newGoal) => {
       const res = await fetch('/api/goals', {
         method: 'POST',
@@ -45,7 +55,9 @@ export function useGoals() {
       });
 
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({ message: 'Failed to create goal' })) as { message?: string };
+        const errData = (await res.json().catch(() => ({ message: 'Failed to create goal' }))) as {
+          message?: string;
+        };
         throw new Error(errData.message || 'Failed to create goal');
       }
 
@@ -57,7 +69,11 @@ export function useGoals() {
   });
 
   // Update Goal Mutation
-  const updateMutation = useMutation<Goal, Error, { id: string; current_value: number; status?: 'in_progress' | 'completed' }>({
+  const updateMutation = useMutation<
+    Goal,
+    Error,
+    { id: string; current_value: number; status?: 'in_progress' | 'completed' }
+  >({
     mutationFn: async (updated) => {
       const res = await fetch('/api/goals', {
         method: 'PUT',
@@ -71,8 +87,11 @@ export function useGoals() {
 
       return res.json() as Promise<Goal>;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: GOALS_QUERY_KEY });
+      if (data.status === 'completed') {
+        announce(`Goal completed: ${data.title}!`, 'assertive');
+      }
     },
   });
 
