@@ -13,6 +13,7 @@ import { RecommendationsList } from '@/features/assessment/components/Recommenda
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useBadges } from '@/features/gamification/hooks/useBadges';
 import { useA11y } from '@/providers/a11y-announcer-provider';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
@@ -44,6 +45,44 @@ export function AssessmentWizard() {
   const { user } = useAuth();
   const { showBadgeToast, refresh } = useBadges(user?.id ?? null);
   const { announce } = useA11y();
+  const router = useRouter();
+
+  /**
+   * Navigates to the AI Coach.
+   * - Authenticated: go directly to /coach
+   * - Unauthenticated: save assessment summary to localStorage, then
+   *   redirect to /login?redirectTo=/coach so results survive auth.
+   */
+  const handleMeetCoach = () => {
+    if (wizard.state.result) {
+      try {
+        localStorage.setItem(
+          'ecoguide_assessment_result_preview',
+          JSON.stringify({
+            inputs: {
+              transport: wizard.state.transport,
+              energy: wizard.state.energy,
+              diet: wizard.state.diet,
+              shopping: wizard.state.shopping,
+              travel: wizard.state.travel,
+            },
+            result: wizard.state.result,
+            grade: wizard.state.grade,
+            recommendations: wizard.state.recommendations,
+            savedAt: new Date().toISOString(),
+          }),
+        );
+      } catch {
+        // localStorage unavailable — silently ignore
+      }
+    }
+
+    if (user) {
+      router.push('/coach');
+    } else {
+      router.push('/login?redirectTo=%2Fcoach');
+    }
+  };
 
   const renderStep = () => {
     switch (wizard.state.currentStep) {
@@ -171,11 +210,22 @@ export function AssessmentWizard() {
               <RecommendationsList recommendations={wizard.state.recommendations} />
             </div>
 
-            <div className="flex justify-center pt-4">
+            <div className="flex flex-col items-center gap-3 pt-4 sm:flex-row sm:justify-center">
+              {/* Primary CTA — Meet My AI Coach */}
+              <button
+                type="button"
+                id="assessment-meet-coach-cta"
+                onClick={handleMeetCoach}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 text-base font-bold text-white transition-all hover:bg-emerald-500 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 active:scale-95"
+                aria-label="Meet My AI Coach"
+              >
+                Meet My AI Coach
+              </button>
+              {/* Secondary action — take assessment again */}
               <button
                 type="button"
                 onClick={wizard.reset}
-                className="rounded-xl border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-all hover:bg-accent active:scale-95"
+                className="rounded-xl border border-border bg-background px-6 py-3.5 text-sm font-semibold text-foreground transition-all hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95"
               >
                 Reset &amp; Take Again
               </button>

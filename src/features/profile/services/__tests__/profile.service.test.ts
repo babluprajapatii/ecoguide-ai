@@ -24,7 +24,7 @@ vi.mock('@/lib/supabase/client', () => {
 describe('profile.service operations', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Set up standard builder mock returns
     mockFrom.mockReturnValue({
       update: mockUpdate,
@@ -42,15 +42,13 @@ describe('profile.service operations', () => {
     it('sends database updates successfully', async () => {
       mockEq.mockResolvedValue({ error: null });
 
-      await expect(
-        updateProfile('user-123', { displayName: 'New Name' })
-      ).resolves.not.toThrow();
+      await expect(updateProfile('user-123', { displayName: 'New Name' })).resolves.not.toThrow();
 
       expect(mockFrom).toHaveBeenCalledWith('profiles');
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
           display_name: 'New Name',
-        })
+        }),
       );
       expect(mockEq).toHaveBeenCalledWith('id', 'user-123');
     });
@@ -58,9 +56,9 @@ describe('profile.service operations', () => {
     it('throws error when database mutation fails', async () => {
       mockEq.mockResolvedValue({ error: { message: 'Database error' } });
 
-      await expect(
-        updateProfile('user-123', { displayName: 'Fail' })
-      ).rejects.toThrow('Failed to update profile: Database error');
+      await expect(updateProfile('user-123', { displayName: 'Fail' })).rejects.toThrow(
+        'Failed to update profile: Database error',
+      );
     });
   });
 
@@ -71,7 +69,7 @@ describe('profile.service operations', () => {
       });
 
       await expect(uploadAvatar('user-123', mockFile)).rejects.toThrow(
-        'Invalid file type: only JPEG, PNG, and WebP are allowed.'
+        'Invalid file type: only JPEG, PNG, and WebP are allowed.',
       );
       expect(mockUpload).not.toHaveBeenCalled();
     });
@@ -83,9 +81,7 @@ describe('profile.service operations', () => {
         type: 'image/png',
       });
 
-      await expect(uploadAvatar('user-123', mockFile)).rejects.toThrow(
-        'File exceeds 2MB limit.'
-      );
+      await expect(uploadAvatar('user-123', mockFile)).rejects.toThrow('File exceeds 2MB limit.');
       expect(mockUpload).not.toHaveBeenCalled();
     });
 
@@ -109,7 +105,7 @@ describe('profile.service operations', () => {
         expect.objectContaining({
           upsert: true,
           contentType: 'image/webp',
-        })
+        }),
       );
     });
 
@@ -121,7 +117,7 @@ describe('profile.service operations', () => {
       mockUpload.mockResolvedValue({ error: { message: 'Upload timeout' } });
 
       await expect(uploadAvatar('user-123', mockFile)).rejects.toThrow(
-        'Failed to upload avatar: Upload timeout'
+        'Failed to upload avatar: Upload timeout',
       );
     });
   });

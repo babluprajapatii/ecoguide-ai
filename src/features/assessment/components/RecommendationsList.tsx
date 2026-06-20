@@ -16,7 +16,8 @@ export function RecommendationsList({ recommendations }: RecommendationsListProp
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Our Sustainability Engine suggests the following actions based on your footprint breakdown to help lower your emissions:
+        Our Sustainability Engine suggests the following actions based on your footprint breakdown
+        to help lower your emissions:
       </p>
 
       <ul className="space-y-3 pt-2">
@@ -28,8 +29,8 @@ export function RecommendationsList({ recommendations }: RecommendationsListProp
             transition={{ duration: 0.3, delay: index * 0.1 }}
             className="flex items-start gap-3 rounded-lg border border-border/50 bg-background/50 p-4 transition-colors hover:border-emerald-500/20"
           >
-            <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
-            <span className="text-sm text-foreground leading-relaxed">{rec}</span>
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
+            <span className="text-sm leading-relaxed text-foreground">{rec}</span>
           </motion.li>
         ))}
       </ul>

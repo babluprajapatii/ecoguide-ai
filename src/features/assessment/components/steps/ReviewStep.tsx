@@ -55,13 +55,16 @@ export function ReviewStep({
       <div className="space-y-2">
         <h2 className="text-xl font-bold text-foreground">Review Your Assessment</h2>
         <p className="text-sm text-muted-foreground">
-          Double-check your choices. Submit the form to calculate your final score, unlock achievements, and get personalized recommendations.
+          Double-check your choices. Submit the form to calculate your final score, unlock
+          achievements, and get personalized recommendations.
         </p>
       </div>
 
       <div className="space-y-4">
         <section className="rounded-lg border border-border p-4">
-          <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Transport</h3>
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Transport
+          </h3>
           <ul className="space-y-1 text-sm text-foreground">
             {transport.fuelType !== 'none' ? (
               <li>
@@ -81,11 +84,15 @@ export function ReviewStep({
               </li>
             )}
           </ul>
-          <p className="mt-2 text-sm font-semibold text-primary">Est. Emissions: {formatKg(breakdown.transport)} CO₂/yr</p>
+          <p className="mt-2 text-sm font-semibold text-primary">
+            Est. Emissions: {formatKg(breakdown.transport)} CO₂/yr
+          </p>
         </section>
 
         <section className="rounded-lg border border-border p-4">
-          <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Home Energy</h3>
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Home Energy
+          </h3>
           <ul className="space-y-1 text-sm text-foreground">
             <li>
               <strong>Electricity:</strong> {energy.electricityKwhPerMonth} kWh/month
@@ -99,30 +106,44 @@ export function ReviewStep({
               </li>
             )}
             <li>
-              <strong>Home Size &amp; Household:</strong> {energy.homeSizeSqFt} sq ft · {energy.householdMembers} member(s)
+              <strong>Home Size &amp; Household:</strong> {energy.homeSizeSqFt} sq ft ·{' '}
+              {energy.householdMembers} member(s)
             </li>
           </ul>
-          <p className="mt-2 text-sm font-semibold text-primary">Est. Emissions: {formatKg(breakdown.energy)} CO₂/yr</p>
+          <p className="mt-2 text-sm font-semibold text-primary">
+            Est. Emissions: {formatKg(breakdown.energy)} CO₂/yr
+          </p>
         </section>
 
         <section className="rounded-lg border border-border p-4">
-          <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Diet</h3>
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Diet
+          </h3>
           <p className="text-sm capitalize">{diet.dietType.replace('-', ' ')} dietary pattern</p>
-          <p className="mt-2 text-sm font-semibold text-primary">Est. Emissions: {formatKg(breakdown.diet)} CO₂/yr</p>
+          <p className="mt-2 text-sm font-semibold text-primary">
+            Est. Emissions: {formatKg(breakdown.diet)} CO₂/yr
+          </p>
         </section>
 
         <section className="rounded-lg border border-border p-4">
-          <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Shopping</h3>
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Shopping
+          </h3>
           <p className="text-sm capitalize">{shopping.level} spending habits</p>
-          <p className="mt-2 text-sm font-semibold text-primary">Est. Emissions: {formatKg(breakdown.shopping)} CO₂/yr</p>
+          <p className="mt-2 text-sm font-semibold text-primary">
+            Est. Emissions: {formatKg(breakdown.shopping)} CO₂/yr
+          </p>
         </section>
 
         <section className="rounded-lg border border-border p-4">
-          <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Travel</h3>
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Travel
+          </h3>
           <ul className="space-y-1 text-sm text-foreground">
             {travel.flightsPerYear > 0 ? (
               <li>
-                <strong>Flights:</strong> {travel.flightsPerYear} flights/yr at {travel.avgDistanceKm} km avg
+                <strong>Flights:</strong> {travel.flightsPerYear} flights/yr at{' '}
+                {travel.avgDistanceKm} km avg
               </li>
             ) : (
               <li>No annual flights.</li>
@@ -133,7 +154,9 @@ export function ReviewStep({
               </li>
             )}
           </ul>
-          <p className="mt-2 text-sm font-semibold text-primary">Est. Emissions: {formatKg(breakdown.travel)} CO₂/yr</p>
+          <p className="mt-2 text-sm font-semibold text-primary">
+            Est. Emissions: {formatKg(breakdown.travel)} CO₂/yr
+          </p>
         </section>
 
         <section className="rounded-lg border border-primary bg-primary/5 p-4">
@@ -142,13 +165,17 @@ export function ReviewStep({
           <p className="mt-1 text-sm text-muted-foreground">
             {breakdown.comparedToAverage < 1
               ? `${Math.round((1 - breakdown.comparedToAverage) * 100)}% below`
-              : `${Math.round((breakdown.comparedToAverage - 1) * 100)}% above`}
-            {' '}global average · {breakdown.percentile}th percentile rank
+              : `${Math.round((breakdown.comparedToAverage - 1) * 100)}% above`}{' '}
+            global average · {breakdown.percentile}th percentile rank
           </p>
         </section>
       </div>
 
-      {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+      {error && (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
 
       <div className="flex gap-3">
         <button

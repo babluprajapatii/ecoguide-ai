@@ -192,7 +192,7 @@ describe('Points & Badge Service', () => {
           user_id: 'user-123',
           action: 'complete_assessment',
           points: 100,
-        })
+        }),
       );
     });
 
@@ -217,7 +217,7 @@ describe('Points & Badge Service', () => {
     it('should throw an error when database transaction fails', async () => {
       dbStore.points_transactions = { data: [], error: { message: 'Database insert failed' } };
       await expect(awardPoints('user-123', 'complete_assessment', 50)).rejects.toThrow(
-        'Failed to award points: Database insert failed'
+        'Failed to award points: Database insert failed',
       );
     });
   });
@@ -233,13 +233,9 @@ describe('Points & Badge Service', () => {
 
     it('should return empty array if badge is already earned by user', async () => {
       // Mock badge definitions in DB
-      dbStore.badges.data = [
-        { id: 'badge-123', slug: 'first_assessment' }
-      ];
+      dbStore.badges.data = [{ id: 'badge-123', slug: 'first_assessment' }];
       // Mock already earned
-      dbStore.user_badges.data = [
-        { badge_id: 'badge-123' }
-      ];
+      dbStore.user_badges.data = [{ badge_id: 'badge-123' }];
 
       const result = await checkBadgeUnlock('user-123', 'complete_assessment');
       expect(result).toEqual([]);
@@ -275,7 +271,7 @@ describe('Points & Badge Service', () => {
     it('should throw an error if database fetch fails', async () => {
       dbStore.user_badges = { data: null, error: { message: 'DB fetch failed' } };
       await expect(fetchEarnedBadges('user-123')).rejects.toThrow(
-        'Failed to fetch badges: DB fetch failed'
+        'Failed to fetch badges: DB fetch failed',
       );
     });
   });
@@ -300,7 +296,7 @@ describe('Points & Badge Service', () => {
     it('should throw an error if database fetch fails', async () => {
       dbStore.user_points = { data: null, error: { message: 'DB fetch failed' } };
       await expect(fetchTotalPoints('user-123')).rejects.toThrow(
-        'Failed to fetch points: DB fetch failed'
+        'Failed to fetch points: DB fetch failed',
       );
     });
   });

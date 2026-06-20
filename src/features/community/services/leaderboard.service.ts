@@ -24,10 +24,7 @@ const CACHE_TTL_SECONDS = 300;
 export async function isCacheStale(): Promise<boolean> {
   const supabase = createClient();
   try {
-    const query = supabase
-      .from('leaderboard_rank_cache')
-      .select('cached_at')
-      .limit(1);
+    const query = supabase.from('leaderboard_rank_cache').select('cached_at').limit(1);
 
     const { data, error } = await query;
     if (error || !data || data.length === 0) {
@@ -92,9 +89,7 @@ export async function refreshLeaderboardCache(): Promise<void> {
 
     // 2. Fetch all opted-in, public users with points and profile details
     // We fetch user_points, profile (display_name, avatar_url, created_at), and community_profiles
-    const { data: users, error: usersError } = await supabase
-      .from('user_points')
-      .select(`
+    const { data: users, error: usersError } = (await supabase.from('user_points').select(`
         user_id,
         total_points,
         current_level,
@@ -108,7 +103,7 @@ export async function refreshLeaderboardCache(): Promise<void> {
           leaderboard_opt_in,
           public_profile_visibility
         )
-      `) as any;
+      `)) as any;
 
     if (usersError) {
       throw usersError;
@@ -160,7 +155,7 @@ export async function refreshLeaderboardCache(): Promise<void> {
       const newRank = index + 1;
       const prevRank = previousRanks.get(u.user_id) || null;
       const rankChange = prevRank !== null ? prevRank - newRank : 0;
-      
+
       return {
         user_id: u.user_id,
         rank: newRank,
@@ -179,7 +174,10 @@ export async function refreshLeaderboardCache(): Promise<void> {
     // 6. Bulk delete and insert new cache
     // Perform inside a single workflow since Supabase doesn't support transaction blocks over REST.
     // Clean cache first
-    const deleteQuery = supabase.from('leaderboard_rank_cache').delete().neq('user_id', '00000000-0000-0000-0000-000000000000');
+    const deleteQuery = supabase
+      .from('leaderboard_rank_cache')
+      .delete()
+      .neq('user_id', '00000000-0000-0000-0000-000000000000');
     await deleteQuery;
 
     if (newCacheRows.length > 0) {
@@ -235,7 +233,7 @@ export async function refreshLeaderboardCache(): Promise<void> {
  */
 export async function getGlobalLeaderboard(
   page: number,
-  limit: number
+  limit: number,
 ): Promise<LeaderboardEntry[]> {
   const supabase = createClient();
   const offset = (page - 1) * limit;
@@ -287,7 +285,7 @@ export async function getGlobalLeaderboard(
  */
 export async function getNearbyRankings(
   userId: string,
-  range: number
+  range: number,
 ): Promise<LeaderboardEntry[]> {
   const supabase = createClient();
 

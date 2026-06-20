@@ -169,7 +169,9 @@ describe('calculateTotalFootprint', () => {
     expect(result.diet).toBe(1500);
     expect(result.shopping).toBe(500);
     expect(result.travel).toBe(0);
-    expect(result.total).toBe(result.transport + result.energy + result.diet + result.shopping + result.travel);
+    expect(result.total).toBe(
+      result.transport + result.energy + result.diet + result.shopping + result.travel,
+    );
     expect(result.comparedToAverage).toBe(Math.round((result.total / 4700) * 100) / 100);
   });
 });

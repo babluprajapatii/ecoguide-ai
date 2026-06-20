@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen bg-dark-900 text-stone-200 overflow-x-hidden">
+    <div className="relative min-h-screen overflow-x-hidden bg-dark-900 text-stone-200">
       {/* Background elements */}
       <LeafParticles />
 
@@ -39,8 +39,8 @@ export default function LandingPage() {
         <Metrics />
 
         {/* Smart Grid Partner badges */}
-        <section className="bg-dark-900 pb-16 relative z-10">
-          <div className="max-w-7xl mx-auto px-6">
+        <section className="relative z-10 bg-dark-900 pb-16">
+          <div className="mx-auto max-w-7xl px-6">
             <LogoCloud />
           </div>
         </section>
@@ -58,24 +58,27 @@ export default function LandingPage() {
         <ImpactSimulator />
 
         {/* Integrations & Leaderboard Block */}
-        <section id="community" className="relative py-20 md:py-32 overflow-hidden bg-dark-900 border-t border-eco-500/10">
-          <div className="absolute top-20 right-0 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
-          <div className="relative z-10 max-w-6xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <span className="text-xs font-semibold text-eco-400 tracking-[0.2em] uppercase">
+        <section
+          id="community"
+          className="relative overflow-hidden border-t border-eco-500/10 bg-dark-900 py-20 md:py-32"
+        >
+          <div className="pointer-events-none absolute right-0 top-20 h-[400px] w-[400px] rounded-full bg-purple-500/5 blur-[120px]" />
+          <div className="relative z-10 mx-auto max-w-6xl px-6">
+            <div className="mb-16 text-center">
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-eco-400">
                 Seamless Smart Integrations
               </span>
-              <h2 className="font-serif text-3xl md:text-5xl tracking-tight mt-3 text-white">
+              <h2 className="mt-3 font-serif text-3xl tracking-tight text-white md:text-5xl">
                 Connect Your <span className="text-gradient">Smart Home</span>
               </h2>
-              <p className="text-stone-400 mt-4 max-w-xl mx-auto font-light">
+              <p className="mx-auto mt-4 max-w-xl font-light text-stone-400">
                 Works with the devices and platforms you already use.
               </p>
             </div>
-            
+
             {/* Integrations Grid */}
             <Integrations />
-            
+
             {/* Neighborhood Leaderboard */}
             <CommunityLeaderboard />
           </div>

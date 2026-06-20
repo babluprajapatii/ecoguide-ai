@@ -22,7 +22,8 @@ export function useCommunitySettings() {
       const data = await res.json();
       setSettings(data);
     } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : 'An error occurred while loading settings';
+      const errMsg =
+        err instanceof Error ? err.message : 'An error occurred while loading settings';
       setError(errMsg);
     } finally {
       setIsLoading(false);

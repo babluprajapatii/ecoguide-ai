@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { AuthError, Session, User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 
@@ -96,11 +89,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setError(null);
 
       // Explicitly synchronize cookie tokens with server middleware
-      if (
-        event === 'SIGNED_IN' ||
-        event === 'TOKEN_REFRESHED' ||
-        event === 'SIGNED_OUT'
-      ) {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'SIGNED_OUT') {
         try {
           await fetch('/api/auth/session', {
             method: 'POST',
@@ -144,10 +133,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const signOut = useCallback(async () => {
     setError(null);
-    const { error: authError } = await supabase.auth.signOut();
-    if (authError) {
-      setError(authError);
-      throw authError;
+    try {
+      const { error: authError } = await supabase.auth.signOut();
+      if (authError) {
+        setError(authError);
+        throw authError;
+      }
+    } finally {
+      try {
+        localStorage.removeItem('ecoguide_assessment_result_preview');
+        localStorage.removeItem('sb-mock-auth-token');
+      } catch (err) {
+        console.debug('Failed to clear local token and assessment preview', err);
+      }
+
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     }
   }, [supabase]);
 
@@ -220,17 +222,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       resetPasswordForEmail,
       updatePassword,
     }),
-    [
-      user,
-      session,
-      loading,
-      error,
-      signIn,
-      signOut,
-      signUp,
-      resetPasswordForEmail,
-      updatePassword,
-    ],
+    [user, session, loading, error, signIn, signOut, signUp, resetPasswordForEmail, updatePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -63,7 +63,8 @@ export function InsightsPanel({ latestAssessment }: InsightsPanelProps) {
     insights.push({
       id: 'insight-shopping',
       category: 'Shopping',
-      message: 'New consumer goods and fast fashion options have increased your consumption footprint.',
+      message:
+        'New consumer goods and fast fashion options have increased your consumption footprint.',
       saving: 'Save up to 400kg CO₂/yr by repairing items or purchasing secondhand',
       priority: 'low',
     });
@@ -74,7 +75,8 @@ export function InsightsPanel({ latestAssessment }: InsightsPanelProps) {
     insights.push({
       id: 'insight-fallback',
       category: 'Lifestyle',
-      message: 'Incredible job! Your emissions across all categories are below sustainable thresholds.',
+      message:
+        'Incredible job! Your emissions across all categories are below sustainable thresholds.',
       saving: 'Offset your remaining footprint to achieve net-zero status',
       priority: 'low',
     });
@@ -95,13 +97,13 @@ export function InsightsPanel({ latestAssessment }: InsightsPanelProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25 space-y-4">
+    <div className="space-y-4 rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25">
       <div className="flex items-center justify-between border-b border-border/60 pb-3">
-        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
           <Activity size={16} className="text-emerald-500" />
           <span>Sustainability Insights</span>
         </h3>
-        <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider">
+        <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
           Action Recommended
         </span>
       </div>
@@ -125,24 +127,24 @@ export function InsightsPanel({ latestAssessment }: InsightsPanelProps) {
                 <CheckCircle2 size={16} className="text-yellow-500" />
               )}
             </div>
-            <div className="flex-1 min-w-0 space-y-1">
+            <div className="min-w-0 flex-1 space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
                   {item.category}
                 </span>
                 <span
-                  className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full ${
+                  className={`rounded-full px-1.5 py-0.5 text-[9px] font-extrabold uppercase ${
                     item.priority === 'high'
                       ? 'bg-red-500/10 text-red-500'
                       : item.priority === 'medium'
-                      ? 'bg-yellow-500/10 text-yellow-500'
-                      : 'bg-emerald-500/10 text-emerald-500'
+                        ? 'bg-yellow-500/10 text-yellow-500'
+                        : 'bg-emerald-500/10 text-emerald-500'
                   }`}
                 >
                   {item.priority} priority
                 </span>
               </div>
-              <p className="text-xs font-semibold text-foreground leading-relaxed">
+              <p className="text-xs font-semibold leading-relaxed text-foreground">
                 {item.message}
               </p>
               <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">

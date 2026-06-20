@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Leaf, Menu, X } from 'lucide-react';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const router = useRouter();
+  const { user } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const triggerButtonRef = useRef<HTMLButtonElement>(null);
@@ -87,6 +91,19 @@ export function Navbar() {
         element.setAttribute('tabindex', '-1');
         element.focus({ preventScroll: true });
       }, 800);
+    }
+  };
+
+  /**
+   * Navigates to /coach for authenticated users, or
+   * /login?redirectTo=/coach for unauthenticated users.
+   */
+  const handleMeetCoach = () => {
+    closeMenu();
+    if (user) {
+      router.push('/coach');
+    } else {
+      router.push('/login?redirectTo=%2Fcoach');
     }
   };
 
@@ -178,8 +195,9 @@ export function Navbar() {
             {/* Desktop CTA + Hamburger toggle */}
             <div className="flex items-center gap-4">
               <button
-                onClick={() => scrollToSection('cta')}
+                onClick={handleMeetCoach}
                 className="btn-primary hidden rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 md:inline-flex"
+                aria-label="Meet My AI Coach"
               >
                 Meet My AI Coach
               </button>
@@ -282,8 +300,9 @@ export function Navbar() {
           </a>
           <div className="mt-6 px-4">
             <button
-              onClick={() => scrollToSection('cta')}
+              onClick={handleMeetCoach}
               className="btn-primary w-full rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-wide text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
+              aria-label="Meet My AI Coach"
             >
               Meet My AI Coach
             </button>

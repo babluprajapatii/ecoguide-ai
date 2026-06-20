@@ -20,7 +20,9 @@ export async function fetchUserHighestCategory(): Promise<string> {
 
     const { data: rows, error } = await supabase
       .from('assessments')
-      .select('transport_score, diet_score, energy_score, shopping_score, travel_score, transport_kg, diet_kg, energy_kg, shopping_kg')
+      .select(
+        'transport_score, diet_score, energy_score, shopping_score, travel_score, transport_kg, diet_kg, energy_kg, shopping_kg',
+      )
       .eq('is_complete', true)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })

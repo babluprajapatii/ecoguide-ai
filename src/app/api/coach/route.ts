@@ -66,7 +66,6 @@ function checkRateLimit(userId: string): { allowed: boolean; retryAfterSeconds: 
   return { allowed: true, retryAfterSeconds: 0 };
 }
 
-
 /**
  * POST /api/coach
  * Streams personalized sustainability coaching responses.
@@ -118,7 +117,7 @@ export async function POST(request: NextRequest) {
     let sanitizedMessage = rawMessage
       // eslint-disable-next-line no-control-regex
       .replace(/[\x00-\x1F\x7F-\x9F]/g, '') // Strip ASCII control sequences
-      .replace(/\s+/g, ' ')                  // Normalize whitespace
+      .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
 
     if (sanitizedMessage.length === 0) {
@@ -131,26 +130,30 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Save user query in conversation log
-    const { error: insertUserMsgError } = await supabase
-      .from('coach_conversations')
-      .insert({
-        user_id: user.id,
-        role: 'user',
-        message: sanitizedMessage,
-      });
+    const { error: insertUserMsgError } = await supabase.from('coach_conversations').insert({
+      user_id: user.id,
+      role: 'user',
+      message: sanitizedMessage,
+    });
 
     if (insertUserMsgError) {
-      logger.error('Failed to persist user message', insertUserMsgError, { requestId, userId: user.id });
+      logger.error('Failed to persist user message', insertUserMsgError, {
+        requestId,
+        userId: user.id,
+      });
       return NextResponse.json({ message: 'Failed to record message.' }, { status: 500 });
     }
 
     // Award XP and check badge unlocks for coach conversation (use_coach)
     try {
-      const { awardPoints, checkBadgeUnlock } = await import('@/features/gamification/services/points.service');
+      const { awardPoints, checkBadgeUnlock } =
+        await import('@/features/gamification/services/points.service');
       await awardPoints(user.id, 'use_coach');
       await checkBadgeUnlock(user.id, 'use_coach');
     } catch (err) {
-      logger.error('Failed to award gamification points for coach message', err, { userId: user.id });
+      logger.error('Failed to award gamification points for coach message', err, {
+        userId: user.id,
+      });
     }
 
     // 5. Gather Database Context (Clean and Sanitize: NO IDs, NO emails, NO credentials)
@@ -164,7 +167,9 @@ export async function POST(request: NextRequest) {
     // Latest Completed Assessment
     const { data: latestAssessment } = await supabase
       .from('assessments')
-      .select('transport_kg, diet_kg, energy_kg, shopping_kg, travel_score, total_kg, compared_to_average, percentile')
+      .select(
+        'transport_kg, diet_kg, energy_kg, shopping_kg, travel_score, total_kg, compared_to_average, percentile',
+      )
       .eq('is_complete', true)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -285,7 +290,10 @@ Strict Security & System Rules:
 
     if (!apiKey) {
       // Offline/unconfigured simulated stream to facilitate smooth local development testing
-      logger.info('AI fallback mode activated (Anthropic key unconfigured)', { requestId, userId: user.id });
+      logger.info('AI fallback mode activated (Anthropic key unconfigured)', {
+        requestId,
+        userId: user.id,
+      });
 
       const mockReply = `Hello ${sanitizedContext.profile.display_name || 'Eco User'}! I am EcoGuide, your sustainability coach. I see that your carbon footprint is ${sanitizedContext.latestAssessment ? sanitizedContext.latestAssessment.total_kg.toFixed(0) : '9,700'} kg CO₂/yr. Since your highest footprint category is ${highestCategory}, I'd suggest starting with small, practical steps there.
 
@@ -311,7 +319,8 @@ What specific goals or challenges do you face in reducing your ${highestCategory
                   role: 'assistant',
                   message: mockReply,
                 });
-                if (insErr) logger.error('Failed to save simulated assistant message', insErr, { requestId });
+                if (insErr)
+                  logger.error('Failed to save simulated assistant message', insErr, { requestId });
               } catch (e) {
                 logger.error('Error saving simulated assistant message', e, { requestId });
               }
@@ -365,8 +374,14 @@ What specific goals or challenges do you face in reducing your ${highestCategory
 
     if (!anthropicResponse.ok) {
       const errBody = await anthropicResponse.text();
-      logger.error('Anthropic API failed', new Error(errBody), { requestId, status: anthropicResponse.status });
-      return NextResponse.json({ message: 'Coaching service is currently unavailable.' }, { status: 502 });
+      logger.error('Anthropic API failed', new Error(errBody), {
+        requestId,
+        status: anthropicResponse.status,
+      });
+      return NextResponse.json(
+        { message: 'Coaching service is currently unavailable.' },
+        { status: 502 },
+      );
     }
 
     const reader = anthropicResponse.body?.getReader();

@@ -11,12 +11,24 @@ vi.mock('@/lib/supabase/server', () => ({
 
 let mockQueryResult: { data: any; error: any } = { data: null, error: null };
 const mockBuilder: any = {
-  select: vi.fn().mockImplementation(function (this: any) { return this; }),
-  eq: vi.fn().mockImplementation(function (this: any) { return this; }),
-  upsert: vi.fn().mockImplementation(function (this: any) { return this; }),
-  delete: vi.fn().mockImplementation(function (this: any) { return this; }),
-  maybeSingle: vi.fn().mockImplementation(function (this: any) { return this; }),
-  single: vi.fn().mockImplementation(function (this: any) { return this; }),
+  select: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  eq: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  upsert: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  delete: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  maybeSingle: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  single: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
   then: vi.fn().mockImplementation(function (this: any, onfulfilled: any) {
     if (typeof onfulfilled === 'function') {
       return Promise.resolve(mockQueryResult).then(onfulfilled);
@@ -77,7 +89,10 @@ describe('community-profile.service tests', () => {
         let res = { data: null as any, error: null };
         if (queryIdx === 1) {
           // community_profiles fetch
-          res = { data: { public_profile_visibility: 'hidden', opt_in: true, bio: 'Secret bio' }, error: null };
+          res = {
+            data: { public_profile_visibility: 'hidden', opt_in: true, bio: 'Secret bio' },
+            error: null,
+          };
         } else if (queryIdx === 2) {
           // profiles details
           res = { data: { display_name: 'Owner', avatar_url: 'owner-avatar' }, error: null };
@@ -124,7 +139,7 @@ describe('community-profile.service tests', () => {
           leaderboardOptIn: false, // opt out of leaderboard
           publicProfileVisibility: 'public',
           bio: 'Eco warrior',
-        })
+        }),
       ).resolves.not.toThrow();
 
       // Ensure cache delete is called when optOut is true

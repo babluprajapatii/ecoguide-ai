@@ -32,7 +32,7 @@ const CATEGORY_PROMPTS: Record<string, string[]> = {
   ],
   shopping: [
     'How do my purchasing habits affect my carbon footprint?',
-    'What is fast fashion\'s carbon impact?',
+    "What is fast fashion's carbon impact?",
     'Are eco-labelled products actually greener?',
     'How does a circular economy reduce shopping emissions?',
   ],
@@ -55,7 +55,7 @@ export function SuggestedPrompts({
   disabled = false,
 }: SuggestedPromptsProps) {
   const normalizedCategory = highestCategory.toLowerCase();
-  
+
   const prompts = useMemo(() => {
     return CATEGORY_PROMPTS[normalizedCategory] || CATEGORY_PROMPTS.default || [];
   }, [normalizedCategory]);
@@ -102,11 +102,7 @@ export function SuggestedPrompts({
       <p className="mb-2 text-xs font-medium text-muted-foreground">
         Suggested prompts based on your assessment:
       </p>
-      <div
-        role="group"
-        aria-label="Suggested coaching prompts"
-        className="flex flex-wrap gap-2"
-      >
+      <div role="group" aria-label="Suggested coaching prompts" className="flex flex-wrap gap-2">
         {prompts.map((prompt, index) => {
           const isTabFocusable = index === focusedIndex;
 

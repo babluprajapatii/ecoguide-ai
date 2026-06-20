@@ -18,8 +18,7 @@ class Logger {
   private readonly minLevel: LogLevel;
 
   constructor(minLevel: LogLevel = 'debug') {
-    this.minLevel =
-      process.env.NODE_ENV === 'production' ? 'info' : minLevel;
+    this.minLevel = process.env.NODE_ENV === 'production' ? 'info' : minLevel;
   }
 
   private shouldLog(level: LogLevel): boolean {
@@ -27,17 +26,11 @@ class Logger {
   }
 
   private formatEntry(entry: LogEntry): string {
-    const contextStr = entry.context
-      ? ` ${JSON.stringify(entry.context)}`
-      : '';
+    const contextStr = entry.context ? ` ${JSON.stringify(entry.context)}` : '';
     return `[${entry.timestamp}] [${entry.level.toUpperCase()}] ${entry.message}${contextStr}`;
   }
 
-  private log(
-    level: LogLevel,
-    message: string,
-    context?: Record<string, unknown>,
-  ): void {
+  private log(level: LogLevel, message: string, context?: Record<string, unknown>): void {
     if (!this.shouldLog(level)) return;
 
     const entry: LogEntry = {

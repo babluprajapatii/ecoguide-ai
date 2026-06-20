@@ -6,7 +6,8 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'AI Sustainability Coach',
-  description: 'Chat with EcoGuide, your AI-powered sustainability coach, to get personalized, actionable green recommendations.',
+  description:
+    'Chat with EcoGuide, your AI-powered sustainability coach, to get personalized, actionable green recommendations.',
 };
 
 /**
@@ -17,7 +18,7 @@ export default async function CoachPage() {
   const highestCategory = await fetchUserHighestCategory();
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+    <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           AI Sustainability Coach

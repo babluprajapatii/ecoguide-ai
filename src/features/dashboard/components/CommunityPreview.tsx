@@ -33,7 +33,7 @@ export function CommunityPreview() {
       if (!res.ok) {
         throw new Error('Failed to load community preview');
       }
-      const previewData = await res.json() as CommunityPreviewData;
+      const previewData = (await res.json()) as CommunityPreviewData;
       setData(previewData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error fetching preview');
@@ -69,22 +69,22 @@ export function CommunityPreview() {
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25 animate-pulse h-[300px]" />
+      <div className="h-[300px] animate-pulse rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25" />
     );
   }
 
   if (error || !data) {
     return (
-      <div className="rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25 flex items-center justify-center text-xs text-muted-foreground">
+      <div className="flex items-center justify-center rounded-2xl border border-border/80 bg-card/40 p-6 text-xs text-muted-foreground shadow-sm backdrop-blur-md dark:bg-card/25">
         Failed to fetch community standings.
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25 space-y-4">
+    <div className="space-y-4 rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25">
       <div className="flex items-center justify-between border-b border-border/60 pb-3">
-        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
           <Users size={16} className="text-emerald-500" />
           <span>Community Standings</span>
         </h3>
@@ -102,21 +102,22 @@ export function CommunityPreview() {
 
       {!data.optedIn ? (
         // Opt-in privacy state
-        <div className="flex flex-col items-center justify-center text-center p-6 space-y-4">
+        <div className="flex flex-col items-center justify-center space-y-4 p-6 text-center">
           <div className="rounded-full bg-emerald-500/10 p-3 text-emerald-500 dark:bg-emerald-500/20">
             <Lock size={28} />
           </div>
           <div className="space-y-1">
             <h4 className="text-xs font-bold text-foreground">Join the Eco Leaderboard</h4>
             <p className="max-w-[280px] text-[10px] leading-relaxed text-muted-foreground">
-              Compare your Carbon Score with the EcoGuide community. Ranks are entirely anonymous by default; only display names are shown.
+              Compare your Carbon Score with the EcoGuide community. Ranks are entirely anonymous by
+              default; only display names are shown.
             </p>
           </div>
           <button
             type="button"
             disabled={isUpdating}
             onClick={() => void handleToggleOptIn(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-600 active:scale-95 transition-all shadow-md shadow-emerald-500/10 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-white shadow-md shadow-emerald-500/10 transition-all hover:bg-emerald-600 active:scale-95 disabled:opacity-50"
           >
             {isUpdating ? 'Opting In...' : 'Opt-In to Leaderboard'}
           </button>
@@ -124,24 +125,34 @@ export function CommunityPreview() {
       ) : (
         // Ranked leaderboard view
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs font-bold bg-muted/20 border border-border/20 rounded-xl p-3">
+          <div className="flex items-center justify-between rounded-xl border border-border/20 bg-muted/20 p-3 text-xs font-bold">
             <div className="flex items-center gap-1 text-muted-foreground">
               <Globe size={13} />
               <span>Current Standing:</span>
             </div>
-            <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">
+            <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
               Rank #{data.currentUserRank ?? '-'} of {data.totalOptedInUsers}
             </span>
           </div>
 
           {/* Leaderboard preview table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse" role="grid" aria-label="Nearby users leaderboard list">
+            <table
+              className="w-full border-collapse text-left"
+              role="grid"
+              aria-label="Nearby users leaderboard list"
+            >
               <thead>
-                <tr className="border-b border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
-                  <th scope="col" className="pb-2 pl-2">Rank</th>
-                  <th scope="col" className="pb-2">User</th>
-                  <th scope="col" className="pb-2 pr-2 text-right">Score</th>
+                <tr className="border-b border-border/40 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <th scope="col" className="pb-2 pl-2">
+                    Rank
+                  </th>
+                  <th scope="col" className="pb-2">
+                    User
+                  </th>
+                  <th scope="col" className="pb-2 pr-2 text-right">
+                    Score
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/20">
@@ -154,26 +165,30 @@ export function CommunityPreview() {
                         : 'text-foreground hover:bg-muted/10'
                     }`}
                   >
-                    <td className="py-2.5 pl-2 font-bold w-12">#{item.rank}</td>
-                    <td className="py-2.5 flex items-center gap-2">
+                    <td className="w-12 py-2.5 pl-2 font-bold">#{item.rank}</td>
+                    <td className="flex items-center gap-2 py-2.5">
                       {item.avatarUrl ? (
                         <Image
                           src={item.avatarUrl}
                           alt={item.displayName}
                           width={20}
                           height={20}
-                          className="w-5 h-5 rounded-full object-cover border border-border/40"
+                          className="h-5 w-5 rounded-full border border-border/40 object-cover"
                         />
                       ) : (
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black border ${
-                          item.isCurrentUser ? 'bg-emerald-500/20 border-emerald-500/30' : 'bg-muted border-border/40'
-                        }`}>
+                        <div
+                          className={`flex h-5 w-5 items-center justify-center rounded-full border text-[8px] font-black ${
+                            item.isCurrentUser
+                              ? 'border-emerald-500/30 bg-emerald-500/20'
+                              : 'border-border/40 bg-muted'
+                          }`}
+                        >
                           {item.displayName.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <span className="truncate max-w-[120px]">{item.displayName}</span>
+                      <span className="max-w-[120px] truncate">{item.displayName}</span>
                       {item.isCurrentUser && (
-                        <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                        <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[8px] font-extrabold uppercase text-emerald-600 dark:text-emerald-400">
                           you
                         </span>
                       )}
@@ -188,13 +203,13 @@ export function CommunityPreview() {
           </div>
 
           {/* Link to full community leaderboard */}
-          <div className="pt-2 border-t border-border/40">
+          <div className="border-t border-border/40 pt-2">
             <a
               href="/community"
-              className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center justify-center gap-1 group transition-colors"
+              className="group flex items-center justify-center gap-1 text-[11px] font-bold text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
             >
               <span>View Full Leaderboard</span>
-              <span className="transform group-hover:translate-x-0.5 transition-transform">→</span>
+              <span className="transform transition-transform group-hover:translate-x-0.5">→</span>
             </a>
           </div>
         </div>
@@ -202,4 +217,3 @@ export function CommunityPreview() {
     </div>
   );
 }
-

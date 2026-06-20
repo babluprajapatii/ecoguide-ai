@@ -14,13 +14,16 @@ export async function GET(request: NextRequest) {
   if (!rateLimitResult.allowed) {
     return new NextResponse(
       JSON.stringify({ error: 'Too many requests. Please try again later.' }),
-      { status: 429, headers }
+      { status: 429, headers },
     );
   }
 
   try {
     const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers });
@@ -30,16 +33,13 @@ export async function GET(request: NextRequest) {
     if (!stats) {
       return NextResponse.json(
         { error: 'Failed to retrieve community statistics' },
-        { status: 500, headers }
+        { status: 500, headers },
       );
     }
 
     return NextResponse.json(stats, { status: 200, headers });
   } catch (err) {
     logger.error('Error in community stats GET endpoint', { error: err });
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500, headers }
-    );
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers });
   }
 }

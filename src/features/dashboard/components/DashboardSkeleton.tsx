@@ -16,11 +16,7 @@ interface PulseBlockProps {
 }
 
 function PulseBlock({ className }: PulseBlockProps) {
-  return (
-    <div
-      className={cn('animate-pulse rounded-lg bg-muted', className)}
-    />
-  );
+  return <div className={cn('animate-pulse rounded-lg bg-muted', className)} />;
 }
 
 /**
@@ -74,11 +70,7 @@ function TrendChartSkeleton() {
  */
 export function DashboardSkeleton() {
   return (
-    <div
-      aria-busy="true"
-      aria-label="Loading dashboard"
-      className="space-y-6"
-    >
+    <div aria-busy="true" aria-label="Loading dashboard" className="space-y-6">
       <ScoreCardSkeleton />
       <div className="grid gap-6 lg:grid-cols-2">
         <CategoryChartSkeleton />

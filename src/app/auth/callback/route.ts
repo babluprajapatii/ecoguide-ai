@@ -37,15 +37,13 @@ export async function GET(request: Request) {
         // Redirect to target or dashboard on successful exchange
         return NextResponse.redirect(`${origin}${next}`);
       }
-      
+
       console.error('[AuthCallback] Failed to exchange code for session:', error);
-      return NextResponse.redirect(
-        `${origin}/login?error=${encodeURIComponent(error.message)}`
-      );
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
     }
   }
 
   return NextResponse.redirect(
-    `${origin}/login?error=${encodeURIComponent('No code found in authentication callback request')}`
+    `${origin}/login?error=${encodeURIComponent('No code found in authentication callback request')}`,
   );
 }

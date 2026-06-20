@@ -45,7 +45,13 @@ export interface BadgeDefinition {
   /** Machine-readable unlock criteria description. */
   readonly criteria: string;
   /** Display category for UI grouping. */
-  readonly category: 'assessment' | 'coaching' | 'simulation' | 'community' | 'sustainability_impact' | 'streaks';
+  readonly category:
+    | 'assessment'
+    | 'coaching'
+    | 'simulation'
+    | 'community'
+    | 'sustainability_impact'
+    | 'streaks';
 }
 
 /** A badge that has been earned by a user. */

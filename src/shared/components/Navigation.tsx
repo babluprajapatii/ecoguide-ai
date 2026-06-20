@@ -62,12 +62,15 @@ export function Navigation() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo & Desktop Nav */}
           <div className="flex items-center gap-8">
-            <Link href="/dashboard" className="flex items-center gap-2 text-primary focus:outline-none">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 text-primary focus:outline-none"
+            >
               <Leaf className="h-6 w-6 shrink-0" strokeWidth={2.2} />
-              <span className="font-bold text-lg tracking-tight text-foreground">EcoGuide AI</span>
+              <span className="text-lg font-bold tracking-tight text-foreground">EcoGuide AI</span>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-1" aria-label="Main Navigation">
+            <nav className="hidden items-center gap-1 md:flex" aria-label="Main Navigation">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
@@ -90,18 +93,21 @@ export function Navigation() {
           </div>
 
           {/* User profile details & Sign Out */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden items-center gap-4 md:flex">
             {/* Gamification Indicator */}
             <div className="flex items-center gap-2 rounded-full border border-border bg-muted/30 px-3.5 py-1.5 text-xs font-semibold">
-              <Trophy className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+              <Trophy className="h-3.5 w-3.5 shrink-0 text-amber-500" />
               <span className="text-muted-foreground">Level:</span>
               <span className="text-foreground">{level.name}</span>
-              <span className="text-muted-foreground font-light">|</span>
+              <span className="font-light text-muted-foreground">|</span>
               <span className="text-primary">{totalPoints} pts</span>
             </div>
 
             {/* User details */}
-            <span className="text-xs text-muted-foreground max-w-[150px] truncate" title={user.email}>
+            <span
+              className="max-w-[150px] truncate text-xs text-muted-foreground"
+              title={user.email}
+            >
               {user.email}
             </span>
 
@@ -122,7 +128,7 @@ export function Navigation() {
               href="/badges"
               className="flex items-center gap-1 rounded-full border border-border bg-muted/30 px-2.5 py-1 text-[11px] font-bold"
             >
-              <Trophy className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+              <Trophy className="h-3.5 w-3.5 shrink-0 text-amber-500" />
               <span className="text-primary">{totalPoints} pts</span>
             </Link>
 
@@ -139,7 +145,7 @@ export function Navigation() {
 
         {/* Mobile Navigation Dropdown */}
         {isOpen && (
-          <div className="md:hidden border-b border-border bg-background px-4 py-4 space-y-3 shadow-lg">
+          <div className="space-y-3 border-b border-border bg-background px-4 py-4 shadow-lg md:hidden">
             <nav className="flex flex-col gap-1" aria-label="Mobile Navigation">
               {navLinks.map((link) => {
                 const Icon = link.icon;
@@ -163,7 +169,7 @@ export function Navigation() {
 
             <hr className="border-border" />
 
-            <div className="flex items-center justify-between text-xs text-muted-foreground px-3">
+            <div className="flex items-center justify-between px-3 text-xs text-muted-foreground">
               <span>{user.email}</span>
               <span>Level: {level.name}</span>
             </div>
@@ -180,11 +186,14 @@ export function Navigation() {
       </header>
 
       {/* Floating Badge Unlock Toasts */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none" role="none">
+      <div
+        className="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col gap-2"
+        role="none"
+      >
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className="pointer-events-auto flex w-full max-w-sm gap-3 rounded-2xl border border-amber-500/20 bg-card/95 p-4 shadow-xl backdrop-blur-md animate-in slide-in-from-bottom-5 duration-300"
+            className="pointer-events-auto flex w-full max-w-sm gap-3 rounded-2xl border border-amber-500/20 bg-card/95 p-4 shadow-xl backdrop-blur-md duration-300 animate-in slide-in-from-bottom-5"
             role="alert"
             aria-live="assertive"
           >
@@ -195,19 +204,19 @@ export function Navigation() {
               <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
                 Badge Earned!
               </span>
-              <h4 className="text-sm font-bold text-foreground leading-tight mt-0.5">
+              <h4 className="mt-0.5 text-sm font-bold leading-tight text-foreground">
                 {toast.badge.name}
               </h4>
-              <p className="text-xs text-muted-foreground leading-snug mt-1">
+              <p className="mt-1 text-xs leading-snug text-muted-foreground">
                 {toast.badge.description}
               </p>
-              <p className="text-[10px] font-semibold text-emerald-500 mt-1">
+              <p className="mt-1 text-[10px] font-semibold text-emerald-500">
                 +{toast.badge.pointValue} Points Awarded
               </p>
             </div>
             <button
               onClick={() => dismissToast(toast.id)}
-              className="text-muted-foreground hover:text-foreground h-fit p-1 rounded-full hover:bg-muted"
+              className="h-fit rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
               aria-label={`Dismiss notification for ${toast.badge.name}`}
             >
               <X size={14} />

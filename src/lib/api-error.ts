@@ -34,11 +34,7 @@ export class ApiError extends Error {
   /** Machine-readable error code for client-side branching logic. */
   public readonly code: ApiErrorCode;
 
-  constructor(
-    message: string,
-    statusCode: number = 500,
-    code: ApiErrorCode = 'INTERNAL_ERROR',
-  ) {
+  constructor(message: string, statusCode: number = 500, code: ApiErrorCode = 'INTERNAL_ERROR') {
     super(message);
     this.name = 'ApiError';
     this.statusCode = statusCode;

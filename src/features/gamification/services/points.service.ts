@@ -34,10 +34,10 @@ export const ACTION_POINTS: Record<GamificationAction, number> = {
 };
 
 export const DAILY_LIMITS: Partial<Record<GamificationAction, number>> = {
-  use_coach: 50,       // Max 50 XP per day (5 coach messages)
-  run_simulator: 100,  // Max 100 XP per day (5 simulation runs)
+  use_coach: 50, // Max 50 XP per day (5 coach messages)
+  run_simulator: 100, // Max 100 XP per day (5 simulation runs)
   update_assessment: 25, // Max 25 XP per day (1 assessment update)
-  streak_day: 10,      // Max 10 XP per day (1 check-in)
+  streak_day: 10, // Max 10 XP per day (1 check-in)
 };
 
 // ---------------------------------------------------------------------------
@@ -70,7 +70,7 @@ export function getUserLevel(totalPoints: number): Level {
 export async function awardPoints(
   userId: string,
   action: GamificationAction,
-  points?: number
+  points?: number,
 ): Promise<number> {
   const supabase = createClient();
   const defaultPoints = ACTION_POINTS[action] ?? 0;
@@ -81,7 +81,9 @@ export async function awardPoints(
   const limit = DAILY_LIMITS[action];
   if (limit !== undefined) {
     const now = new Date();
-    const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+    const startOfDay = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0),
+    );
 
     let query = supabase
       .from('points_transactions')
@@ -115,14 +117,12 @@ export async function awardPoints(
   const nowISO = new Date().toISOString();
 
   // 2. Log in points_transactions history
-  const { error: txError } = await supabase
-    .from('points_transactions')
-    .insert({
-      user_id: userId,
-      action,
-      points: pointsToAward,
-      awarded_at: nowISO,
-    });
+  const { error: txError } = await supabase.from('points_transactions').insert({
+    user_id: userId,
+    action,
+    points: pointsToAward,
+    awarded_at: nowISO,
+  });
 
   if (txError) {
     console.error('[points.service] Failed to insert transaction:', txError.message);
@@ -152,7 +152,7 @@ export async function awardPoints(
     const streakResult = evaluateStreak(
       userPoints.last_activity_at,
       userPoints.current_streak,
-      userPoints.longest_streak
+      userPoints.longest_streak,
     );
 
     finalTotal = userPoints.total_points + pointsToAward;
@@ -182,19 +182,17 @@ export async function awardPoints(
     }
   } else {
     const currentLevel = getLevel(finalTotal).rank;
-    const { error: insertError } = await supabase
-      .from('user_points')
-      .insert({
-        user_id: userId,
-        total_points: finalTotal,
-        lifetime_points: finalLifetime,
-        current_level: currentLevel,
-        current_streak: finalStreak,
-        longest_streak: finalLongest,
-        last_activity_at: finalLastActivity,
-        created_at: nowISO,
-        updated_at: nowISO,
-      });
+    const { error: insertError } = await supabase.from('user_points').insert({
+      user_id: userId,
+      total_points: finalTotal,
+      lifetime_points: finalLifetime,
+      current_level: currentLevel,
+      current_streak: finalStreak,
+      longest_streak: finalLongest,
+      last_activity_at: finalLastActivity,
+      created_at: nowISO,
+      updated_at: nowISO,
+    });
 
     if (insertError) {
       console.error('[points.service] Failed to insert user points:', insertError.message);
@@ -247,14 +245,16 @@ export async function fetchEarnedBadges(userId: string): Promise<EarnedBadge[]> 
   // Joint query to badges to pull slugs and reward values
   let query = supabase
     .from('user_badges')
-    .select(`
+    .select(
+      `
       badge_id,
       earned_at,
       badges (
         slug,
         xp_reward
       )
-    `)
+    `,
+    )
     .eq('user_id', userId);
 
   if (typeof (query as any).order === 'function') {

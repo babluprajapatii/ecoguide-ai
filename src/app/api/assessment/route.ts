@@ -27,28 +27,28 @@ function generateRecommendations(breakdown: FootprintBreakdown): string[] {
   if (breakdown.transport > 2000) {
     recommendations.push(
       'Consider taking public transit or carpooling to reduce transport emissions.',
-      'Switching to an electric or hybrid vehicle can significantly lower your carbon footprint.'
+      'Switching to an electric or hybrid vehicle can significantly lower your carbon footprint.',
     );
   }
   if (breakdown.energy > 2000) {
     recommendations.push(
       'Improve home energy efficiency by upgrading insulation or using LED lighting.',
-      'Switch to a green/renewable electricity provider to cut down energy emissions.'
+      'Switch to a green/renewable electricity provider to cut down energy emissions.',
     );
   }
   if (breakdown.diet > 2000) {
     recommendations.push(
-      'Try incorporating more plant-based meals into your diet (e.g., Meatless Mondays).'
+      'Try incorporating more plant-based meals into your diet (e.g., Meatless Mondays).',
     );
   }
   if (breakdown.shopping > 1000) {
     recommendations.push(
-      'Practice mindful consumption: buy second-hand, repair items, and reduce unnecessary spending.'
+      'Practice mindful consumption: buy second-hand, repair items, and reduce unnecessary spending.',
     );
   }
   if (breakdown.travel > 1500) {
     recommendations.push(
-      'Combine business trips, take trains instead of short flights, and stay in eco-certified hotels.'
+      'Combine business trips, take trains instead of short flights, and stay in eco-certified hotels.',
     );
   }
 
@@ -57,7 +57,7 @@ function generateRecommendations(breakdown: FootprintBreakdown): string[] {
     recommendations.push(
       'Keep up the excellent sustainable habits and share your progress with others!',
       'Support local environmental initiatives and offset remaining emissions through verified projects.',
-      'Consider composting organic waste to reduce household methane emissions.'
+      'Consider composting organic waste to reduce household methane emissions.',
     );
   }
 
@@ -81,19 +81,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Auth check
+  // Auth check (fetch user if available, but do not block if unauthenticated)
   const supabase = createClient();
   const {
     data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json(
-      { message: 'Authentication required.' },
-      { status: 401, headers: rateLimitHeaders(rateLimitResult) },
-    );
-  }
+  } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
 
   // Parse and validate body
   let body: unknown;
@@ -129,6 +121,22 @@ export async function POST(request: NextRequest) {
 
   const grade = getGrade(breakdown.percentile);
   const recommendations = generateRecommendations(breakdown);
+
+  // If user is unauthenticated, return calculation results directly
+  if (!user) {
+    return NextResponse.json(
+      {
+        id: 'anonymous',
+        breakdown,
+        grade,
+        recommendations,
+        createdAt: new Date().toISOString(),
+        pointsAwarded: 0,
+        unlockedBadges: [],
+      },
+      { status: 200, headers: rateLimitHeaders(rateLimitResult) },
+    );
+  }
 
   // Persist to Supabase and delete draft in parallel/transaction
   const { data: insertedRow, error: dbError } = await supabase
@@ -208,9 +216,7 @@ export async function POST(request: NextRequest) {
         },
       ];
 
-      const { error: goalsSeedError } = await supabase
-        .from('goals')
-        .insert(defaultGoals);
+      const { error: goalsSeedError } = await supabase.from('goals').insert(defaultGoals);
 
       if (goalsSeedError) {
         console.warn('[API /assessment] Failed to seed default goals:', goalsSeedError);
@@ -224,7 +230,8 @@ export async function POST(request: NextRequest) {
   let pointsAwarded = 0;
   let unlockedBadges: unknown[] = [];
   try {
-    const { awardPoints, checkBadgeUnlock } = await import('@/features/gamification/services/points.service');
+    const { awardPoints, checkBadgeUnlock } =
+      await import('@/features/gamification/services/points.service');
     pointsAwarded = await awardPoints(user.id, action);
     unlockedBadges = await checkBadgeUnlock(user.id, action);
   } catch (err) {

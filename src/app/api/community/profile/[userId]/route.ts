@@ -9,17 +9,14 @@ export const dynamic = 'force-dynamic';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { userId: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { userId: string } }) {
   const rateLimitResult = await checkRateLimit(request);
   const headers = rateLimitHeaders(rateLimitResult);
 
   if (!rateLimitResult.allowed) {
     return new NextResponse(
       JSON.stringify({ error: 'Too many requests. Please try again later.' }),
-      { status: 429, headers }
+      { status: 429, headers },
     );
   }
 
@@ -31,7 +28,10 @@ export async function GET(
 
   try {
     const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers });
@@ -41,7 +41,7 @@ export async function GET(
     if (!profile) {
       return NextResponse.json(
         { error: 'Profile not found or is private' },
-        { status: 404, headers }
+        { status: 404, headers },
       );
     }
 
@@ -51,9 +51,6 @@ export async function GET(
       targetUserId,
       error: err,
     });
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500, headers }
-    );
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers });
   }
 }

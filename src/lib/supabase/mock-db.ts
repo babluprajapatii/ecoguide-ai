@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, no-empty */
 import { BADGES } from '../../features/gamification/data/badges';
 
 class InMemoryDB {
@@ -100,7 +100,10 @@ function createMockBuilder(table: string) {
     const badges = InMemoryDB.getTable('badges');
     data = data.map((row) => {
       const matchedBadge = badges.find(
-        (b) => b.id === row.badge_id || b.slug === row.badge_slug || `badge-uuid-${b.slug}` === row.badge_id
+        (b) =>
+          b.id === row.badge_id ||
+          b.slug === row.badge_slug ||
+          `badge-uuid-${b.slug}` === row.badge_id,
       ) || {
         id: row.badge_id || 'badge-uuid-first_assessment',
         slug: 'first_assessment',
@@ -245,7 +248,54 @@ function createMockBuilder(table: string) {
   return builder;
 }
 
-const mockUser = {
+const authSubscribers: Array<(event: string, session: any) => void> = [];
+const mockStorageMap: Record<string, string> = {};
+
+function getCookieVal(name: string): string | null {
+  if (typeof window !== 'undefined') {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match && match[2] ? decodeURIComponent(match[2]) : null;
+  }
+  try {
+    const { cookies } = require('next/headers');
+    const store = cookies();
+    return store.get(name)?.value || null;
+  } catch {
+    return null;
+  }
+}
+
+function setCookieVal(name: string, value: string | null) {
+  if (typeof window !== 'undefined') {
+    if (value === null) {
+      document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+    } else {
+      document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=604800;`;
+    }
+    return;
+  }
+  try {
+    const { cookies } = require('next/headers');
+    const store = cookies();
+    if (value === null) {
+      store.delete(name);
+    } else {
+      store.set(name, value, { path: '/', maxAge: 604800 });
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function notifySubscribers(event: string, session: any) {
+  authSubscribers.forEach((cb) => {
+    try {
+      cb(event, session);
+    } catch {}
+  });
+}
+
+const defaultUser = {
   id: 'test-user-id',
   email: 'test@example.com',
   user_metadata: { display_name: 'Green Pioneer' },
@@ -253,14 +303,129 @@ const mockUser = {
 
 export const mockSupabaseClient: any = {
   auth: {
-    getUser: () => Promise.resolve({ data: { user: mockUser }, error: null }),
-    getSession: () => Promise.resolve({ data: { session: { user: mockUser } }, error: null }),
-    onAuthStateChange: () => {
-      return { data: { subscription: { unsubscribe: () => {} } } };
+    getUser: () => {
+      const token = getCookieVal('sb-mock-auth-token');
+      if (token) {
+        try {
+          const session = JSON.parse(token);
+          return Promise.resolve({ data: { user: session.user }, error: null });
+        } catch {}
+      }
+      return Promise.resolve({ data: { user: null }, error: null });
     },
-    signOut: () => Promise.resolve({ error: null }),
-    signInWithPassword: () => Promise.resolve({ data: { user: mockUser }, error: null }),
-    signUp: () => Promise.resolve({ data: { user: mockUser }, error: null }),
+    getSession: () => {
+      const token = getCookieVal('sb-mock-auth-token');
+      if (token) {
+        try {
+          const session = JSON.parse(token);
+          return Promise.resolve({ data: { session }, error: null });
+        } catch {}
+      }
+      return Promise.resolve({ data: { session: null }, error: null });
+    },
+    onAuthStateChange: (callback: (event: string, session: any) => void) => {
+      authSubscribers.push(callback);
+      const token = getCookieVal('sb-mock-auth-token');
+      let session = null;
+      if (token) {
+        try {
+          session = JSON.parse(token);
+        } catch {}
+      }
+      callback('INITIAL_SESSION', session);
+      return {
+        data: {
+          subscription: {
+            unsubscribe: () => {
+              const idx = authSubscribers.indexOf(callback);
+              if (idx >= 0) authSubscribers.splice(idx, 1);
+            },
+          },
+        },
+      };
+    },
+    signOut: () => {
+      setCookieVal('sb-mock-auth-token', null);
+      notifySubscribers('SIGNED_OUT', null);
+      return Promise.resolve({ error: null });
+    },
+    signInWithPassword: ({ email }: any) => {
+      const user = {
+        id: 'test-user-id',
+        email,
+        user_metadata: { display_name: email.split('@')[0] || 'Green Pioneer' },
+      };
+      const session = {
+        user,
+        access_token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
+      };
+      setCookieVal('sb-mock-auth-token', JSON.stringify(session));
+      notifySubscribers('SIGNED_IN', session);
+      return Promise.resolve({ data: { user, session }, error: null });
+    },
+    signUp: ({ email, options }: any) => {
+      const user = {
+        id: 'test-user-id',
+        email,
+        user_metadata: {
+          display_name: options?.data?.display_name || email.split('@')[0] || 'Green Pioneer',
+        },
+      };
+      const session = {
+        user,
+        access_token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
+      };
+      setCookieVal('sb-mock-auth-token', JSON.stringify(session));
+      notifySubscribers('SIGNED_IN', session);
+      return Promise.resolve({ data: { user, session }, error: null });
+    },
+    updateUser: (attributes: any) => {
+      const token = getCookieVal('sb-mock-auth-token');
+      let user = { ...defaultUser };
+      if (token) {
+        try {
+          const session = JSON.parse(token);
+          user = session.user;
+          if (attributes.data) {
+            user.user_metadata = { ...user.user_metadata, ...attributes.data };
+          }
+          session.user = user;
+          setCookieVal('sb-mock-auth-token', JSON.stringify(session));
+          notifySubscribers('USER_UPDATED', session);
+          return Promise.resolve({ data: { user }, error: null });
+        } catch {}
+      }
+      return Promise.resolve({ data: { user }, error: null });
+    },
+    setSession: () => {
+      return Promise.resolve({ data: { session: null, user: null }, error: null });
+    },
+  },
+  storage: {
+    from: () => ({
+      upload: (path: string, file: File) => {
+        if (typeof window !== 'undefined') {
+          try {
+            const objectUrl = URL.createObjectURL(file);
+            mockStorageMap[path] = objectUrl;
+          } catch {}
+        }
+        return Promise.resolve({ data: { path }, error: null });
+      },
+      getPublicUrl: (path: string) => {
+        const localUrl = mockStorageMap[path];
+        if (localUrl) {
+          return { data: { publicUrl: localUrl } };
+        }
+        return {
+          data: {
+            publicUrl: `https://placeholder.supabase.co/storage/v1/object/public/avatars/${path}`,
+          },
+        };
+      },
+    }),
   },
   from: (table: string) => createMockBuilder(table),
 };

@@ -96,9 +96,10 @@ export async function refreshCommunityStats(): Promise<void> {
 
     // 7. Fetch all completed assessments to calculate avg footprint and highlights
     // We join profile details and community opt-in / visibility settings.
-    const { data: assessments, error: allAssessErr } = await supabase
+    const { data: assessments, error: allAssessErr } = (await supabase
       .from('assessments')
-      .select(`
+      .select(
+        `
         user_id,
         total_score,
         created_at,
@@ -109,8 +110,9 @@ export async function refreshCommunityStats(): Promise<void> {
           opt_in,
           public_profile_visibility
         )
-      `)
-      .eq('is_complete', true) as any;
+      `,
+      )
+      .eq('is_complete', true)) as any;
     if (allAssessErr) throw allAssessErr;
 
     // Deduplicate assessments to latest per user in memory
@@ -119,7 +121,7 @@ export async function refreshCommunityStats(): Promise<void> {
 
     // Sort by created_at ascending to find first vs last
     const sortedAssessments = [...(assessments || [])].sort(
-      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     );
 
     for (const record of sortedAssessments) {
@@ -140,7 +142,9 @@ export async function refreshCommunityStats(): Promise<void> {
 
     // Filter public & opted-in users for highlight widgets
     const publicLatestAssessments = latestAssessmentsList.filter((r) => {
-      const cp = Array.isArray(r.community_profiles) ? r.community_profiles[0] : r.community_profiles;
+      const cp = Array.isArray(r.community_profiles)
+        ? r.community_profiles[0]
+        : r.community_profiles;
       return cp?.opt_in === true && cp?.public_profile_visibility === 'public';
     });
 
@@ -195,9 +199,7 @@ export async function refreshCommunityStats(): Promise<void> {
     let longestStreakName: string | null = null;
     let longestStreakDays = 0;
 
-    const { data: streakData, error: streakErr } = await supabase
-      .from('user_points')
-      .select(`
+    const { data: streakData, error: streakErr } = (await supabase.from('user_points').select(`
         user_id,
         longest_streak,
         profiles (
@@ -207,11 +209,13 @@ export async function refreshCommunityStats(): Promise<void> {
           opt_in,
           public_profile_visibility
         )
-      `) as any;
+      `)) as any;
 
     if (!streakErr && streakData) {
       const publicStreakUsers = (streakData || []).filter((r: any) => {
-        const cp = Array.isArray(r.community_profiles) ? r.community_profiles[0] : r.community_profiles;
+        const cp = Array.isArray(r.community_profiles)
+          ? r.community_profiles[0]
+          : r.community_profiles;
         return cp?.opt_in === true && cp?.public_profile_visibility === 'public';
       });
 
@@ -250,9 +254,7 @@ export async function refreshCommunityStats(): Promise<void> {
       cached_at: new Date().toISOString(),
     };
 
-    const { error: upsertErr } = await supabase
-      .from('community_stats_cache')
-      .upsert(updatePayload);
+    const { error: upsertErr } = await supabase.from('community_stats_cache').upsert(updatePayload);
 
     if (upsertErr) throw upsertErr;
 

@@ -117,28 +117,28 @@ export function useSimulatorDashboard() {
     async (payload: Parameters<typeof saveSimulationMutation.mutateAsync>[0]) => {
       return saveSimulationMutation.mutateAsync(payload);
     },
-    [saveSimulationMutation]
+    [saveSimulationMutation],
   );
 
   const deleteSimulation = useCallback(
     async (id: string) => {
       return deleteSimulationMutation.mutateAsync(id);
     },
-    [deleteSimulationMutation]
+    [deleteSimulationMutation],
   );
 
   const toggleFavorite = useCallback(
     async (id: string, currentFavorite: boolean) => {
       return updateSimulationMutation.mutateAsync({ id, is_favorite: !currentFavorite });
     },
-    [updateSimulationMutation]
+    [updateSimulationMutation],
   );
 
   const updateSimulationName = useCallback(
     async (id: string, name: string) => {
       return updateSimulationMutation.mutateAsync({ id, scenario_name: name });
     },
-    [updateSimulationMutation]
+    [updateSimulationMutation],
   );
 
   return {

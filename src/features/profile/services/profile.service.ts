@@ -54,12 +54,10 @@ export async function uploadAvatar(userId: string, file: File): Promise<string> 
   const filePath = `${userId}/avatar.webp`;
 
   // Upload file to Supabase avatars storage bucket
-  const { error: uploadError } = await supabase.storage
-    .from('avatars')
-    .upload(filePath, file, {
-      upsert: true,
-      contentType: 'image/webp',
-    });
+  const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, {
+    upsert: true,
+    contentType: 'image/webp',
+  });
 
   if (uploadError) {
     throw new Error(`Failed to upload avatar: ${uploadError.message}`);

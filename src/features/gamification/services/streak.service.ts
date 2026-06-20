@@ -25,7 +25,7 @@ export interface StreakEvaluationResult {
 export function evaluateStreak(
   lastActivityAtStr: string | null,
   currentStreak: number,
-  longestStreak: number
+  longestStreak: number,
 ): StreakEvaluationResult {
   const now = new Date();
   const currentActivityAt = now.toISOString();

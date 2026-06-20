@@ -10,10 +10,10 @@ describe('analytics.service', () => {
     it('applies sector-specific optimization ratios correctly', () => {
       const input = {
         transport_kg: 2000, // EV + public transit (35% target, 65% savings)
-        energy_kg: 3000,    // Solar offset + home efficiency (40% target, 60% savings)
-        diet_kg: 2500,      // Shift to vegetarian/vegan (capped at 1600)
-        shopping_kg: 1000,  // Shift to minimal spending (capped at 500)
-        travel_kg: 2000,    // Fewer flights, green lodging (40% target, 60% savings)
+        energy_kg: 3000, // Solar offset + home efficiency (40% target, 60% savings)
+        diet_kg: 2500, // Shift to vegetarian/vegan (capped at 1600)
+        shopping_kg: 1000, // Shift to minimal spending (capped at 500)
+        travel_kg: 2000, // Fewer flights, green lodging (40% target, 60% savings)
       };
 
       const result = calculateReductionPotential(input);
@@ -35,8 +35,8 @@ describe('analytics.service', () => {
       const input = {
         transport_kg: 1000,
         energy_kg: 1000,
-        diet_kg: 1200,      // less than 1600
-        shopping_kg: 300,   // less than 500
+        diet_kg: 1200, // less than 1600
+        shopping_kg: 300, // less than 500
         travel_kg: 1000,
       };
 

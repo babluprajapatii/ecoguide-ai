@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bot, Check, Send } from 'lucide-react';
 import { sanitizeHtml } from '@/lib/sanitize';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 interface ChatMessage {
   id: number;
@@ -13,6 +15,8 @@ interface ChatMessage {
 }
 
 export function AICoachPreview() {
+  const router = useRouter();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -79,10 +83,16 @@ export function AICoachPreview() {
     }
   };
 
-  const scrollToCTA = () => {
-    const ctaSection = document.getElementById('cta');
-    if (ctaSection) {
-      ctaSection.scrollIntoView({ behavior: 'smooth' });
+  /**
+   * Handles the "Meet My AI Coach" CTA:
+   * - Authenticated users go directly to /coach
+   * - Unauthenticated users are sent to /login?redirectTo=/coach
+   */
+  const handleMeetCoach = () => {
+    if (user) {
+      router.push('/coach');
+    } else {
+      router.push('/login?redirectTo=%2Fcoach');
     }
   };
 
@@ -137,8 +147,9 @@ export function AICoachPreview() {
             </div>
 
             <button
-              onClick={scrollToCTA}
+              onClick={handleMeetCoach}
               className="btn-primary mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold tracking-wide text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
+              aria-label="Meet My AI Coach"
             >
               <Bot className="h-4 w-4" />
               <span>Meet My AI Coach</span>

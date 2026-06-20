@@ -28,7 +28,9 @@ vi.mock('recharts', async (importOriginal) => {
   const original: any = await importOriginal();
   return {
     ...original,
-    ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
+    ResponsiveContainer: ({ children }: any) => (
+      <div data-testid="responsive-container">{children}</div>
+    ),
   };
 });
 
@@ -50,7 +52,10 @@ vi.mock('@/features/simulator/components/ForecastChart', () => {
     default: function MockForecastChart({ forecast }: any) {
       return (
         <div data-testid="forecast-chart">
-          <div role="img" aria-label="Area chart showing projected carbon footprint forecast over 12 months by category">
+          <div
+            role="img"
+            aria-label="Area chart showing projected carbon footprint forecast over 12 months by category"
+          >
             Forecast Chart Visual Representation
           </div>
           <div className="sr-only">
@@ -74,7 +79,7 @@ vi.mock('@/features/simulator/components/ForecastChart', () => {
           </div>
         </div>
       );
-    }
+    },
   };
 });
 
@@ -83,7 +88,10 @@ vi.mock('@/features/simulator/components/ComparisonChart', () => {
     default: function MockComparisonChart({ selectedSimulations }: any) {
       return (
         <div data-testid="comparison-chart">
-          <div role="img" aria-label="Bar chart comparing carbon savings, cost savings, and impact score of selected scenarios side by side">
+          <div
+            role="img"
+            aria-label="Bar chart comparing carbon savings, cost savings, and impact score of selected scenarios side by side"
+          >
             Comparison Chart Visual Representation
           </div>
           <div className="sr-only">
@@ -107,7 +115,7 @@ vi.mock('@/features/simulator/components/ComparisonChart', () => {
           </div>
         </div>
       );
-    }
+    },
   };
 });
 
@@ -120,12 +128,55 @@ describe('Carbon Impact Simulator UI Accessibility Tests', () => {
     vi.clearAllMocks();
 
     mockUseSimulator.mockReturnValue({
-      baseline: { transport: 2000, diet: 2000, energy: 1800, shopping: 1200, travel: 1000, total: 8000, comparedToAverage: 1.7, percentile: 60 },
-      adjustments: { carKmPerWeek: 150, carFuelType: 'petrol', dietType: 'mixed', renewableEnergyPercent: 20, shoppingLevel: 'medium', flightHoursPerYear: 10 },
-      projected: { transport: 1900, diet: 1900, energy: 1700, shopping: 1100, travel: 900, total: 7500, comparedToAverage: 1.6, percentile: 58 },
+      baseline: {
+        transport: 2000,
+        diet: 2000,
+        energy: 1800,
+        shopping: 1200,
+        travel: 1000,
+        total: 8000,
+        comparedToAverage: 1.7,
+        percentile: 60,
+      },
+      adjustments: {
+        carKmPerWeek: 150,
+        carFuelType: 'petrol',
+        dietType: 'mixed',
+        renewableEnergyPercent: 20,
+        shoppingLevel: 'medium',
+        flightHoursPerYear: 10,
+      },
+      projected: {
+        transport: 1900,
+        diet: 1900,
+        energy: 1700,
+        shopping: 1100,
+        travel: 900,
+        total: 7500,
+        comparedToAverage: 1.6,
+        percentile: 58,
+      },
       forecast: [
-        { month: 'Now', monthIndex: 0, total: 8000, transport: 2000, diet: 2000, energy: 1800, shopping: 1200, travel: 1000 },
-        { month: 'Month 12', monthIndex: 12, total: 7500, transport: 1900, diet: 1900, energy: 1700, shopping: 1100, travel: 900 }
+        {
+          month: 'Now',
+          monthIndex: 0,
+          total: 8000,
+          transport: 2000,
+          diet: 2000,
+          energy: 1800,
+          shopping: 1200,
+          travel: 1000,
+        },
+        {
+          month: 'Month 12',
+          monthIndex: 12,
+          total: 7500,
+          transport: 1900,
+          diet: 1900,
+          energy: 1700,
+          shopping: 1100,
+          travel: 900,
+        },
       ],
       totalSavings: 500,
       savingsPercent: 6,
@@ -155,7 +206,14 @@ describe('Carbon Impact Simulator UI Accessibility Tests', () => {
           user_id: 'test-user',
           scenario_name: 'Solar Power Up',
           scenario_type: 'solar',
-          configuration: { carKmPerWeek: null, carFuelType: null, dietType: null, renewableEnergyPercent: 100, shoppingLevel: null, flightHoursPerYear: null },
+          configuration: {
+            carKmPerWeek: null,
+            carFuelType: null,
+            dietType: null,
+            renewableEnergyPercent: 100,
+            shoppingLevel: null,
+            flightHoursPerYear: null,
+          },
           estimated_carbon_savings: 1200,
           estimated_cost_savings: 480,
           estimated_water_savings: 0,
@@ -165,7 +223,7 @@ describe('Carbon Impact Simulator UI Accessibility Tests', () => {
           comparison_group_id: null,
           created_at: '2026-06-17T12:00:00Z',
           updated_at: '2026-06-17T12:00:00Z',
-        }
+        },
       ],
       isLoadingSimulations: false,
       isSaving: false,
@@ -232,11 +290,16 @@ describe('Carbon Impact Simulator UI Accessibility Tests', () => {
     expect(screen.getByTestId('forecast-chart')).toBeDefined();
 
     // Verify screen-reader description of chart
-    const chartImg = screen.getByRole('img', { name: /Area chart showing projected carbon footprint/i });
+    const chartImg = screen.getByRole('img', {
+      name: /Area chart showing projected carbon footprint/i,
+    });
     expect(chartImg).toBeDefined();
 
     // Verify presence of table fallback
-    const tableHeader = screen.getByRole('heading', { level: 4, name: /Projected Footprint Forecast Table/i });
+    const tableHeader = screen.getByRole('heading', {
+      level: 4,
+      name: /Projected Footprint Forecast Table/i,
+    });
     expect(tableHeader).toBeDefined();
   });
 });

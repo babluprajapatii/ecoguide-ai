@@ -14,15 +14,33 @@ describe('Goals API Route Handlers', () => {
   const mockFrom = vi.fn();
 
   const mockBuilder: any = {
-    select: vi.fn().mockImplementation(function (this: any) { return this; }),
-    insert: vi.fn().mockImplementation(function (this: any) { return this; }),
-    update: vi.fn().mockImplementation(function (this: any) { return this; }),
-    delete: vi.fn().mockImplementation(function (this: any) { return this; }),
-    eq: vi.fn().mockImplementation(function (this: any) { return this; }),
-    order: vi.fn().mockImplementation(function (this: any) { return this; }),
-    limit: vi.fn().mockImplementation(function (this: any) { return this; }),
-    single: vi.fn().mockImplementation(function (this: any) { return this; }),
-    maybeSingle: vi.fn().mockImplementation(function (this: any) { return this; }),
+    select: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    insert: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    update: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    delete: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    eq: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    order: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    limit: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    single: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    maybeSingle: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
     then: vi.fn().mockImplementation(function (this: any, onfulfilled: any) {
       return Promise.resolve(mockResult).then(onfulfilled);
     }),
@@ -58,7 +76,14 @@ describe('Goals API Route Handlers', () => {
 
     it('returns user goals successfully', async () => {
       const goalsList = [
-        { id: '1', title: 'Goal 1', category: 'total', target_value: 10, current_value: 0, unit: '%' },
+        {
+          id: '1',
+          title: 'Goal 1',
+          category: 'total',
+          target_value: 10,
+          current_value: 0,
+          unit: '%',
+        },
       ];
       mockResult = { data: goalsList, error: null };
 
@@ -108,7 +133,12 @@ describe('Goals API Route Handlers', () => {
 
       const req = new NextRequest('http://localhost/api/goals', {
         method: 'POST',
-        body: JSON.stringify({ title: 'Duplicate Goal', category: 'total', target_value: 10, unit: '%' }),
+        body: JSON.stringify({
+          title: 'Duplicate Goal',
+          category: 'total',
+          target_value: 10,
+          unit: '%',
+        }),
       });
       const res = await POST(req);
 
@@ -119,7 +149,15 @@ describe('Goals API Route Handlers', () => {
     it('creates goal successfully when no duplicates exist', async () => {
       // First call for duplicate check (returns empty array), second call for insert (returns inserted goal)
       let duplicateCheckDone = false;
-      const insertedGoal = { id: 'new-id', title: 'Unique Goal', category: 'total', target_value: 10, current_value: 0, unit: '%', status: 'in_progress' };
+      const insertedGoal = {
+        id: 'new-id',
+        title: 'Unique Goal',
+        category: 'total',
+        target_value: 10,
+        current_value: 0,
+        unit: '%',
+        status: 'in_progress',
+      };
 
       mockBuilder.then.mockImplementation(function (this: any, onfulfilled: any) {
         if (!duplicateCheckDone) {
@@ -131,7 +169,12 @@ describe('Goals API Route Handlers', () => {
 
       const req = new NextRequest('http://localhost/api/goals', {
         method: 'POST',
-        body: JSON.stringify({ title: 'Unique Goal', category: 'total', target_value: 10, unit: '%' }),
+        body: JSON.stringify({
+          title: 'Unique Goal',
+          category: 'total',
+          target_value: 10,
+          unit: '%',
+        }),
       });
       const res = await POST(req);
 
@@ -162,7 +205,10 @@ describe('Goals API Route Handlers', () => {
       mockBuilder.then.mockImplementation(function (this: any, onfulfilled: any) {
         if (!isFetchDone) {
           isFetchDone = true;
-          return Promise.resolve({ data: { user_id: 'test-user-id', target_value: 10 }, error: null }).then(onfulfilled);
+          return Promise.resolve({
+            data: { user_id: 'test-user-id', target_value: 10 },
+            error: null,
+          }).then(onfulfilled);
         }
         return Promise.resolve({ data: updatedGoal, error: null }).then(onfulfilled);
       });
@@ -175,10 +221,12 @@ describe('Goals API Route Handlers', () => {
 
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual(updatedGoal);
-      expect(mockBuilder.update).toHaveBeenCalledWith(expect.objectContaining({
-        current_value: 10,
-        status: 'completed',
-      }));
+      expect(mockBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          current_value: 10,
+          status: 'completed',
+        }),
+      );
     });
   });
 
@@ -194,7 +242,9 @@ describe('Goals API Route Handlers', () => {
     it('returns 404 when goal does not exist', async () => {
       mockResult = { data: null, error: null };
 
-      const req = new NextRequest('http://localhost/api/goals?id=00000000-0000-0000-0000-000000000000');
+      const req = new NextRequest(
+        'http://localhost/api/goals?id=00000000-0000-0000-0000-000000000000',
+      );
       const res = await DELETE(req);
 
       expect(res.status).toBe(404);
@@ -207,12 +257,16 @@ describe('Goals API Route Handlers', () => {
       mockBuilder.then.mockImplementation(function (this: any, onfulfilled: any) {
         if (!isFetchDone) {
           isFetchDone = true;
-          return Promise.resolve({ data: { user_id: 'test-user-id' }, error: null }).then(onfulfilled);
+          return Promise.resolve({ data: { user_id: 'test-user-id' }, error: null }).then(
+            onfulfilled,
+          );
         }
         return Promise.resolve({ data: null, error: null }).then(onfulfilled);
       });
 
-      const req = new NextRequest('http://localhost/api/goals?id=00000000-0000-0000-0000-000000000000');
+      const req = new NextRequest(
+        'http://localhost/api/goals?id=00000000-0000-0000-0000-000000000000',
+      );
       const res = await DELETE(req);
 
       expect(res.status).toBe(200);

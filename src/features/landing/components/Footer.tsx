@@ -2,33 +2,34 @@ import { Leaf } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer className="relative bg-dark-900 border-t border-eco-500/10 py-16 overflow-hidden">
+    <footer className="relative overflow-hidden border-t border-eco-500/10 bg-dark-900 py-16">
       {/* Background glow orb */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-eco-500/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="pointer-events-none absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-eco-500/5 blur-[100px]" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-16">
+      <div className="relative z-10 mx-auto max-w-7xl px-6">
+        <div className="mb-16 grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           {/* Logo & Description */}
           <div className="flex flex-col gap-4">
-            <a href="/" className="flex items-center gap-2 group w-fit">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-eco-400 to-eco-600 flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
-                <Leaf className="text-white w-4 h-4" />
+            <a href="/" className="group flex w-fit items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-eco-400 to-eco-600 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
+                <Leaf className="h-4 w-4 text-white" />
               </div>
               <span className="font-serif text-lg font-semibold tracking-tight text-white">
                 EcoGuide<span className="text-eco-400">AI</span>
               </span>
             </a>
-            <p className="text-stone-400 text-sm font-light leading-relaxed max-w-xs">
-              Combining AI guidance, real-time tracking, and smart integrations to make zero-carbon living accessible and affordable for everyone.
+            <p className="max-w-xs text-sm font-light leading-relaxed text-stone-400">
+              Combining AI guidance, real-time tracking, and smart integrations to make zero-carbon
+              living accessible and affordable for everyone.
             </p>
-            <div className="flex gap-4 mt-2">
+            <div className="mt-2 flex gap-4">
               <a
                 href="/"
-                className="text-stone-500 hover:text-eco-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded p-1"
+                className="rounded p-1 text-stone-500 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 aria-label="EcoGuide AI on Twitter"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="h-5 w-5"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -41,11 +42,11 @@ export function Footer() {
               </a>
               <a
                 href="/"
-                className="text-stone-500 hover:text-eco-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded p-1"
+                className="rounded p-1 text-stone-500 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 aria-label="EcoGuide AI on GitHub"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="h-5 w-5"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -59,11 +60,11 @@ export function Footer() {
               </a>
               <a
                 href="/"
-                className="text-stone-500 hover:text-eco-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded p-1"
+                className="rounded p-1 text-stone-500 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 aria-label="EcoGuide AI on LinkedIn"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="h-5 w-5"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -81,12 +82,14 @@ export function Footer() {
 
           {/* Product Links */}
           <div>
-            <h3 className="text-white text-sm font-semibold tracking-wider uppercase mb-6">Platform</h3>
+            <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-white">
+              Platform
+            </h3>
             <ul className="flex flex-col gap-3">
               <li>
                 <a
                   href="#dashboard"
-                  className="text-stone-400 hover:text-eco-400 text-sm font-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded"
+                  className="rounded text-sm font-light text-stone-400 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 >
                   Live Impact Dashboard
                 </a>
@@ -94,7 +97,7 @@ export function Footer() {
               <li>
                 <a
                   href="#features"
-                  className="text-stone-400 hover:text-eco-400 text-sm font-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded"
+                  className="rounded text-sm font-light text-stone-400 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 >
                   Modules & Features
                 </a>
@@ -102,7 +105,7 @@ export function Footer() {
               <li>
                 <a
                   href="#how-it-works"
-                  className="text-stone-400 hover:text-eco-400 text-sm font-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded"
+                  className="rounded text-sm font-light text-stone-400 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 >
                   How It Works
                 </a>
@@ -110,7 +113,7 @@ export function Footer() {
               <li>
                 <a
                   href="#analytics"
-                  className="text-stone-400 hover:text-eco-400 text-sm font-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded"
+                  className="rounded text-sm font-light text-stone-400 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 >
                   Savings Simulator
                 </a>
@@ -120,12 +123,14 @@ export function Footer() {
 
           {/* Resources */}
           <div>
-            <h3 className="text-white text-sm font-semibold tracking-wider uppercase mb-6">Resources</h3>
+            <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-white">
+              Resources
+            </h3>
             <ul className="flex flex-col gap-3">
               <li>
                 <a
                   href="#ai-coach"
-                  className="text-stone-400 hover:text-eco-400 text-sm font-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded"
+                  className="rounded text-sm font-light text-stone-400 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 >
                   AI Coach Preview
                 </a>
@@ -133,7 +138,7 @@ export function Footer() {
               <li>
                 <a
                   href="/"
-                  className="text-stone-400 hover:text-eco-400 text-sm font-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded"
+                  className="rounded text-sm font-light text-stone-400 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 >
                   Home Energy Audits
                 </a>
@@ -141,7 +146,7 @@ export function Footer() {
               <li>
                 <a
                   href="/"
-                  className="text-stone-400 hover:text-eco-400 text-sm font-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded"
+                  className="rounded text-sm font-light text-stone-400 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 >
                   Privacy Policy
                 </a>
@@ -149,7 +154,7 @@ export function Footer() {
               <li>
                 <a
                   href="/"
-                  className="text-stone-400 hover:text-eco-400 text-sm font-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 rounded"
+                  className="rounded text-sm font-light text-stone-400 transition-colors hover:text-eco-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
                 >
                   Terms of Service
                 </a>
@@ -159,24 +164,27 @@ export function Footer() {
 
           {/* Partner Certification */}
           <div>
-            <h3 className="text-white text-sm font-semibold tracking-wider uppercase mb-6">Security & Grid</h3>
-            <p className="text-stone-400 text-sm font-light leading-relaxed mb-4">
+            <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-white">
+              Security & Grid
+            </h3>
+            <p className="mb-4 text-sm font-light leading-relaxed text-stone-400">
               Fully compliant with utility security guidelines and smart grid data policies.
             </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-eco-500/5 border border-eco-500/20 text-eco-400 text-xs font-semibold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-eco-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded border border-eco-500/20 bg-eco-500/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-eco-400">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-eco-400" />
               Grid Integrated
             </div>
           </div>
         </div>
 
         {/* Bottom copyright block */}
-        <div className="border-t border-eco-500/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-stone-500 text-xs font-light">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-eco-500/5 pt-8 md:flex-row">
+          <p className="text-xs font-light text-stone-500">
             &copy; {new Date().getFullYear()} EcoGuide AI Inc. All rights reserved.
           </p>
-          <p className="text-stone-500 text-xs font-light flex items-center gap-1.5">
-            Designed for Net-Zero emissions impact <span className="text-eco-400 font-bold">&bull;</span> Platform version 1.4.0
+          <p className="flex items-center gap-1.5 text-xs font-light text-stone-500">
+            Designed for Net-Zero emissions impact{' '}
+            <span className="font-bold text-eco-400">&bull;</span> Platform version 1.4.0
           </p>
         </div>
       </div>

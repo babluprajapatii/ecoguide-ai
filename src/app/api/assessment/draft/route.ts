@@ -11,11 +11,17 @@ export async function GET(request: NextRequest) {
   const rateLimitResult = checkRateLimit(request);
   const headers = rateLimitHeaders(rateLimitResult);
   if (!rateLimitResult.allowed) {
-    return NextResponse.json({ message: 'Too many requests. Please try again later.' }, { status: 429, headers });
+    return NextResponse.json(
+      { message: 'Too many requests. Please try again later.' },
+      { status: 429, headers },
+    );
   }
 
   const supabase = createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
@@ -43,12 +49,15 @@ export async function GET(request: NextRequest) {
   const inputs = draft.inputs as Record<string, unknown> & { currentStep?: string };
   const currentStep = inputs?.currentStep || 'welcome';
 
-  return NextResponse.json({
-    inputs: inputs,
-    currentStep: currentStep,
-    draftVersion: draft.draft_version,
-    lastSavedAt: draft.last_saved_at,
-  }, { status: 200, headers });
+  return NextResponse.json(
+    {
+      inputs: inputs,
+      currentStep: currentStep,
+      draftVersion: draft.draft_version,
+      lastSavedAt: draft.last_saved_at,
+    },
+    { status: 200, headers },
+  );
 }
 
 /**
@@ -59,11 +68,17 @@ export async function POST(request: NextRequest) {
   const rateLimitResult = checkRateLimit(request);
   const headers = rateLimitHeaders(rateLimitResult);
   if (!rateLimitResult.allowed) {
-    return NextResponse.json({ message: 'Too many requests. Please try again later.' }, { status: 429, headers });
+    return NextResponse.json(
+      { message: 'Too many requests. Please try again later.' },
+      { status: 429, headers },
+    );
   }
 
   const supabase = createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });
@@ -71,14 +86,20 @@ export async function POST(request: NextRequest) {
 
   let body: { inputs?: Record<string, unknown>; draftVersion?: number; draft_version?: number };
   try {
-    body = await request.json() as typeof body;
+    body = (await request.json()) as typeof body;
   } catch {
-    return NextResponse.json({ message: 'Invalid JSON in request body.' }, { status: 400, headers });
+    return NextResponse.json(
+      { message: 'Invalid JSON in request body.' },
+      { status: 400, headers },
+    );
   }
 
   const inputs = body.inputs;
   if (!inputs) {
-    return NextResponse.json({ message: 'Missing inputs in request body.' }, { status: 400, headers });
+    return NextResponse.json(
+      { message: 'Missing inputs in request body.' },
+      { status: 400, headers },
+    );
   }
 
   // Retrieve current draft if any
@@ -93,7 +114,10 @@ export async function POST(request: NextRequest) {
 
   if (fetchError) {
     console.error('[API /assessment/draft POST] Fetch error:', fetchError);
-    return NextResponse.json({ message: 'Database error fetching draft.' }, { status: 500, headers });
+    return NextResponse.json(
+      { message: 'Database error fetching draft.' },
+      { status: 500, headers },
+    );
   }
 
   const nowString = new Date().toISOString();
@@ -104,10 +128,13 @@ export async function POST(request: NextRequest) {
 
     // Verify draft_version = stored_version + 1 for OCC
     if (clientVersion !== undefined && clientVersion !== storedVersion + 1) {
-      return NextResponse.json({
-        message: 'Conflict: draft version mismatch. Out-of-order save rejected.',
-        storedVersion,
-      }, { status: 409, headers });
+      return NextResponse.json(
+        {
+          message: 'Conflict: draft version mismatch. Out-of-order save rejected.',
+          storedVersion,
+        },
+        { status: 409, headers },
+      );
     }
 
     const nextVersion = storedVersion + 1;
@@ -126,34 +153,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Failed to update draft.' }, { status: 500, headers });
     }
 
-    return NextResponse.json({
-      message: 'Draft updated.',
-      draftVersion: nextVersion,
-      lastSavedAt: nowString,
-    }, { status: 200, headers });
+    return NextResponse.json(
+      {
+        message: 'Draft updated.',
+        draftVersion: nextVersion,
+        lastSavedAt: nowString,
+      },
+      { status: 200, headers },
+    );
   } else {
     // No existing draft. Create one.
-    const { error: insertError } = await supabase
-      .from('assessments')
-      .insert({
-        user_id: user.id,
-        is_complete: false,
-        inputs: inputs,
-        draft_version: 1,
-        last_saved_at: nowString,
-        updated_at: nowString,
-      });
+    const { error: insertError } = await supabase.from('assessments').insert({
+      user_id: user.id,
+      is_complete: false,
+      inputs: inputs,
+      draft_version: 1,
+      last_saved_at: nowString,
+      updated_at: nowString,
+    });
 
     if (insertError) {
       console.error('[API /assessment/draft POST] Insert error:', insertError);
       return NextResponse.json({ message: 'Failed to create draft.' }, { status: 500, headers });
     }
 
-    return NextResponse.json({
-      message: 'Draft created.',
-      draftVersion: 1,
-      lastSavedAt: nowString,
-    }, { status: 201, headers });
+    return NextResponse.json(
+      {
+        message: 'Draft created.',
+        draftVersion: 1,
+        lastSavedAt: nowString,
+      },
+      { status: 201, headers },
+    );
   }
 }
 
@@ -165,11 +196,17 @@ export async function DELETE(request: NextRequest) {
   const rateLimitResult = checkRateLimit(request);
   const headers = rateLimitHeaders(rateLimitResult);
   if (!rateLimitResult.allowed) {
-    return NextResponse.json({ message: 'Too many requests. Please try again later.' }, { status: 429, headers });
+    return NextResponse.json(
+      { message: 'Too many requests. Please try again later.' },
+      { status: 429, headers },
+    );
   }
 
   const supabase = createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return NextResponse.json({ message: 'Authentication required.' }, { status: 401, headers });

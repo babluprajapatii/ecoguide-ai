@@ -35,21 +35,21 @@ export default function DashboardRouteGroupLayout({ children }: LayoutProps) {
   const avatarUrl = user?.user_metadata?.avatar_url || null;
 
   const profileTrigger = (
-    <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-eco-500/10 bg-white/5 hover:bg-white/10 transition-all text-stone-200 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer">
+    <div className="flex cursor-pointer items-center gap-2 rounded-xl border border-eco-500/10 bg-white/5 px-2.5 py-1.5 text-stone-200 outline-none transition-all hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-emerald-500">
       {avatarUrl ? (
         <Image
           src={avatarUrl}
           alt={displayName}
           width={24}
           height={24}
-          className="w-6 h-6 rounded-full object-cover border border-emerald-500/30"
+          className="h-6 w-6 rounded-full border border-emerald-500/30 object-cover"
         />
       ) : (
-        <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold border border-emerald-500/30">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/20 text-[10px] font-bold text-emerald-400">
           {displayName.charAt(0).toUpperCase()}
         </div>
       )}
-      <span className="text-xs font-semibold hidden sm:inline truncate max-w-[100px]">
+      <span className="hidden max-w-[100px] truncate text-xs font-semibold sm:inline">
         {displayName}
       </span>
       <ChevronDown size={14} className="text-stone-400" />
@@ -57,11 +57,11 @@ export default function DashboardRouteGroupLayout({ children }: LayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <div className="flex min-h-screen bg-background text-foreground">
       {/* Accessibility Skip Link */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-emerald-500 text-white px-4 py-2.5 rounded-xl z-[100] outline-none focus:ring-2 focus:ring-emerald-500"
+        className="sr-only z-[100] rounded-xl bg-emerald-500 px-4 py-2.5 text-white outline-none focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:ring-2 focus:ring-emerald-500"
       >
         Skip to main content
       </a>
@@ -76,22 +76,22 @@ export default function DashboardRouteGroupLayout({ children }: LayoutProps) {
 
       {/* Grid Content wrapper */}
       <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
+        className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ${
           isCollapsed ? 'lg:pl-20' : 'lg:pl-64'
         }`}
       >
         {/* Top Navbar Header */}
-        <header className="h-16 border-b border-eco-500/10 bg-background/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-eco-500/10 bg-background/80 px-4 backdrop-blur-md sm:px-6">
           {/* Mobile hamburger menu toggle */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsOpenMobile(true)}
-              className="lg:hidden p-2 rounded-lg border border-eco-500/10 text-eco-500 hover:bg-eco-500/10"
+              className="rounded-lg border border-eco-500/10 p-2 text-eco-500 hover:bg-eco-500/10 lg:hidden"
               aria-label="Open sidebar menu"
             >
               <Menu size={20} />
             </button>
-            <div className="text-xs font-medium text-stone-500 hidden md:block">
+            <div className="hidden text-xs font-medium text-stone-500 md:block">
               EcoGuide AI / Dashboard
             </div>
           </div>
@@ -99,19 +99,19 @@ export default function DashboardRouteGroupLayout({ children }: LayoutProps) {
           {/* Action modules */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            
+
             <NotificationDropdown />
 
             {/* User Profile settings menu */}
             <DropdownMenu trigger={profileTrigger} align="right">
-              <div className="px-4 py-2 border-b border-eco-500/10">
-                <p className="text-xs font-bold text-white truncate">{displayName}</p>
-                <p className="text-[10px] text-stone-500 truncate">{user?.email}</p>
+              <div className="border-b border-eco-500/10 px-4 py-2">
+                <p className="truncate text-xs font-bold text-white">{displayName}</p>
+                <p className="truncate text-[10px] text-stone-500">{user?.email}</p>
               </div>
 
               <Link
                 href="/settings"
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-stone-300 hover:text-white hover:bg-white/5 transition-colors outline-none focus-visible:bg-white/5"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-xs text-stone-300 outline-none transition-colors hover:bg-white/5 hover:text-white focus-visible:bg-white/5"
                 role="menuitem"
               >
                 <User size={14} className="text-stone-400" />
@@ -120,18 +120,18 @@ export default function DashboardRouteGroupLayout({ children }: LayoutProps) {
 
               <Link
                 href="/settings"
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-stone-300 hover:text-white hover:bg-white/5 transition-colors outline-none focus-visible:bg-white/5"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-xs text-stone-300 outline-none transition-colors hover:bg-white/5 hover:text-white focus-visible:bg-white/5"
                 role="menuitem"
               >
                 <Settings size={14} className="text-stone-400" />
                 <span>Account Settings</span>
               </Link>
 
-              <hr className="border-eco-500/5 my-1" />
+              <hr className="my-1 border-eco-500/5" />
 
               <button
                 onClick={() => void signOut()}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/5 transition-colors text-left outline-none focus-visible:bg-red-500/5"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-xs text-red-400 outline-none transition-colors hover:bg-red-500/5 focus-visible:bg-red-500/5"
                 role="menuitem"
               >
                 <LogOut size={14} />
@@ -145,7 +145,7 @@ export default function DashboardRouteGroupLayout({ children }: LayoutProps) {
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 overflow-y-auto px-4 py-6 sm:p-6 lg:p-8 outline-none"
+          className="flex-1 overflow-y-auto px-4 py-6 outline-none sm:p-6 lg:p-8"
         >
           {children}
         </main>

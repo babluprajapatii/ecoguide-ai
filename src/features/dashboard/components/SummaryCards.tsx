@@ -40,11 +40,14 @@ export function SummaryCards({ latestAssessment, savingsTotal, history }: Summar
       subtext: 'CO₂ emissions per year',
       icon: Leaf,
       iconColor: 'text-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/20',
-      trend: totalTrend !== null ? {
-        value: `${Math.abs(totalTrend).toFixed(1)}%`,
-        isGood: totalTrend < 0,
-        text: totalTrend < 0 ? 'decrease' : 'increase',
-      } : null,
+      trend:
+        totalTrend !== null
+          ? {
+              value: `${Math.abs(totalTrend).toFixed(1)}%`,
+              isGood: totalTrend < 0,
+              text: totalTrend < 0 ? 'decrease' : 'increase',
+            }
+          : null,
     },
     {
       title: 'Assessment Carbon Grade',
@@ -64,11 +67,14 @@ export function SummaryCards({ latestAssessment, savingsTotal, history }: Summar
       subtext: 'Percentile (lower is better)',
       icon: Compass,
       iconColor: 'text-purple-500 bg-purple-500/10 dark:bg-purple-500/20',
-      trend: percentileTrend !== null ? {
-        value: `${Math.abs(percentileTrend)} ranks`,
-        isGood: percentileTrend < 0,
-        text: percentileTrend < 0 ? 'improved' : 'regression',
-      } : null,
+      trend:
+        percentileTrend !== null
+          ? {
+              value: `${Math.abs(percentileTrend)} ranks`,
+              isGood: percentileTrend < 0,
+              text: percentileTrend < 0 ? 'improved' : 'regression',
+            }
+          : null,
     },
     {
       title: 'Estimated Reduction Potential',
@@ -103,7 +109,7 @@ export function SummaryCards({ latestAssessment, savingsTotal, history }: Summar
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+      className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
     >
       {cards.map((card) => {
         const Icon = card.icon;
@@ -114,10 +120,12 @@ export function SummaryCards({ latestAssessment, savingsTotal, history }: Summar
             className="group relative rounded-2xl border border-border/80 bg-card/40 p-5 shadow-sm backdrop-blur-md transition-all hover:-translate-y-1 hover:border-emerald-500/20 hover:shadow-md dark:bg-card/25"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted-foreground tracking-tight">
+              <span className="text-xs font-semibold tracking-tight text-muted-foreground">
                 {card.title}
               </span>
-              <div className={`p-2.5 rounded-xl ${card.iconColor} transition-transform group-hover:scale-110`}>
+              <div
+                className={`rounded-xl p-2.5 ${card.iconColor} transition-transform group-hover:scale-110`}
+              >
                 <Icon size={18} />
               </div>
             </div>
@@ -132,10 +140,10 @@ export function SummaryCards({ latestAssessment, savingsTotal, history }: Summar
               <span>{card.subtext}</span>
               {card.trend && (
                 <div
-                  className={`flex items-center gap-0.5 font-bold rounded-full px-2 py-0.5 ${
+                  className={`flex items-center gap-0.5 rounded-full px-2 py-0.5 font-bold ${
                     card.trend.isGood
-                      ? 'text-emerald-600 bg-emerald-500/5 dark:text-emerald-400 dark:bg-emerald-500/10'
-                      : 'text-red-600 bg-red-500/5 dark:text-red-400 dark:bg-red-500/10'
+                      ? 'bg-emerald-500/5 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
+                      : 'bg-red-500/5 text-red-600 dark:bg-red-500/10 dark:text-red-400'
                   }`}
                 >
                   {card.trend.isGood ? (

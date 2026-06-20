@@ -2,57 +2,85 @@
 
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Mail, ArrowRight, CheckCircle } from 'lucide-react';
 
 export function CTA() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
+  const { user, loading } = useAuth();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (loading) return;
+
+    if (user) {
+      // Already authenticated — go directly to AI Coach
+      router.push('/coach');
+      return;
+    }
+
+    // Not authenticated — show confirmation then redirect to login
     setSubmitted(true);
-    // Log registration safely
-    console.log('Registered email for AI Coach:', email);
+    if (email) {
+      try {
+        localStorage.setItem('ecoguide_login_email_hint', email);
+      } catch {
+        // localStorage unavailable — silently ignore
+      }
+    }
+    setTimeout(() => {
+      router.push('/login?redirectTo=%2Fcoach');
+    }, 1200);
   };
 
   return (
-    <section id="cta" className="relative py-20 md:py-32 overflow-hidden bg-dark-900 border-t border-eco-500/10">
+    <section
+      id="cta"
+      className="relative overflow-hidden border-t border-eco-500/10 bg-dark-900 py-20 md:py-32"
+    >
       {/* Glow Orbs */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-eco-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-eco-500/10 blur-[120px]" />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+      <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-eco-500/20 bg-eco-500/5 mb-8">
-          <span className="w-1.5 h-1.5 rounded-full bg-eco-400 animate-pulse" />
-          <span className="text-xs font-semibold text-eco-300 tracking-wider uppercase">Join the Green Movement</span>
+        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-eco-500/20 bg-eco-500/5 px-3 py-1.5">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-eco-400" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-eco-300">
+            Join the Green Movement
+          </span>
         </div>
 
-        <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl text-white tracking-tight leading-tight mb-6">
+        <h2 className="mb-6 font-serif text-3xl leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
           Ready to Lower Your Bills & <br />
           <span className="text-gradient">Reduce Your Footprint?</span>
         </h2>
 
-        <p className="max-w-xl mx-auto text-stone-300 text-base md:text-lg font-light leading-relaxed mb-10">
-          Sign up with your email to start your personalized carbon coaching journey. Automate your home savings in less than 5 minutes.
+        <p className="mx-auto mb-10 max-w-xl text-base font-light leading-relaxed text-stone-300 md:text-lg">
+          Sign up with your email to start your personalized carbon coaching journey. Automate your
+          home savings in less than 5 minutes.
         </p>
 
-        <div className="max-w-lg mx-auto">
+        <div className="mx-auto max-w-lg">
           {submitted ? (
             <div
-              className="glass-card rounded-full py-4 px-6 flex items-center justify-center gap-3 border-eco-400 bg-eco-500/10 text-eco-300 animate-fade-in-up"
+              className="glass-card flex animate-fade-in-up items-center justify-center gap-3 rounded-full border-eco-400 bg-eco-500/10 px-6 py-4 text-eco-300"
               role="status"
             >
-              <CheckCircle className="w-5 h-5 text-eco-400" />
-              <span className="text-sm font-semibold">Success! Initializing your AI Coach dashboard...</span>
+              <CheckCircle className="h-5 w-5 text-eco-400" />
+              <span className="text-sm font-semibold">
+                Success! Initializing your AI Coach dashboard...
+              </span>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1 relative">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
                 <label htmlFor="cta-email" className="sr-only">
                   Email Address
                 </label>
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-5 h-5" />
+                <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-stone-400" />
                 <input
                   id="cta-email"
                   type="email"
@@ -60,20 +88,20 @@ export function CTA() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="w-full pl-12 pr-4 py-3.5 rounded-full bg-dark-700/80 border border-eco-500/15 text-white placeholder-stone-500 text-sm focus:outline-none focus:border-eco-500/40 focus:ring-2 focus:ring-eco-500/20 focus-visible:ring-2 focus-visible:ring-eco-400 transition-all"
+                  className="w-full rounded-full border border-eco-500/15 bg-dark-700/80 py-3.5 pl-12 pr-4 text-sm text-white placeholder-stone-500 transition-all focus:border-eco-500/40 focus:outline-none focus:ring-2 focus:ring-eco-500/20 focus-visible:ring-2 focus-visible:ring-eco-400"
                 />
               </div>
               <button
                 type="submit"
-                className="btn-primary text-sm font-semibold text-white px-8 py-3.5 rounded-full tracking-wide whitespace-nowrap flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
+                className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-8 py-3.5 text-sm font-semibold tracking-wide text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
               >
                 <span>Meet My AI Coach</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="h-4 w-4" />
               </button>
             </form>
           )}
 
-          <p className="text-stone-400 text-xs mt-4 font-light">
+          <p className="mt-4 text-xs font-light text-stone-400">
             Free to start &bull; No credit card required &bull; Cancel anytime
           </p>
         </div>

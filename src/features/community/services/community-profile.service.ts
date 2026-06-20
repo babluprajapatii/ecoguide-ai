@@ -22,7 +22,7 @@ import type { CommunitySettingsInput } from '../schemas/community.schemas';
  */
 export async function getPublicProfile(
   requesterId: string,
-  targetUserId: string
+  targetUserId: string,
 ): Promise<PublicProfile | null> {
   const supabase = createClient();
 
@@ -47,9 +47,21 @@ export async function getPublicProfile(
 
     // 2. Fetch profile, points, cache rank, and badges in parallel
     const [profileRes, pointsRes, rankRes, badgesRes] = await Promise.all([
-      supabase.from('profiles').select('display_name, avatar_url').eq('id', targetUserId).maybeSingle(),
-      supabase.from('user_points').select('total_points, longest_streak, current_level').eq('user_id', targetUserId).maybeSingle(),
-      supabase.from('leaderboard_rank_cache').select('rank').eq('user_id', targetUserId).maybeSingle(),
+      supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('id', targetUserId)
+        .maybeSingle(),
+      supabase
+        .from('user_points')
+        .select('total_points, longest_streak, current_level')
+        .eq('user_id', targetUserId)
+        .maybeSingle(),
+      supabase
+        .from('leaderboard_rank_cache')
+        .select('rank')
+        .eq('user_id', targetUserId)
+        .maybeSingle(),
       supabase.from('user_badges').select('badges(slug)').eq('user_id', targetUserId),
     ]);
 
@@ -94,22 +106,20 @@ export async function getPublicProfile(
  */
 export async function updateCommunitySettings(
   userId: string,
-  settings: CommunitySettingsInput
+  settings: CommunitySettingsInput,
 ): Promise<void> {
   const supabase = createClient();
 
   try {
     // 1. Upsert community settings
-    const { error: upsertError } = await supabase
-      .from('community_profiles')
-      .upsert({
-        id: userId,
-        opt_in: settings.optIn,
-        leaderboard_opt_in: settings.leaderboardOptIn,
-        public_profile_visibility: settings.publicProfileVisibility,
-        bio: settings.bio,
-        updated_at: new Date().toISOString(),
-      });
+    const { error: upsertError } = await supabase.from('community_profiles').upsert({
+      id: userId,
+      opt_in: settings.optIn,
+      leaderboard_opt_in: settings.leaderboardOptIn,
+      public_profile_visibility: settings.publicProfileVisibility,
+      bio: settings.bio,
+      updated_at: new Date().toISOString(),
+    });
 
     if (upsertError) throw upsertError;
 

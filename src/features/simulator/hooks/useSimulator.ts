@@ -10,10 +10,21 @@
  */
 
 import { useCallback, useMemo, useState, useEffect } from 'react';
-import type { FootprintBreakdown, DietType, FuelType, ShoppingLevel } from '@/features/assessment/types/assessment.types';
-import type { MonthlyProjection, SimulatorAdjustments } from '@/features/simulator/types/simulator.types';
+import type {
+  FootprintBreakdown,
+  DietType,
+  FuelType,
+  ShoppingLevel,
+} from '@/features/assessment/types/assessment.types';
+import type {
+  MonthlyProjection,
+  SimulatorAdjustments,
+} from '@/features/simulator/types/simulator.types';
 import { DEFAULT_ADJUSTMENTS } from '@/features/simulator/types/simulator.types';
-import { calculateSimulatedImpact, projectForecast } from '@/features/simulator/services/simulation.service';
+import {
+  calculateSimulatedImpact,
+  projectForecast,
+} from '@/features/simulator/services/simulation.service';
 
 // ---------------------------------------------------------------------------
 // Debounce utility
@@ -118,7 +129,10 @@ export function useSimulator(baseline?: FootprintBreakdown): UseSimulatorReturn 
   }, []);
 
   const setRenewableEnergyPercent = useCallback((pct: number) => {
-    setAdjustments((prev) => ({ ...prev, renewableEnergyPercent: Math.max(0, Math.min(100, pct)) }));
+    setAdjustments((prev) => ({
+      ...prev,
+      renewableEnergyPercent: Math.max(0, Math.min(100, pct)),
+    }));
   }, []);
 
   const setFlightHoursPerYear = useCallback((hours: number | null) => {
@@ -140,7 +154,7 @@ export function useSimulator(baseline?: FootprintBreakdown): UseSimulatorReturn 
   // --- Derived calculations via centralized engine ---
   const calculationResult = useMemo(
     () => calculateSimulatedImpact(resolvedBaseline, debouncedAdjustments),
-    [resolvedBaseline, debouncedAdjustments]
+    [resolvedBaseline, debouncedAdjustments],
   );
 
   const {
@@ -156,16 +170,15 @@ export function useSimulator(baseline?: FootprintBreakdown): UseSimulatorReturn 
 
   const forecast = useMemo(
     () => projectForecast(resolvedBaseline, projected, forecastMonths),
-    [resolvedBaseline, projected, forecastMonths]
+    [resolvedBaseline, projected, forecastMonths],
   );
 
   const totalSavings = carbonSavings;
 
   const savingsPercent = useMemo(
-    () => resolvedBaseline.total > 0
-      ? Math.round((totalSavings / resolvedBaseline.total) * 100)
-      : 0,
-    [totalSavings, resolvedBaseline.total]
+    () =>
+      resolvedBaseline.total > 0 ? Math.round((totalSavings / resolvedBaseline.total) * 100) : 0,
+    [totalSavings, resolvedBaseline.total],
   );
 
   // --- URL encoding ---

@@ -10,8 +10,16 @@
  * @module simulation.service
  */
 
-import type { FootprintBreakdown, DietType, FuelType, ShoppingLevel } from '@/features/assessment/types/assessment.types';
-import type { MonthlyProjection, SimulatorAdjustments } from '@/features/simulator/types/simulator.types';
+import type {
+  FootprintBreakdown,
+  DietType,
+  FuelType,
+  ShoppingLevel,
+} from '@/features/assessment/types/assessment.types';
+import type {
+  MonthlyProjection,
+  SimulatorAdjustments,
+} from '@/features/simulator/types/simulator.types';
 
 // ---------------------------------------------------------------------------
 // Constants & Emission Factors
@@ -99,7 +107,7 @@ export function calculateSimulatedImpact(
   baseline: FootprintBreakdown,
   adjustments: SimulatorAdjustments,
   baselineDiet: DietType = 'mixed',
-  baselineShopping: ShoppingLevel = 'medium'
+  baselineShopping: ShoppingLevel = 'medium',
 ): {
   projected: FootprintBreakdown;
   carbonSavings: number; // kg CO2/yr
@@ -230,7 +238,10 @@ export function calculateSimulatedImpact(
     (renewableEnergyPct / 100) * 15 +
     (adjustments.shoppingLevel === 'low' ? 5 : adjustments.shoppingLevel === 'medium' ? 3 : 0); // max 20 points
 
-  const impactScore = Math.max(0, Math.min(100, Math.round(carbonPoints + costPoints + sustainabilityPoints)));
+  const impactScore = Math.max(
+    0,
+    Math.min(100, Math.round(carbonPoints + costPoints + sustainabilityPoints)),
+  );
 
   // Tiers
   let tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' = 'Bronze';
@@ -261,7 +272,7 @@ export function calculateSimulatedImpact(
 export function projectForecast(
   start: FootprintBreakdown,
   end: FootprintBreakdown,
-  months: number = 12
+  months: number = 12,
 ): MonthlyProjection[] {
   const projections: MonthlyProjection[] = [];
   const safeMonths = Math.max(1, Math.round(months));
@@ -269,11 +280,17 @@ export function projectForecast(
   for (let i = 0; i <= safeMonths; i++) {
     const t = i / safeMonths;
 
-    const transport = Math.max(0, Math.round(start.transport + (end.transport - start.transport) * t));
+    const transport = Math.max(
+      0,
+      Math.round(start.transport + (end.transport - start.transport) * t),
+    );
     const diet = Math.max(0, Math.round(start.diet + (end.diet - start.diet) * t));
     const energy = Math.max(0, Math.round(start.energy + (end.energy - start.energy) * t));
     const shopping = Math.max(0, Math.round(start.shopping + (end.shopping - start.shopping) * t));
-    const travel = Math.max(0, Math.round((start.travel ?? 0) + ((end.travel ?? 0) - (start.travel ?? 0)) * t));
+    const travel = Math.max(
+      0,
+      Math.round((start.travel ?? 0) + ((end.travel ?? 0) - (start.travel ?? 0)) * t),
+    );
     const total = transport + diet + energy + shopping + travel;
 
     projections.push({

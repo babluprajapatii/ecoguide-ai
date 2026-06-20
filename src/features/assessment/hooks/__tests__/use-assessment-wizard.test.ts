@@ -21,8 +21,19 @@ describe('useAssessmentWizard hook', () => {
   it('restores draft state on mount', async () => {
     const mockDraft = {
       inputs: {
-        transport: { weeklyKm: 120, fuelType: 'hybrid', publicTransportWeeklyHours: 1, rideShareWeeklyKm: 10 },
-        energy: { electricityKwhPerMonth: 100, gasKwhPerMonth: 50, renewableEnergyPercent: 20, homeSizeSqFt: 1200, householdMembers: 2 },
+        transport: {
+          weeklyKm: 120,
+          fuelType: 'hybrid',
+          publicTransportWeeklyHours: 1,
+          rideShareWeeklyKm: 10,
+        },
+        energy: {
+          electricityKwhPerMonth: 100,
+          gasKwhPerMonth: 50,
+          renewableEnergyPercent: 20,
+          homeSizeSqFt: 1200,
+          householdMembers: 2,
+        },
         diet: { dietType: 'vegan' },
         shopping: { level: 'low' },
         travel: { flightsPerYear: 2, avgDistanceKm: 1000, hotelStaysPerYear: 3 },
@@ -79,9 +90,12 @@ describe('useAssessmentWizard hook', () => {
       vi.advanceTimersByTime(500);
     });
 
-    expect(fetch).toHaveBeenCalledWith('/api/assessment/draft', expect.objectContaining({
-      method: 'POST',
-    }));
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/assessment/draft',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    );
   });
 
   it('buffers draft to localStorage on network outage', async () => {
@@ -105,7 +119,7 @@ describe('useAssessmentWizard hook', () => {
 
     expect(localStorage.setItem).toHaveBeenCalledWith(
       'ecoguide_assessment_draft',
-      expect.stringContaining('"isUnsynced":true')
+      expect.stringContaining('"isUnsynced":true'),
     );
   });
 

@@ -1,13 +1,19 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, type FormEvent, type KeyboardEvent } from 'react';
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  type FormEvent,
+  type KeyboardEvent,
+} from 'react';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { useCoach } from '@/features/coach/hooks/useCoach';
 import { SuggestedPrompts } from './SuggestedPrompts';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useBadges } from '@/features/gamification/hooks/useBadges';
 import { Sparkles, Trash2, Send, Copy, Check, Info } from 'lucide-react';
-
 
 interface CoachInterfaceProps {
   /** User's highest footprint category from assessment database */
@@ -25,10 +31,7 @@ function parseMarkdownToHtml(text: string): string {
   let html = text;
 
   // 1. Escaping basic HTML to prevent injection before parsing markdown tags
-  html = html
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   // 2. Code blocks (```code```)
   html = html.replace(
@@ -149,12 +152,12 @@ export function CoachInterface({
   };
 
   return (
-    <div className="flex flex-col rounded-2xl border border-border/80 bg-card/40 shadow-sm overflow-hidden h-[600px] max-h-[600px] w-full backdrop-blur-md dark:bg-card/25">
+    <div className="flex h-[600px] max-h-[600px] w-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/40 shadow-sm backdrop-blur-md dark:bg-card/25">
       {/* Chat header */}
       <div className="flex items-center justify-between border-b border-border/60 bg-muted/20 px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wide">
+          <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+          <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
             <Sparkles size={13} className="text-emerald-500" />
             <span>Chat workspace</span>
           </h3>
@@ -163,7 +166,7 @@ export function CoachInterface({
           <button
             type="button"
             onClick={clearChat}
-            className="text-[10px] font-bold text-muted-foreground hover:text-red-500 transition-colors flex items-center gap-1"
+            className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground transition-colors hover:text-red-500"
           >
             <Trash2 size={12} />
             <span>Clear Logs</span>
@@ -177,25 +180,29 @@ export function CoachInterface({
         role="log"
         aria-label="Conversation with EcoGuide Coach"
         aria-live="polite"
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/10"
+        className="flex-1 space-y-4 overflow-y-auto bg-background/10 p-4"
       >
         {isLoadingHistory ? (
           <div className="space-y-4">
             {[1, 2].map((i) => (
-              <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'} animate-pulse`}>
+              <div
+                key={i}
+                className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'} animate-pulse`}
+              >
                 <div className="h-14 w-2/3 rounded-xl bg-muted/40" />
               </div>
             ))}
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-5">
+          <div className="flex h-full flex-col items-center justify-center space-y-5 p-6 text-center">
             <div className="rounded-full bg-emerald-500/10 p-4 text-emerald-500">
               <Sparkles size={32} />
             </div>
-            <div className="space-y-2 max-w-sm">
+            <div className="max-w-sm space-y-2">
               <h4 className="text-sm font-bold text-foreground">Meet EcoGuide Coach</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Your conversational carbon coach. Type below to ask habit recommendations or request tailored reduction action plans.
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Your conversational carbon coach. Type below to ask habit recommendations or request
+                tailored reduction action plans.
               </p>
             </div>
 
@@ -219,10 +226,10 @@ export function CoachInterface({
                   className={`flex ${isUser ? 'justify-end' : 'justify-start'} group/msg relative`}
                 >
                   <div
-                    className={`relative max-w-[85%] rounded-2xl px-4 py-2.5 text-xs shadow-sm group ${
+                    className={`group relative max-w-[85%] rounded-2xl px-4 py-2.5 text-xs shadow-sm ${
                       isUser
-                        ? 'bg-emerald-600 text-white rounded-tr-none'
-                        : 'bg-muted/60 text-foreground rounded-tl-none border border-border/40'
+                        ? 'rounded-tr-none bg-emerald-600 text-white'
+                        : 'rounded-tl-none border border-border/40 bg-muted/60 text-foreground'
                     }`}
                   >
                     <span className="sr-only">
@@ -234,7 +241,7 @@ export function CoachInterface({
                         type="button"
                         onClick={() => handleCopy(msg.content, msg.id)}
                         aria-label="Copy response text"
-                        className="absolute top-2 right-2 opacity-0 group-hover/msg:opacity-100 focus-visible:opacity-100 p-1 rounded-lg bg-background border border-border/40 text-muted-foreground hover:text-foreground transition-all"
+                        className="absolute right-2 top-2 rounded-lg border border-border/40 bg-background p-1 text-muted-foreground opacity-0 transition-all hover:text-foreground focus-visible:opacity-100 group-hover/msg:opacity-100"
                       >
                         {copiedId === msg.id ? (
                           <Check size={11} className="text-emerald-500" />
@@ -253,7 +260,7 @@ export function CoachInterface({
                       <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                     )}
 
-                    <span className="block mt-1 text-[9px] text-right opacity-60">
+                    <span className="mt-1 block text-right text-[9px] opacity-60">
                       {new Date(msg.createdAt).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -267,7 +274,7 @@ export function CoachInterface({
             {/* Bouncing typing indicator */}
             {isStreaming && messages[messages.length - 1]?.content === '' && (
               <div className="flex justify-start">
-                <div className="rounded-2xl bg-muted/60 border border-border/40 px-4 py-3 text-muted-foreground rounded-tl-none shadow-sm">
+                <div className="rounded-2xl rounded-tl-none border border-border/40 bg-muted/60 px-4 py-3 text-muted-foreground shadow-sm">
                   <div className="flex items-center gap-1.5" aria-label="EcoGuide is typing">
                     <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.3s]" />
                     <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.15s]" />
@@ -278,7 +285,7 @@ export function CoachInterface({
             )}
 
             {error && (
-              <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-500 flex items-center justify-between">
+              <div className="flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-500">
                 <span>Error: {error.message}</span>
                 <button
                   type="button"
@@ -288,7 +295,7 @@ export function CoachInterface({
                       void sendMessage(lastUserMsg.content);
                     }
                   }}
-                  className="underline hover:text-red-400 transition-colors font-medium ml-2"
+                  className="ml-2 font-medium underline transition-colors hover:text-red-400"
                 >
                   Retry
                 </button>
@@ -303,7 +310,7 @@ export function CoachInterface({
       {/* Input container */}
       <form
         onSubmit={handleSubmit}
-        className="border-t border-border/60 bg-card/20 px-4 py-3 space-y-3"
+        className="space-y-3 border-t border-border/60 bg-card/20 px-4 py-3"
       >
         {messages.length > 0 && (
           <div className="pt-1">
@@ -315,7 +322,7 @@ export function CoachInterface({
           </div>
         )}
 
-        <div className="flex gap-2 items-end">
+        <div className="flex items-end gap-2">
           <textarea
             ref={textareaRef}
             value={input}
@@ -325,18 +332,18 @@ export function CoachInterface({
             rows={1}
             aria-label="Ask EcoGuide coach"
             placeholder="Ask a question about your carbon footprint..."
-            className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-input bg-background/50 px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 resize-none font-sans"
+            className="max-h-[120px] min-h-[40px] flex-1 resize-none rounded-xl border border-input bg-background/50 px-3 py-2 font-sans text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <button
             type="submit"
             aria-label="Send message to EcoGuide coach"
             disabled={isStreaming || !input.trim()}
-            className="inline-flex items-center justify-center rounded-xl bg-emerald-600 h-10 w-10 text-white shadow transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 disabled:pointer-events-none disabled:opacity-40"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 disabled:pointer-events-none disabled:opacity-40"
           >
             <Send size={14} />
           </button>
         </div>
-        <div className="flex items-center gap-1 text-[9px] text-muted-foreground justify-center">
+        <div className="flex items-center justify-center gap-1 text-[9px] text-muted-foreground">
           <Info size={10} />
           <span>EcoGuide provides estimates and standard climate-tech recommendations.</span>
         </div>

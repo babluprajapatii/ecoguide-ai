@@ -65,7 +65,7 @@ describe('middleware router protection', () => {
 
     expect(response.status).toBe(307);
     expect(response.headers.get('Location')).toContain(
-      '/login?redirectTo=%2Fdashboard%2Fmetrics%2Fcarbon'
+      '/login?redirectTo=%2Fdashboard%2Fmetrics%2Fcarbon',
     );
   });
 
@@ -98,5 +98,39 @@ describe('middleware router protection', () => {
 
     expect(response.status).not.toBe(307);
     expect(response.headers.get('Location')).toBeNull();
+  });
+
+  it('redirects unauthenticated users from /assessment to /login', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } });
+
+    const req = createMockRequest('/assessment');
+    const response = await updateSession(req);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('Location')).toContain('/login?redirectTo=%2Fassessment');
+  });
+
+  it('redirects unauthenticated users from /assessment sub-paths to /login', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } });
+
+    const req = createMockRequest('/assessment/transport');
+    const response = await updateSession(req);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('Location')).toContain(
+      '/login?redirectTo=%2Fassessment%2Ftransport',
+    );
+  });
+
+  it('still redirects unauthenticated users from /coach to /login', async () => {
+    // /coach remains protected — the auth redirect happens at the CTA level
+    // but middleware is the final guard.
+    mockGetUser.mockResolvedValue({ data: { user: null } });
+
+    const req = createMockRequest('/coach');
+    const response = await updateSession(req);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('Location')).toContain('/login?redirectTo=%2Fcoach');
   });
 });

@@ -73,9 +73,7 @@ export interface UseDashboardDataReturn {
  * @param initialData - Server-side pre-fetched dashboard data (optional).
  * @returns Dashboard data state, loading indicators, and cache helpers.
  */
-export function useDashboardData(
-  initialData?: DashboardData,
-): UseDashboardDataReturn {
+export function useDashboardData(initialData?: DashboardData): UseDashboardDataReturn {
   const queryClient = useQueryClient();
 
   const {

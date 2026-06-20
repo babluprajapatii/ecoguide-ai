@@ -7,7 +7,11 @@
  * @module badges
  */
 
-import type { BadgeDefinition, BadgeSlug, GamificationAction } from '@/features/gamification/types/gamification.types';
+import type {
+  BadgeDefinition,
+  BadgeSlug,
+  GamificationAction,
+} from '@/features/gamification/types/gamification.types';
 
 // ---------------------------------------------------------------------------
 // Badge Definitions
@@ -172,7 +176,10 @@ export const BADGE_MAP: ReadonlyMap<BadgeSlug, BadgeDefinition> = new Map(
 /**
  * Maps a gamification action to the badge slug it can unlock.
  */
-export const ACTION_TO_BADGE: ReadonlyMap<GamificationAction, BadgeSlug> = new Map<GamificationAction, BadgeSlug>([
+export const ACTION_TO_BADGE: ReadonlyMap<GamificationAction, BadgeSlug> = new Map<
+  GamificationAction,
+  BadgeSlug
+>([
   ['complete_assessment', 'first_assessment'],
   ['use_coach', 'ai_coach_explorer'],
   ['run_simulator', 'simulator_explorer'],

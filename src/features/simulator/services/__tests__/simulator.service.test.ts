@@ -116,7 +116,9 @@ describe('adjustFootprint', () => {
       renewableEnergyPercent: 100,
     };
     const result = adjustFootprint(BASELINE, adj);
-    expect(result.total).toBe(result.transport + result.diet + result.energy + result.shopping + result.travel);
+    expect(result.total).toBe(
+      result.transport + result.diet + result.energy + result.shopping + result.travel,
+    );
   });
 
   it('should recalculate comparedToAverage', () => {

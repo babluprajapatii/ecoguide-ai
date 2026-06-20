@@ -38,18 +38,20 @@ export function AchievementsPreview() {
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25 animate-pulse h-[300px]" />
+      <div className="h-[300px] animate-pulse rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25" />
     );
   }
 
   const earnedCount = earnedSlugs.size;
 
   // Filter to show top 5 badges (earned first, then locked)
-  const displayBadges = [...allBadges].sort((a, b) => {
-    const aEarned = earnedSlugs.has(a.slug) ? 1 : 0;
-    const bEarned = earnedSlugs.has(b.slug) ? 1 : 0;
-    return bEarned - aEarned;
-  }).slice(0, 5);
+  const displayBadges = [...allBadges]
+    .sort((a, b) => {
+      const aEarned = earnedSlugs.has(a.slug) ? 1 : 0;
+      const bEarned = earnedSlugs.has(b.slug) ? 1 : 0;
+      return bEarned - aEarned;
+    })
+    .slice(0, 5);
 
   const containerVariants = {
     hidden: {},
@@ -66,39 +68,39 @@ export function AchievementsPreview() {
   };
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25 space-y-4">
+    <div className="space-y-4 rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25">
       <div className="flex items-center justify-between border-b border-border/60 pb-3">
-        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
           <Shield size={16} className="text-emerald-500" />
           <span>Achievements &amp; Level</span>
         </h3>
-        <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400">
           {totalPoints} Points
         </span>
       </div>
 
       <div className="space-y-4">
         {/* Level summary and progress */}
-        <div className="flex items-center gap-3 bg-muted/20 border border-border/20 rounded-xl p-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500 text-white font-black text-sm shadow-md shadow-emerald-500/10">
+        <div className="flex items-center gap-3 rounded-xl border border-border/20 bg-muted/20 p-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500 text-sm font-black text-white shadow-md shadow-emerald-500/10">
             Lv.{level.rank}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-baseline">
-              <span className="text-xs font-bold text-foreground truncate">{level.name} Level</span>
-              <span className="text-[10px] text-muted-foreground font-semibold">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline justify-between">
+              <span className="truncate text-xs font-bold text-foreground">{level.name} Level</span>
+              <span className="text-[10px] font-semibold text-muted-foreground">
                 {level.maxPoints !== null ? `${totalPoints} / ${level.maxPoints} pts` : 'Max Level'}
               </span>
             </div>
             {/* Progress bar with ARIA properties */}
-            <div className="w-full bg-muted/60 h-2 rounded-full overflow-hidden mt-1.5">
+            <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted/60">
               <div
                 role="progressbar"
                 aria-valuenow={Math.round(level.progress * 100)}
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-label={`Progress to next level: ${level.name}`}
-                className="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                className="h-full rounded-full bg-emerald-500 transition-all duration-300"
                 style={{ width: `${level.progress * 100}%` }}
               />
             </div>
@@ -107,7 +109,7 @@ export function AchievementsPreview() {
 
         {/* Badges preview row */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             <span>Badges ({earnedCount} earned)</span>
             <span>Preview</span>
           </div>
@@ -125,19 +127,21 @@ export function AchievementsPreview() {
                 <motion.div
                   key={badge.slug}
                   variants={itemVariants}
-                  className={`group relative flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all ${
+                  className={`group relative flex flex-col items-center justify-center rounded-xl border p-2.5 transition-all ${
                     isEarned
-                      ? 'bg-emerald-500/5 border-emerald-500/25 text-emerald-600 dark:text-emerald-400'
-                      : 'bg-muted/10 border-border/40 text-muted-foreground opacity-50'
+                      ? 'border-emerald-500/25 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400'
+                      : 'border-border/40 bg-muted/10 text-muted-foreground opacity-50'
                   }`}
                 >
                   <Icon size={20} className="transition-transform group-hover:scale-110" />
 
                   {/* Tooltip on hover */}
-                  <div className="absolute bottom-full mb-2 hidden group-hover:block w-40 p-2 text-center text-[10px] font-semibold bg-card border border-border text-foreground rounded-lg shadow-xl backdrop-blur-md z-30">
+                  <div className="absolute bottom-full z-30 mb-2 hidden w-40 rounded-lg border border-border bg-card p-2 text-center text-[10px] font-semibold text-foreground shadow-xl backdrop-blur-md group-hover:block">
                     <p className="font-extrabold text-foreground">{badge.name}</p>
-                    <p className="text-muted-foreground mt-0.5 leading-relaxed">{badge.description}</p>
-                    <p className="text-emerald-500 mt-1 font-bold">+{badge.pointValue} pts</p>
+                    <p className="mt-0.5 leading-relaxed text-muted-foreground">
+                      {badge.description}
+                    </p>
+                    <p className="mt-1 font-bold text-emerald-500">+{badge.pointValue} pts</p>
                   </div>
                 </motion.div>
               );

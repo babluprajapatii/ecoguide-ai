@@ -8,7 +8,11 @@
  * @module simulator.types
  */
 
-import type { DietType, FuelType, ShoppingLevel } from '@/features/assessment/types/assessment.types';
+import type {
+  DietType,
+  FuelType,
+  ShoppingLevel,
+} from '@/features/assessment/types/assessment.types';
 
 // ---------------------------------------------------------------------------
 // Simulator Adjustments

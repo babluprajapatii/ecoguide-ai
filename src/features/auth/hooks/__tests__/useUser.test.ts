@@ -38,7 +38,7 @@ describe('useUser selector hook', () => {
     vi.mocked(useContext).mockReturnValue(undefined as any);
 
     expect(() => useUser()).toThrow(
-      'useUser must be used within an AuthProvider. Wrap your component tree with <AuthProvider>.'
+      'useUser must be used within an AuthProvider. Wrap your component tree with <AuthProvider>.',
     );
   });
 });

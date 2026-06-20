@@ -19,8 +19,59 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If Supabase is not configured, pass through without auth checks
+  // If Supabase is not configured, fall back to mock cookie-based auth checks
   if (!supabaseUrl || !supabaseAnonKey) {
+    const mockToken = request.cookies.get('sb-mock-auth-token')?.value;
+    let user = null;
+    if (mockToken) {
+      try {
+        user = JSON.parse(mockToken).user;
+      } catch (err) {
+        console.debug('Failed to parse mock auth token', err);
+      }
+    }
+
+    const pathname = request.nextUrl.pathname;
+    const isProtectedRoute =
+      pathname === '/dashboard' ||
+      pathname.startsWith('/dashboard/') ||
+      pathname === '/assessment' ||
+      pathname.startsWith('/assessment/') ||
+      pathname === '/coach' ||
+      pathname.startsWith('/coach/') ||
+      pathname === '/simulator' ||
+      pathname.startsWith('/simulator/') ||
+      pathname === '/community' ||
+      pathname.startsWith('/community/') ||
+      pathname === '/badges' ||
+      pathname.startsWith('/badges/') ||
+      pathname === '/settings' ||
+      pathname.startsWith('/settings/');
+
+    if (!user && isProtectedRoute) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirectTo', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const isAuthRoute =
+      pathname === '/login' ||
+      pathname.startsWith('/login/') ||
+      pathname === '/signup' ||
+      pathname.startsWith('/signup/') ||
+      pathname === '/register' ||
+      pathname.startsWith('/register/') ||
+      pathname === '/forgot-password' ||
+      pathname.startsWith('/forgot-password/') ||
+      pathname === '/reset-password' ||
+      pathname.startsWith('/reset-password/') ||
+      pathname === '/verify-email' ||
+      pathname.startsWith('/verify-email/');
+
+    if (user && isAuthRoute) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
     return supabaseResponse;
   }
 
@@ -30,14 +81,12 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value)
-        );
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         supabaseResponse = NextResponse.next({
           request,
         });
         cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
+          supabaseResponse.cookies.set(name, value, options),
         );
       },
     },
@@ -50,15 +99,25 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
   const pathname = request.nextUrl.pathname;
 
-  // Redirect unauthenticated users away from protected nested routes
+  // Redirect unauthenticated users away from protected nested routes.
+  // NOTE: /assessment is intentionally NOT protected so unauthenticated users
+  // can complete the carbon assessment wizard. Auth is enforced at the API
+  // layer (/api/assessment) and when the user clicks "Meet My AI Coach".
   const isProtectedRoute =
-    pathname === '/dashboard' || pathname.startsWith('/dashboard/') ||
-    pathname === '/assessment' || pathname.startsWith('/assessment/') ||
-    pathname === '/coach' || pathname.startsWith('/coach/') ||
-    pathname === '/simulator' || pathname.startsWith('/simulator/') ||
-    pathname === '/community' || pathname.startsWith('/community/') ||
-    pathname === '/badges' || pathname.startsWith('/badges/') ||
-    pathname === '/settings' || pathname.startsWith('/settings/');
+    pathname === '/dashboard' ||
+    pathname.startsWith('/dashboard/') ||
+    pathname === '/assessment' ||
+    pathname.startsWith('/assessment/') ||
+    pathname === '/coach' ||
+    pathname.startsWith('/coach/') ||
+    pathname === '/simulator' ||
+    pathname.startsWith('/simulator/') ||
+    pathname === '/community' ||
+    pathname.startsWith('/community/') ||
+    pathname === '/badges' ||
+    pathname.startsWith('/badges/') ||
+    pathname === '/settings' ||
+    pathname.startsWith('/settings/');
 
   if (!user && isProtectedRoute) {
     const loginUrl = new URL('/login', request.url);
@@ -68,11 +127,18 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
   // Redirect authenticated users away from auth-only pages to dashboard
   const isAuthRoute =
-    pathname === '/login' || pathname.startsWith('/login/') ||
-    pathname === '/signup' || pathname.startsWith('/signup/') ||
-    pathname === '/forgot-password' || pathname.startsWith('/forgot-password/') ||
-    pathname === '/reset-password' || pathname.startsWith('/reset-password/') ||
-    pathname === '/verify-email' || pathname.startsWith('/verify-email/');
+    pathname === '/login' ||
+    pathname.startsWith('/login/') ||
+    pathname === '/signup' ||
+    pathname.startsWith('/signup/') ||
+    pathname === '/register' ||
+    pathname.startsWith('/register/') ||
+    pathname === '/forgot-password' ||
+    pathname.startsWith('/forgot-password/') ||
+    pathname === '/reset-password' ||
+    pathname.startsWith('/reset-password/') ||
+    pathname === '/verify-email' ||
+    pathname.startsWith('/verify-email/');
 
   if (user && isAuthRoute) {
     return NextResponse.redirect(new URL('/dashboard', request.url));

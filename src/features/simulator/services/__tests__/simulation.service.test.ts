@@ -151,7 +151,7 @@ describe('simulation.service core logic', () => {
         flightHoursPerYear: 0,
       };
       const result = calculateSimulatedImpact(BASELINE, adjustments, 'mixed', 'medium');
-      
+
       expect(result.impactScore).toBeGreaterThanOrEqual(0);
       expect(result.impactScore).toBeLessThanOrEqual(100);
       expect(result.tier).toBeDefined();

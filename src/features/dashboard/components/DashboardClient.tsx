@@ -27,11 +27,14 @@ import { CommunityPreview } from '@/features/dashboard/components/CommunityPrevi
  * Lazily load AnalyticsCharts to optimize bundle sizes and code-split Recharts.
  */
 const AnalyticsCharts = dynamic(
-  () => import('@/features/dashboard/components/AnalyticsCharts').then((mod) => mod.AnalyticsCharts),
+  () =>
+    import('@/features/dashboard/components/AnalyticsCharts').then((mod) => mod.AnalyticsCharts),
   {
-    loading: () => <div className="h-[380px] bg-muted/20 border border-border/80 rounded-2xl animate-pulse" />,
+    loading: () => (
+      <div className="h-[380px] animate-pulse rounded-2xl border border-border/80 bg-muted/20" />
+    ),
     ssr: false,
-  }
+  },
 );
 
 interface DashboardClientProps {
@@ -87,15 +90,15 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       />
 
       {/* Grid containing charts, insights, goals, achievements, and community leaderboard preview */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left 2 columns: Charts, Goals, and Insights */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           <AnalyticsCharts
             latestAssessment={latestAssessment}
             history={history}
             targetTotal={savings.targetTotal}
           />
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <InsightsPanel latestAssessment={latestAssessment} />
             <GoalsWidget />
           </div>

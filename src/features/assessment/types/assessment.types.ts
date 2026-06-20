@@ -100,7 +100,14 @@ export interface FootprintBreakdown {
 // Wizard State
 // ---------------------------------------------------------------------------
 
-export type WizardStep = 'welcome' | 'transport' | 'energy' | 'diet' | 'shopping' | 'travel' | 'results';
+export type WizardStep =
+  | 'welcome'
+  | 'transport'
+  | 'energy'
+  | 'diet'
+  | 'shopping'
+  | 'travel'
+  | 'results';
 
 export interface WizardState {
   readonly currentStep: WizardStep;
@@ -126,9 +133,15 @@ export type WizardAction =
   | { type: 'SET_TRAVEL'; payload: TravelInput }
   | { type: 'GO_TO_STEP'; payload: WizardStep }
   | { type: 'SUBMIT_START' }
-  | { type: 'SUBMIT_SUCCESS'; payload: { breakdown: FootprintBreakdown; grade: string; recommendations: readonly string[] } }
+  | {
+      type: 'SUBMIT_SUCCESS';
+      payload: { breakdown: FootprintBreakdown; grade: string; recommendations: readonly string[] };
+    }
   | { type: 'SUBMIT_ERROR'; payload: string }
-  | { type: 'RESTORE_DRAFT'; payload: { inputs: AssessmentInput; step: WizardStep; version: number } }
+  | {
+      type: 'RESTORE_DRAFT';
+      payload: { inputs: AssessmentInput; step: WizardStep; version: number };
+    }
   | { type: 'SET_SAVING'; payload: boolean }
   | { type: 'INCREMENT_DRAFT_VERSION' }
   | { type: 'RESET' };

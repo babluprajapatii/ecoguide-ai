@@ -153,20 +153,20 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="mx-auto max-w-4xl space-y-8">
       {/* Title */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-white">Account Settings</h1>
-        <p className="text-stone-400 text-sm mt-1">
+        <p className="mt-1 text-sm text-stone-400">
           Manage your personal details, visual themes, and billing profiles.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-eco-500/10 flex gap-2">
+      <div className="flex gap-2 border-b border-eco-500/10">
         <button
           onClick={() => setActiveTab('profile')}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-t-lg ${
+          className={`rounded-t-lg border-b-2 px-4 py-2 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 ${
             activeTab === 'profile'
               ? 'border-emerald-500 text-emerald-400'
               : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -176,7 +176,7 @@ export default function SettingsPage() {
         </button>
         <button
           onClick={() => setActiveTab('theme')}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-t-lg ${
+          className={`rounded-t-lg border-b-2 px-4 py-2 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 ${
             activeTab === 'theme'
               ? 'border-emerald-500 text-emerald-400'
               : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -186,7 +186,7 @@ export default function SettingsPage() {
         </button>
         <button
           onClick={() => setActiveTab('billing')}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-t-lg ${
+          className={`rounded-t-lg border-b-2 px-4 py-2 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 ${
             activeTab === 'billing'
               ? 'border-emerald-500 text-emerald-400'
               : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -199,29 +199,32 @@ export default function SettingsPage() {
       {/* Profile Details Tab */}
       {activeTab === 'profile' && (
         <div className="space-y-6">
-          <div className="p-6 rounded-2xl border border-eco-500/10 bg-dark-800/80 backdrop-blur-md space-y-6">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <div className="space-y-6 rounded-2xl border border-eco-500/10 bg-dark-800/80 p-6 backdrop-blur-md">
+            <h2 className="flex items-center gap-2 text-lg font-bold text-white">
               <UserIcon size={20} className="text-emerald-400" />
               <span>Personal Details</span>
             </h2>
 
             {/* Success / Error Banners */}
             {updateSuccessMsg && (
-              <div className="flex items-center gap-2 p-3 text-xs text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-emerald-400">
                 <CheckCircle2 size={16} className="shrink-0" />
                 <span>{updateSuccessMsg}</span>
               </div>
             )}
 
             {updateErrorMsg && (
-              <div className="flex items-center gap-2 p-3 text-xs text-red-400 bg-red-500/5 border border-red-500/20 rounded-xl" role="alert">
+              <div
+                className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-400"
+                role="alert"
+              >
                 <AlertCircle size={16} className="shrink-0" />
                 <span>{updateErrorMsg}</span>
               </div>
             )}
 
             {/* Avatar uploader */}
-            <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-eco-500/10">
+            <div className="flex flex-col items-center gap-6 border-b border-eco-500/10 pb-6 sm:flex-row">
               <div className="relative">
                 {avatarUrl ? (
                   <Image
@@ -229,22 +232,22 @@ export default function SettingsPage() {
                     alt={displayName}
                     width={80}
                     height={80}
-                    className="w-20 h-20 rounded-full object-cover border-2 border-emerald-500/40 shadow-lg"
+                    className="h-20 w-20 rounded-full border-2 border-emerald-500/40 object-cover shadow-lg"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-400 border-2 border-emerald-500/40 flex items-center justify-center text-3xl font-bold">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-emerald-500/40 bg-emerald-500/10 text-3xl font-bold text-emerald-400">
                     {displayName.charAt(0).toUpperCase()}
                   </div>
                 )}
                 {uploading && (
-                  <div className="absolute inset-0 rounded-full bg-dark-900/60 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-dark-900/60">
                     <Loader2 className="animate-spin text-emerald-400" size={24} />
                   </div>
                 )}
               </div>
 
               <div className="space-y-2 text-center sm:text-left">
-                <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-500/30 text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10 cursor-pointer font-semibold text-xs transition-colors">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-2.5 text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/10">
                   <Upload size={14} />
                   <span>Upload Profile Picture</span>
                   <input
@@ -255,15 +258,13 @@ export default function SettingsPage() {
                     disabled={uploading}
                   />
                 </label>
-                <p className="text-[10px] text-stone-500 leading-normal">
+                <p className="text-[10px] leading-normal text-stone-500">
                   Supported formats: JPEG, PNG, WebP. Maximum size: 2MB.
                 </p>
                 {uploadSuccess && (
-                  <p className="text-xs text-emerald-400 font-medium">{uploadSuccess}</p>
+                  <p className="text-xs font-medium text-emerald-400">{uploadSuccess}</p>
                 )}
-                {uploadError && (
-                  <p className="text-xs text-red-400 font-medium">{uploadError}</p>
-                )}
+                {uploadError && <p className="text-xs font-medium text-red-400">{uploadError}</p>}
               </div>
             </div>
 
@@ -279,7 +280,7 @@ export default function SettingsPage() {
                   aria-invalid={!!errors.displayName}
                   aria-describedby={errors.displayName ? 'displayName-error' : undefined}
                   {...register('displayName')}
-                  className="w-full max-w-md px-4 py-2.5 bg-dark-900 border border-eco-500/10 rounded-xl text-stone-200 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                  className="w-full max-w-md rounded-xl border border-eco-500/10 bg-dark-900 px-4 py-2.5 text-sm text-stone-200 transition-colors focus:border-emerald-500 focus:outline-none"
                 />
                 {errors.displayName && (
                   <p id="displayName-error" className="text-xs text-red-400">
@@ -297,14 +298,14 @@ export default function SettingsPage() {
                   type="email"
                   value={user.email}
                   disabled
-                  className="w-full max-w-md px-4 py-2.5 bg-dark-900/50 border border-eco-500/5 rounded-xl text-stone-500 text-sm cursor-not-allowed"
+                  className="w-full max-w-md cursor-not-allowed rounded-xl border border-eco-500/5 bg-dark-900/50 px-4 py-2.5 text-sm text-stone-500"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2.5 btn-primary rounded-xl text-white font-medium text-sm flex items-center gap-2 disabled:opacity-50 transition-opacity"
+                className="btn-primary flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-medium text-white transition-opacity disabled:opacity-50"
               >
                 {saving && <Loader2 className="animate-spin" size={14} />}
                 <span>Save Changes</span>
@@ -316,22 +317,22 @@ export default function SettingsPage() {
 
       {/* Theme Settings Tab */}
       {activeTab === 'theme' && (
-        <div className="p-6 rounded-2xl border border-eco-500/10 bg-dark-800/80 backdrop-blur-md space-y-6">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+        <div className="space-y-6 rounded-2xl border border-eco-500/10 bg-dark-800/80 p-6 backdrop-blur-md">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-white">
             <Sun size={20} className="text-emerald-400" />
             <span>Visual Themes</span>
           </h2>
-          <p className="text-stone-400 text-sm leading-relaxed">
+          <p className="text-sm leading-relaxed text-stone-400">
             Select your preferred color scheme interface appearance.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <button
               onClick={() => setTheme('light')}
-              className={`p-4 rounded-xl border flex flex-col items-center gap-3 transition-all outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+              className={`flex flex-col items-center gap-3 rounded-xl border p-4 outline-none transition-all focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 theme === 'light'
-                  ? 'border-emerald-500 bg-emerald-500/5 text-emerald-400 font-semibold'
-                  : 'border-eco-500/10 hover:border-eco-500/30 text-stone-400'
+                  ? 'border-emerald-500 bg-emerald-500/5 font-semibold text-emerald-400'
+                  : 'border-eco-500/10 text-stone-400 hover:border-eco-500/30'
               }`}
             >
               <Sun size={24} />
@@ -340,10 +341,10 @@ export default function SettingsPage() {
 
             <button
               onClick={() => setTheme('dark')}
-              className={`p-4 rounded-xl border flex flex-col items-center gap-3 transition-all outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+              className={`flex flex-col items-center gap-3 rounded-xl border p-4 outline-none transition-all focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 theme === 'dark'
-                  ? 'border-emerald-500 bg-emerald-500/5 text-emerald-400 font-semibold'
-                  : 'border-eco-500/10 hover:border-eco-500/30 text-stone-400'
+                  ? 'border-emerald-500 bg-emerald-500/5 font-semibold text-emerald-400'
+                  : 'border-eco-500/10 text-stone-400 hover:border-eco-500/30'
               }`}
             >
               <Moon size={24} />
@@ -352,10 +353,10 @@ export default function SettingsPage() {
 
             <button
               onClick={() => setTheme('system')}
-              className={`p-4 rounded-xl border flex flex-col items-center gap-3 transition-all outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+              className={`flex flex-col items-center gap-3 rounded-xl border p-4 outline-none transition-all focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 theme === 'system'
-                  ? 'border-emerald-500 bg-emerald-500/5 text-emerald-400 font-semibold'
-                  : 'border-eco-500/10 hover:border-eco-500/30 text-stone-400'
+                  ? 'border-emerald-500 bg-emerald-500/5 font-semibold text-emerald-400'
+                  : 'border-eco-500/10 text-stone-400 hover:border-eco-500/30'
               }`}
             >
               <Laptop size={24} />
@@ -367,28 +368,28 @@ export default function SettingsPage() {
 
       {/* Billing Tab (Mock Scaling Page) */}
       {activeTab === 'billing' && (
-        <div className="p-6 rounded-2xl border border-eco-500/10 bg-dark-800/80 backdrop-blur-md space-y-6">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+        <div className="space-y-6 rounded-2xl border border-eco-500/10 bg-dark-800/80 p-6 backdrop-blur-md">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-white">
             <CreditCard size={20} className="text-emerald-400" />
             <span>Billing Profile</span>
           </h2>
-          <p className="text-stone-400 text-sm leading-relaxed">
+          <p className="text-sm leading-relaxed text-stone-400">
             Manage your EcoGuide Pro subscriptions, tier features, and payment methods.
           </p>
 
-          <div className="rounded-xl border border-eco-500/10 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-dark-900/50">
+          <div className="flex flex-col items-start justify-between gap-4 rounded-xl border border-eco-500/10 bg-dark-900/50 p-5 sm:flex-row sm:items-center">
             <div>
-              <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-2">
+              <span className="mb-2 inline-flex rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
                 ACTIVE PLAN
               </span>
-              <h3 className="font-bold text-white text-base">EcoGuide Free Tier</h3>
-              <p className="text-stone-500 text-xs mt-1">
+              <h3 className="text-base font-bold text-white">EcoGuide Free Tier</h3>
+              <p className="mt-1 text-xs text-stone-500">
                 Access to standard calculators, badges, and weekly coach tips.
               </p>
             </div>
             <button
               disabled
-              className="px-4 py-2 border border-stone-700 bg-stone-800 text-stone-500 font-bold text-xs rounded-xl cursor-not-allowed"
+              className="cursor-not-allowed rounded-xl border border-stone-700 bg-stone-800 px-4 py-2 text-xs font-bold text-stone-500"
             >
               Upgrade to Pro
             </button>

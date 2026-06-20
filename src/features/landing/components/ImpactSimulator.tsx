@@ -10,7 +10,7 @@ export function ImpactSimulator() {
   const [tempOffset, setTempOffset] = useState(0);
   const [commute, setCommute] = useState(80);
   const [diet, setDiet] = useState<DietPattern>('balanced');
-  
+
   const [footprint, setFootprint] = useState(5.2);
   const [savings, setSavings] = useState(340);
 
@@ -18,35 +18,38 @@ export function ImpactSimulator() {
   useEffect(() => {
     // Baseline carbon footprint is around 6.0 tons CO2/yr for our user
     const baseFootprint = 6.0;
-    
+
     // Temp offset impact: +/- 0.15 tons per degree
     const tempCarbon = tempOffset * 0.15;
-    
+
     // Commute carbon impact: 0.018 tons per mile weekly
     const commuteCarbon = (commute - 80) * 0.018;
-    
+
     // Diet carbon impact relative to balanced
     let dietCarbon = 0;
     if (diet === 'vegetarian') dietCarbon = -1.5;
     if (diet === 'vegan') dietCarbon = -2.3;
-    
-    const calculatedFootprint = Math.max(0.5, baseFootprint + tempCarbon + commuteCarbon + dietCarbon);
+
+    const calculatedFootprint = Math.max(
+      0.5,
+      baseFootprint + tempCarbon + commuteCarbon + dietCarbon,
+    );
     setFootprint(calculatedFootprint);
 
     // Baseline savings is $300/yr
     const baseSavings = 300;
-    
+
     // Temp offset savings: positive savings for lowering thermostat in winter / raising in summer (- tempOffset)
     const tempSavings = -tempOffset * 22;
-    
+
     // Commute savings: negative savings for more miles
     const commuteSavings = -(commute - 80) * 0.95;
-    
+
     // Diet savings
     let dietSavings = 0;
     if (diet === 'vegetarian') dietSavings = 110;
     if (diet === 'vegan') dietSavings = 160;
-    
+
     const calculatedSavings = Math.max(0, baseSavings + tempSavings + commuteSavings + dietSavings);
     setSavings(calculatedSavings);
   }, [tempOffset, commute, diet]);
@@ -59,25 +62,30 @@ export function ImpactSimulator() {
   };
 
   return (
-    <section id="analytics" className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900 border-t border-eco-500/10">
-      <div className="relative z-10 max-w-6xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          
+    <section
+      id="analytics"
+      className="relative overflow-hidden border-t border-eco-500/10 bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900 py-20 md:py-32"
+    >
+      <div className="relative z-10 mx-auto max-w-6xl px-6">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
           {/* Left Column: Interactive Calculator Panel */}
           <div className="w-full">
-            <div className="glass-card rounded-2xl p-8 shadow-2xl border border-eco-500/15">
-              <div className="flex items-center gap-2 mb-8">
-                <Calculator className="text-eco-400 w-5 h-5" />
-                <span className="text-sm font-semibold text-eco-400 tracking-wider uppercase">
+            <div className="glass-card rounded-2xl border border-eco-500/15 p-8 shadow-2xl">
+              <div className="mb-8 flex items-center gap-2">
+                <Calculator className="h-5 w-5 text-eco-400" />
+                <span className="text-sm font-semibold uppercase tracking-wider text-eco-400">
                   Impact Estimator
                 </span>
               </div>
 
               {/* Temperature Slider */}
               <div className="mb-8">
-                <div className="flex items-center justify-between mb-3">
-                  <label htmlFor="temp-slider" className="text-sm text-stone-300 flex items-center gap-2 font-medium">
-                    <Thermometer className="text-amber-400 w-4 h-4" />
+                <div className="mb-3 flex items-center justify-between">
+                  <label
+                    htmlFor="temp-slider"
+                    className="flex items-center gap-2 text-sm font-medium text-stone-300"
+                  >
+                    <Thermometer className="h-4 w-4 text-amber-400" />
                     Temperature Offset
                   </label>
                   <span id="temp-value" className="text-sm font-semibold text-amber-400">
@@ -95,9 +103,9 @@ export function ImpactSimulator() {
                   aria-valuemax={10}
                   aria-valuenow={tempOffset}
                   aria-valuetext={`${tempOffset} degrees Fahrenheit`}
-                  className="w-full h-1 bg-eco-500/15 rounded-lg appearance-none cursor-pointer"
+                  className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-eco-500/15"
                 />
-                <div className="flex justify-between text-[10px] text-stone-500 mt-1.5 font-medium">
+                <div className="mt-1.5 flex justify-between text-[10px] font-medium text-stone-500">
                   <span>-10°F (Cooler)</span>
                   <span>0°F</span>
                   <span>+10°F (Warmer)</span>
@@ -106,9 +114,12 @@ export function ImpactSimulator() {
 
               {/* Commute Slider */}
               <div className="mb-8">
-                <div className="flex items-center justify-between mb-3">
-                  <label htmlFor="commute-slider" className="text-sm text-stone-300 flex items-center gap-2 font-medium">
-                    <Car className="text-blue-400 w-4 h-4" />
+                <div className="mb-3 flex items-center justify-between">
+                  <label
+                    htmlFor="commute-slider"
+                    className="flex items-center gap-2 text-sm font-medium text-stone-300"
+                  >
+                    <Car className="h-4 w-4 text-blue-400" />
                     Weekly Commute
                   </label>
                   <span id="commute-value" className="text-sm font-semibold text-blue-400">
@@ -126,9 +137,9 @@ export function ImpactSimulator() {
                   aria-valuemax={300}
                   aria-valuenow={commute}
                   aria-valuetext={`${commute} miles weekly`}
-                  className="w-full h-1 bg-eco-500/15 rounded-lg appearance-none cursor-pointer"
+                  className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-eco-500/15"
                 />
-                <div className="flex justify-between text-[10px] text-stone-500 mt-1.5 font-medium">
+                <div className="mt-1.5 flex justify-between text-[10px] font-medium text-stone-500">
                   <span>0 mi</span>
                   <span>150 mi</span>
                   <span>300 mi</span>
@@ -137,21 +148,25 @@ export function ImpactSimulator() {
 
               {/* Diet Selection */}
               <div className="mb-8">
-                <span className="text-sm text-stone-300 flex items-center gap-2 mb-3 font-medium">
-                  <Utensils className="text-eco-400 w-4 h-4" />
+                <span className="mb-3 flex items-center gap-2 text-sm font-medium text-stone-300">
+                  <Utensils className="h-4 w-4 text-eco-400" />
                   Diet Pattern
                 </span>
-                <div className="grid grid-cols-3 gap-2" role="group" aria-label="Select diet pattern">
+                <div
+                  className="grid grid-cols-3 gap-2"
+                  role="group"
+                  aria-label="Select diet pattern"
+                >
                   {(['balanced', 'vegetarian', 'vegan'] as DietPattern[]).map((pattern) => (
                     <button
                       key={pattern}
                       onClick={() => setDiet(pattern)}
                       type="button"
-                      className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
+                      className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-all ${
                         diet === pattern
-                          ? 'bg-eco-500/15 text-eco-400 border-eco-500/30'
-                          : 'bg-dark-600 text-stone-400 border-stone-700 hover:border-eco-500/30 hover:text-stone-300'
-                      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 capitalize`}
+                          ? 'border-eco-500/30 bg-eco-500/15 text-eco-400'
+                          : 'border-stone-700 bg-dark-600 text-stone-400 hover:border-eco-500/30 hover:text-stone-300'
+                      } capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400`}
                     >
                       {pattern}
                     </button>
@@ -160,22 +175,29 @@ export function ImpactSimulator() {
               </div>
 
               {/* Calculated Results */}
-              <div className="border-t border-eco-500/10 pt-6 space-y-4">
+              <div className="space-y-4 border-t border-eco-500/10 pt-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-stone-500 text-xs font-semibold tracking-wider uppercase">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">
                     Estimated Footprint
                   </span>
-                  <span id="footprint-result" className="text-lg md:text-xl font-serif font-semibold text-white">
-                    {footprint.toFixed(1)} <span className="text-xs text-stone-500 font-sans">Tons CO₂/yr</span>
+                  <span
+                    id="footprint-result"
+                    className="font-serif text-lg font-semibold text-white md:text-xl"
+                  >
+                    {footprint.toFixed(1)}{' '}
+                    <span className="font-sans text-xs text-stone-500">Tons CO₂/yr</span>
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-stone-500 text-xs font-semibold tracking-wider uppercase">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">
                     ROI Estimate
                   </span>
-                  <span id="roi-result" className="text-lg md:text-xl font-serif font-semibold text-eco-400">
+                  <span
+                    id="roi-result"
+                    className="font-serif text-lg font-semibold text-eco-400 md:text-xl"
+                  >
                     Save up to ${Math.round(savings)}
-                    <span className="text-xs text-eco-500 font-sans font-medium">/yr</span>
+                    <span className="font-sans text-xs font-medium text-eco-500">/yr</span>
                   </span>
                 </div>
               </div>
@@ -184,32 +206,33 @@ export function ImpactSimulator() {
 
           {/* Right Column: Informative Copy */}
           <div>
-            <span className="text-xs font-semibold text-eco-400 tracking-[0.2em] uppercase">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-eco-400">
               Carbon Simulator
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl tracking-tight mt-3 text-white leading-tight">
+            <h2 className="mt-3 font-serif text-3xl leading-tight tracking-tight text-white md:text-4xl">
               Simulate Your Carbon & <span className="text-gradient">Utility Savings</span>
             </h2>
-            <p className="text-stone-400 mt-5 font-light leading-relaxed">
-              Adjust your lifestyle parameters and instantly see how changes impact your carbon footprint and annual savings. Our model uses EPA data and real utility rates.
+            <p className="mt-5 font-light leading-relaxed text-stone-400">
+              Adjust your lifestyle parameters and instantly see how changes impact your carbon
+              footprint and annual savings. Our model uses EPA data and real utility rates.
             </p>
-            <div className="mt-6 p-4 rounded-xl bg-eco-500/5 border border-eco-500/10">
+            <div className="mt-6 rounded-xl border border-eco-500/10 bg-eco-500/5 p-4">
               <div className="flex items-start gap-3">
-                <Info className="text-eco-400 w-5 h-5 shrink-0 mt-0.5" />
-                <p className="text-stone-400 text-sm font-light leading-relaxed">
-                  Average active users save over <strong className="text-eco-400">$280/year</strong> by following AI recommendations. Top savers reduce their carbon by 40%.
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-eco-400" />
+                <p className="text-sm font-light leading-relaxed text-stone-400">
+                  Average active users save over <strong className="text-eco-400">$280/year</strong>{' '}
+                  by following AI recommendations. Top savers reduce their carbon by 40%.
                 </p>
               </div>
             </div>
             <button
               onClick={handleScrollToCTA}
-              className="btn-primary mt-8 text-sm font-semibold text-white px-7 py-3.5 rounded-full tracking-wide inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
+              className="btn-primary mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold tracking-wide text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400"
             >
-              <Calculator className="w-4 h-4" />
+              <Calculator className="h-4 w-4" />
               <span>Calculate My Carbon Impact</span>
             </button>
           </div>
-
         </div>
       </div>
     </section>

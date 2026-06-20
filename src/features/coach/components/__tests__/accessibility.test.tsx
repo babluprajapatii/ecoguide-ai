@@ -29,8 +29,22 @@ vi.mock('../../hooks/useCoachDashboard', () => ({
   useCoachDashboard: () => ({
     stats: { streak: 5, conversationCount: 12, insightsCount: 8 },
     recommendations: [
-      { id: '1', title: 'Reduce Thermostat', description: 'Lower heating by 1 degree', priority: 'high', estimated_savings: 120, status: 'pending' },
-      { id: '2', title: 'Eat Plant-based', description: 'Try vegetarian lunch twice a week', priority: 'medium', estimated_savings: 80, status: 'completed' },
+      {
+        id: '1',
+        title: 'Reduce Thermostat',
+        description: 'Lower heating by 1 degree',
+        priority: 'high',
+        estimated_savings: 120,
+        status: 'pending',
+      },
+      {
+        id: '2',
+        title: 'Eat Plant-based',
+        description: 'Try vegetarian lunch twice a week',
+        priority: 'medium',
+        estimated_savings: 80,
+        status: 'completed',
+      },
     ],
     updateStatus: vi.fn(),
     deleteRecommendation: vi.fn(),
@@ -60,7 +74,12 @@ vi.mock('@/features/coach/hooks/useCoach', () => ({
   useCoach: () => ({
     messages: [
       { id: 'm1', role: 'user', content: 'Hello Coach', createdAt: '2026-06-17T12:00:00Z' },
-      { id: 'm2', role: 'assistant', content: 'Hello! I am EcoGuide. How can I help?', createdAt: '2026-06-17T12:00:05Z' },
+      {
+        id: 'm2',
+        role: 'assistant',
+        content: 'Hello! I am EcoGuide. How can I help?',
+        createdAt: '2026-06-17T12:00:05Z',
+      },
     ],
     isStreaming: false,
     error: null,
@@ -95,7 +114,7 @@ describe('AI Sustainability Coach accessibility tests', () => {
 
     it('displays priorities and savings with screen-reader friendly formats', () => {
       render(<CoachStats />);
-      
+
       expect(screen.getByText('high priority')).toBeDefined();
       expect(screen.getByText('120 kg/yr')).toBeDefined();
     });
@@ -132,7 +151,9 @@ describe('AI Sustainability Coach accessibility tests', () => {
     it('renders keyboard focusable input and submit buttons', () => {
       render(<CoachInterface />);
 
-      const textInput = screen.getByPlaceholderText('Ask a question about your carbon footprint...');
+      const textInput = screen.getByPlaceholderText(
+        'Ask a question about your carbon footprint...',
+      );
       expect(textInput).toBeDefined();
 
       const sendButton = screen.getByLabelText('Send message to EcoGuide coach');

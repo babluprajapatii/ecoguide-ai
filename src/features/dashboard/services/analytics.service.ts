@@ -25,13 +25,14 @@ export function calculateReductionPotential(latest: FootprintEmissions): {
   savingsTotal: number;
 } {
   const targetTransport = Math.round(latest.transport_kg * 0.35); // 65% reduction potential (EV + public transport)
-  const targetEnergy = Math.round(latest.energy_kg * 0.4);       // 60% reduction potential (Solar offset + home efficiency)
-  const targetDiet = Math.min(latest.diet_kg, 1600);             // Shift to vegetarian/vegan (~1600kg or baseline if lower)
-  const targetShopping = Math.min(latest.shopping_kg, 500);      // Shifting to minimal spending (~500kg or baseline if lower)
-  const targetTravel = Math.round(latest.travel_kg * 0.4);       // 60% reduction potential (fewer flights, green lodging)
+  const targetEnergy = Math.round(latest.energy_kg * 0.4); // 60% reduction potential (Solar offset + home efficiency)
+  const targetDiet = Math.min(latest.diet_kg, 1600); // Shift to vegetarian/vegan (~1600kg or baseline if lower)
+  const targetShopping = Math.min(latest.shopping_kg, 500); // Shifting to minimal spending (~500kg or baseline if lower)
+  const targetTravel = Math.round(latest.travel_kg * 0.4); // 60% reduction potential (fewer flights, green lodging)
 
   const targetTotal = targetTransport + targetEnergy + targetDiet + targetShopping + targetTravel;
-  const currentTotal = latest.transport_kg + latest.diet_kg + latest.energy_kg + latest.shopping_kg + latest.travel_kg;
+  const currentTotal =
+    latest.transport_kg + latest.diet_kg + latest.energy_kg + latest.shopping_kg + latest.travel_kg;
   const savingsTotal = Math.max(0, currentTotal - targetTotal);
 
   return {
@@ -45,11 +46,11 @@ export function calculateReductionPotential(latest: FootprintEmissions): {
  */
 export function calculateGradeFromEmissions(totalKg: number): string {
   if (totalKg <= 2000) return 'A+'; // Exceptional / Carbon Neutral Target (2t CO2/yr)
-  if (totalKg <= 3500) return 'A';  // Excellent progress
-  if (totalKg <= 5000) return 'B';  // Near global average midpoint
-  if (totalKg <= 7000) return 'C';  // Average
+  if (totalKg <= 3500) return 'A'; // Excellent progress
+  if (totalKg <= 5000) return 'B'; // Near global average midpoint
+  if (totalKg <= 7000) return 'C'; // Average
   if (totalKg <= 10000) return 'D'; // Heavy footprint
-  return 'F';                       // Critical footprint
+  return 'F'; // Critical footprint
 }
 
 /** A single data point in the monthly forecast projection. */
@@ -66,7 +67,7 @@ export interface ForecastPoint {
 export function generateForecastCurve(
   baselineTotal: number,
   targetTotal: number,
-  months: number = 12
+  months: number = 12,
 ): ForecastPoint[] {
   const points: ForecastPoint[] = [];
 

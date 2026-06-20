@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  useState,
-  useRef,
-  useEffect,
-  type ReactNode,
-  type KeyboardEvent,
-} from 'react';
+import { useState, useRef, useEffect, type ReactNode, type KeyboardEvent } from 'react';
 
 interface DropdownMenuProps {
   trigger: ReactNode;
@@ -23,11 +17,7 @@ interface DropdownMenuProps {
  * 3. ARIA attributes (aria-haspopup, aria-expanded).
  * 4. Keyboard focus trapping and arrow navigation.
  */
-export default function DropdownMenu({
-  trigger,
-  children,
-  align = 'right',
-}: DropdownMenuProps) {
+export default function DropdownMenu({ trigger, children, align = 'right' }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -71,7 +61,7 @@ export default function DropdownMenu({
 
     if (e.key === 'Tab') {
       const focusableElements = menuRef.current?.querySelectorAll(
-        'a, button, [tabindex="0"]'
+        'a, button, [tabindex="0"]',
       ) as NodeListOf<HTMLElement>;
       if (!focusableElements || focusableElements.length === 0) return;
 
@@ -93,9 +83,9 @@ export default function DropdownMenu({
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       const focusableElements = Array.from(
-        menuRef.current?.querySelectorAll('a, button, [tabindex="0"]') || []
+        menuRef.current?.querySelectorAll('a, button, [tabindex="0"]') || [],
       ) as HTMLElement[];
-      
+
       if (focusableElements.length === 0) return;
 
       const activeIndex = focusableElements.indexOf(document.activeElement as HTMLElement);
@@ -130,7 +120,7 @@ export default function DropdownMenu({
           onKeyDown={handleKeyDown}
           className={`absolute ${
             align === 'right' ? 'right-0' : 'left-0'
-          } mt-2 w-56 rounded-xl border border-eco-500/20 bg-background/95 backdrop-blur-md shadow-2xl z-50 overflow-hidden outline-none animate-in fade-in duration-100`}
+          } z-50 mt-2 w-56 overflow-hidden rounded-xl border border-eco-500/20 bg-background/95 shadow-2xl outline-none backdrop-blur-md duration-100 animate-in fade-in`}
           role="menu"
           tabIndex={-1}
         >

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
@@ -19,6 +20,76 @@ export function AppProviders({ children }: AppProvidersProps) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // Browser extension polyfills / compatibility shims to prevent runtime crashes from third-party scripts/extensions
+    try {
+      const safeEvent = {
+        addListener: (cb: any) => {},
+        removeListener: (cb: any) => {},
+        hasListener: () => false,
+        hasListeners: () => false,
+      };
+
+      const safeRuntime = {
+        onMessage: safeEvent,
+        onConnect: safeEvent,
+        sendMessage: () => Promise.resolve(),
+        connect: () => ({
+          onMessage: safeEvent,
+          onDisconnect: safeEvent,
+          postMessage: () => {},
+          disconnect: () => {},
+        }),
+      };
+
+      // Polyfill window.chrome
+      if (typeof (window as any).chrome === 'undefined') {
+        (window as any).chrome = {
+          runtime: safeRuntime,
+        };
+      } else {
+        const chromeObj = (window as any).chrome;
+        if (!chromeObj.runtime) {
+          chromeObj.runtime = safeRuntime;
+        } else {
+          if (!chromeObj.runtime.onMessage) {
+            chromeObj.runtime.onMessage = safeEvent;
+          } else if (typeof chromeObj.runtime.onMessage.addListener !== 'function') {
+            chromeObj.runtime.onMessage.addListener = safeEvent.addListener;
+          }
+          if (!chromeObj.runtime.onConnect) {
+            chromeObj.runtime.onConnect = safeEvent;
+          } else if (typeof chromeObj.runtime.onConnect.addListener !== 'function') {
+            chromeObj.runtime.onConnect.addListener = safeEvent.addListener;
+          }
+        }
+      }
+
+      // Polyfill window.browser
+      if (typeof (window as any).browser === 'undefined') {
+        (window as any).browser = {
+          runtime: safeRuntime,
+        };
+      } else {
+        const browserObj = (window as any).browser;
+        if (!browserObj.runtime) {
+          browserObj.runtime = safeRuntime;
+        } else {
+          if (!browserObj.runtime.onMessage) {
+            browserObj.runtime.onMessage = safeEvent;
+          } else if (typeof browserObj.runtime.onMessage.addListener !== 'function') {
+            browserObj.runtime.onMessage.addListener = safeEvent.addListener;
+          }
+          if (!browserObj.runtime.onConnect) {
+            browserObj.runtime.onConnect = safeEvent;
+          } else if (typeof browserObj.runtime.onConnect.addListener !== 'function') {
+            browserObj.runtime.onConnect.addListener = safeEvent.addListener;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to inject browser extension compatibility shims:', err);
+    }
+
     // 1. Shim matchMedia for legacy and environment compatibility
     if (window.matchMedia) {
       const originalMatchMedia = window.matchMedia;
@@ -35,7 +106,10 @@ export function AppProviders({ children }: AppProvidersProps) {
           if (!mql.removeListener) {
             mql.removeListener = function (cb: Parameters<MediaQueryList['removeListener']>[0]) {
               if (cb) {
-                mql.removeEventListener('change', cb as unknown as EventListenerOrEventListenerObject);
+                mql.removeEventListener(
+                  'change',
+                  cb as unknown as EventListenerOrEventListenerObject,
+                );
               }
             };
           }
@@ -89,7 +163,10 @@ export function AppProviders({ children }: AppProvidersProps) {
           stackStr.includes('extension') ||
           stackStr.includes('addListener')
         ) {
-          console.warn('Suppressed third-party browser extension promise rejection:', reason.message);
+          console.warn(
+            'Suppressed third-party browser extension promise rejection:',
+            reason.message,
+          );
           event.preventDefault();
           return;
         }

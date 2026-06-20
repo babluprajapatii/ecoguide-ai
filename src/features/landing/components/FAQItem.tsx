@@ -23,13 +23,13 @@ export function FAQItem({ id, question, answer }: FAQItemProps) {
         aria-expanded={isOpen}
         aria-controls={`faq-panel-${id}`}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full py-6 px-4 flex items-center justify-between text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eco-400 focus-visible:ring-inset"
+        className="flex w-full items-center justify-between px-4 py-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-eco-400"
       >
-        <span className="text-white text-base font-semibold pr-4 font-sans leading-snug">
+        <span className="pr-4 font-sans text-base font-semibold leading-snug text-white">
           {question}
         </span>
         <ChevronDown
-          className={`w-5 h-5 text-eco-400 shrink-0 transition-transform duration-300 ${
+          className={`h-5 w-5 shrink-0 text-eco-400 transition-transform duration-300 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
@@ -45,9 +45,7 @@ export function FAQItem({ id, question, answer }: FAQItemProps) {
         }`}
       >
         <div className="overflow-hidden">
-          <p className="px-4 pb-6 text-stone-400 text-sm font-light leading-relaxed">
-            {answer}
-          </p>
+          <p className="px-4 pb-6 text-sm font-light leading-relaxed text-stone-400">{answer}</p>
         </div>
       </div>
     </div>

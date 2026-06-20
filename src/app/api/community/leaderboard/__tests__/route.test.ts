@@ -56,7 +56,9 @@ describe('Leaderboard API Endpoint', () => {
   });
 
   it('returns rankings list successfully for global view', async () => {
-    const req = new NextRequest('http://localhost/api/community/leaderboard?view=global&page=1&limit=10');
+    const req = new NextRequest(
+      'http://localhost/api/community/leaderboard?view=global&page=1&limit=10',
+    );
     const res = await GET(req);
     expect(res.status).toBe(200);
 

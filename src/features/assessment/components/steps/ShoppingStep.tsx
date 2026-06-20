@@ -43,7 +43,9 @@ export function ShoppingStep({ initialData, onNext, onBack, isSaving }: Shopping
     >
       <div className="space-y-2">
         <h2 className="text-xl font-bold text-foreground">Shopping &amp; Consumption</h2>
-        <p className="text-sm text-muted-foreground">How would you describe your shopping habits?</p>
+        <p className="text-sm text-muted-foreground">
+          How would you describe your shopping habits?
+        </p>
       </div>
 
       <fieldset className="space-y-3">
@@ -75,19 +77,30 @@ export function ShoppingStep({ initialData, onNext, onBack, isSaving }: Shopping
         ))}
       </fieldset>
 
-      {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+      {error && (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
 
       <div className="flex gap-3">
-        <button type="button" onClick={onBack} className="flex-1 rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex-1 rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+        >
           Back
         </button>
-        <button type="submit" className="flex-1 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+        <button
+          type="submit"
+          className="flex-1 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+        >
           Next
         </button>
       </div>
 
       {isSaving && (
-        <p className="text-center text-xs text-muted-foreground animate-pulse mt-2">
+        <p className="mt-2 animate-pulse text-center text-xs text-muted-foreground">
           Saving draft...
         </p>
       )}

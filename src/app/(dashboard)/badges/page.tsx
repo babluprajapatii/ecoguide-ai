@@ -75,7 +75,7 @@ export default function BadgesPage() {
       </header>
 
       {/* Level Summary Card */}
-      <section className="mb-10 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card to-muted/20 p-6 md:p-8 shadow-sm">
+      <section className="mb-10 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card to-muted/20 p-6 shadow-sm md:p-8">
         <div className="grid gap-6 md:grid-cols-3 md:items-center">
           {/* Level Badge Column */}
           <div className="flex items-center gap-4 border-border md:border-r md:pr-6">
@@ -110,7 +110,7 @@ export default function BadgesPage() {
               <span className="text-foreground">{(level.progress * 100).toFixed(0)}%</span>
             </div>
             {/* Progress bar container */}
-            <div className="mt-2 h-2.5 w-full rounded-full bg-muted overflow-hidden">
+            <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-primary transition-all duration-500"
                 style={{ width: `${level.progress * 100}%` }}
@@ -124,8 +124,8 @@ export default function BadgesPage() {
             <p className="mt-2 text-xs text-muted-foreground">
               {nextLevelPoints !== null ? (
                 <>
-                  Need <span className="font-semibold text-foreground">{pointsToNext}</span> more points
-                  to reach next level
+                  Need <span className="font-semibold text-foreground">{pointsToNext}</span> more
+                  points to reach next level
                 </>
               ) : (
                 'You have reached the maximum level! Carbon Champion!'
@@ -139,17 +139,10 @@ export default function BadgesPage() {
       <h3 className="mb-4 text-lg font-bold text-foreground">Badge Collection</h3>
 
       {/* Badge Grid Component */}
-      <BadgeGrid
-        badges={allBadges}
-        earnedSlugs={earnedSlugs}
-        earnedBadgeMap={earnedBadgeMap}
-      />
+      <BadgeGrid badges={allBadges} earnedSlugs={earnedSlugs} earnedBadgeMap={earnedBadgeMap} />
 
       {/* Toast Notifications */}
-      <BadgeToastContainer
-        toasts={toasts}
-        onDismiss={dismissToast}
-      />
+      <BadgeToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

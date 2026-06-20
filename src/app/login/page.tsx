@@ -30,7 +30,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signIn } = useAuth();
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -67,10 +67,12 @@ export default function LoginPage() {
       if (
         msg.toLowerCase().includes('email not confirmed') ||
         msg.toLowerCase().includes('confirm your email') ||
-        error.status === 400 && msg.toLowerCase().includes('verification')
+        (error.status === 400 && msg.toLowerCase().includes('verification'))
       ) {
         setUnverifiedEmail(data.email);
-        setErrorMsg('Your email is not verified yet. Please check your inbox or resend the verification link.');
+        setErrorMsg(
+          'Your email is not verified yet. Please check your inbox or resend the verification link.',
+        );
       } else {
         setErrorMsg(msg);
       }
@@ -109,50 +111,53 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-dark-900 grid-bg hero-gradient px-4">
-      <div className="w-full max-w-md p-8 rounded-2xl border border-eco-500/10 bg-dark-800/85 backdrop-blur-md shadow-2xl relative overflow-hidden">
+    <main className="grid-bg hero-gradient flex min-h-screen items-center justify-center bg-dark-900 px-4">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-eco-500/10 bg-dark-800/85 p-8 shadow-2xl backdrop-blur-md">
         {/* Top Glow Decorator */}
-        <div className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="pointer-events-none absolute -left-20 -top-20 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
 
         <div className="space-y-6">
           {/* Logo Brand Header */}
-          <div className="text-center space-y-2">
+          <div className="space-y-2 text-center">
             <Link
               href="/"
-              className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20 text-white font-bold text-lg mb-2"
+              className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-lg font-bold text-white shadow-lg shadow-emerald-500/20"
             >
               E
             </Link>
             <h1 className="text-2xl font-bold tracking-tight text-white">Welcome back</h1>
-            <p className="text-stone-400 text-sm">
+            <p className="text-sm text-stone-400">
               Sign in to continue tracking your climate impact
             </p>
           </div>
 
           {/* Verification Banners */}
           {verified && !successMsg && (
-            <div className="flex items-center gap-2 p-3 text-xs text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-emerald-400">
               <CheckCircle2 size={16} className="shrink-0" />
               <span>Email verified successfully! You can now log in.</span>
             </div>
           )}
 
           {passwordUpdated && !successMsg && (
-            <div className="flex items-center gap-2 p-3 text-xs text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-emerald-400">
               <CheckCircle2 size={16} className="shrink-0" />
               <span>Password updated! Please sign in with your new credentials.</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="flex items-center gap-2 p-3 text-xs text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-emerald-400">
               <CheckCircle2 size={16} className="shrink-0" />
               <span>{successMsg}</span>
             </div>
           )}
 
           {errorMsg && (
-            <div className="flex items-center gap-2 p-3 text-xs text-red-400 bg-red-500/5 border border-red-500/20 rounded-xl" role="alert">
+            <div
+              className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-400"
+              role="alert"
+            >
               <AlertCircle size={16} className="shrink-0" />
               <div className="space-y-1">
                 <p>{errorMsg}</p>
@@ -161,7 +166,7 @@ export default function LoginPage() {
                     onClick={handleResend}
                     disabled={resending}
                     type="button"
-                    className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-2 flex items-center gap-1 mt-1 outline-none"
+                    className="mt-1 flex items-center gap-1 font-semibold text-emerald-400 underline underline-offset-2 outline-none hover:text-emerald-300"
                   >
                     {resending ? (
                       <>
@@ -191,7 +196,7 @@ export default function LoginPage() {
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? 'email-error' : undefined}
                 {...register('email')}
-                className="w-full px-4 py-2.5 bg-dark-900 border border-eco-500/10 rounded-xl text-stone-200 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full rounded-xl border border-eco-500/10 bg-dark-900 px-4 py-2.5 text-sm text-stone-200 transition-colors focus:border-emerald-500 focus:outline-none"
               />
               {errors.email && (
                 <p id="email-error" className="text-xs text-red-400">
@@ -201,13 +206,13 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <label htmlFor="password" className="text-xs font-semibold text-stone-400">
                   Password
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
+                  className="text-xs font-semibold text-emerald-400 underline underline-offset-2 hover:text-emerald-300"
                 >
                   Forgot password?
                 </Link>
@@ -221,12 +226,12 @@ export default function LoginPage() {
                   aria-invalid={!!errors.password}
                   aria-describedby={errors.password ? 'password-error' : undefined}
                   {...register('password')}
-                  className="w-full pl-4 pr-10 py-2.5 bg-dark-900 border border-eco-500/10 rounded-xl text-stone-200 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                  className="w-full rounded-xl border border-eco-500/10 bg-dark-900 py-2.5 pl-4 pr-10 text-sm text-stone-200 transition-colors focus:border-emerald-500 focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-stone-500 hover:text-stone-300 outline-none"
+                  className="absolute right-3 top-2.5 text-stone-500 outline-none hover:text-stone-300"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -242,7 +247,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 btn-primary rounded-xl text-white font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50 transition-opacity"
+              className="btn-primary flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium text-white transition-opacity disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -255,11 +260,11 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-stone-400 text-xs text-center">
+          <p className="text-center text-xs text-stone-400">
             New to EcoGuide AI?{' '}
             <Link
               href="/signup"
-              className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-4"
+              className="font-semibold text-emerald-400 underline underline-offset-4 hover:text-emerald-300"
             >
               Create an account
             </Link>

@@ -14,13 +14,27 @@ describe('Assessment Submission & Goal Seeding API', () => {
   const mockFrom = vi.fn();
 
   const mockBuilder: any = {
-    insert: vi.fn().mockImplementation(function (this: any) { return this; }),
-    select: vi.fn().mockImplementation(function (this: any) { return this; }),
-    eq: vi.fn().mockImplementation(function (this: any) { return this; }),
-    delete: vi.fn().mockImplementation(function (this: any) { return this; }),
-    single: vi.fn().mockImplementation(function (this: any) { return this; }),
+    insert: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    select: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    eq: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    delete: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    single: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
     then: vi.fn().mockImplementation(function (this: any, onfulfilled: any) {
-      return Promise.resolve({ data: mockResult.data, error: mockResult.error, count: mockResult.count }).then(onfulfilled);
+      return Promise.resolve({
+        data: mockResult.data,
+        error: mockResult.error,
+        count: mockResult.count,
+      }).then(onfulfilled);
     }),
   };
 
@@ -54,7 +68,11 @@ describe('Assessment Submission & Goal Seeding API', () => {
     mockFrom.mockReturnValue(mockBuilder);
 
     mockBuilder.then.mockImplementation(function (this: any, onfulfilled: any) {
-      return Promise.resolve({ data: mockResult.data, error: mockResult.error, count: mockResult.count }).then(onfulfilled);
+      return Promise.resolve({
+        data: mockResult.data,
+        error: mockResult.error,
+        count: mockResult.count,
+      }).then(onfulfilled);
     });
 
     vi.mocked(createClient).mockReturnValue({
@@ -102,7 +120,7 @@ describe('Assessment Submission & Goal Seeding API', () => {
         expect.objectContaining({ title: 'Reduce carbon footprint by 10%' }),
         expect.objectContaining({ title: 'Switch to 100% renewable energy' }),
         expect.objectContaining({ title: 'Reduce annual travel emissions by 500kg' }),
-      ])
+      ]),
     );
   });
 
@@ -139,5 +157,27 @@ describe('Assessment Submission & Goal Seeding API', () => {
     // Verify goals insert was NOT called (was only called for 'assessments' insert, not 'goals')
     const goalsCalls = mockFrom.mock.calls.filter((call) => call[0] === 'goals');
     expect(goalsCalls).toHaveLength(0);
+  });
+
+  it('allows unauthenticated users to compute footprint without database insertion', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
+
+    const req = new NextRequest('http://localhost/api/assessment', {
+      method: 'POST',
+      body: JSON.stringify(validAssessmentInput),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.id).toBe('anonymous');
+    expect(json.breakdown).toBeDefined();
+    expect(json.grade).toBeDefined();
+    expect(json.recommendations).toBeDefined();
+    expect(json.pointsAwarded).toBe(0);
+    expect(json.unlockedBadges).toEqual([]);
+
+    // Verify DB was NOT queried/written
+    expect(mockFrom).not.toHaveBeenCalled();
   });
 });

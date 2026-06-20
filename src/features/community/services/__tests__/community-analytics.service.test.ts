@@ -11,14 +11,30 @@ vi.mock('@/lib/supabase/server', () => ({
 
 let mockQueryResult: { data: any; error: any; count?: number } = { data: null, error: null };
 const mockBuilder: any = {
-  select: vi.fn().mockImplementation(function (this: any) { return this; }),
-  eq: vi.fn().mockImplementation(function (this: any) { return this; }),
-  order: vi.fn().mockImplementation(function (this: any) { return this; }),
-  limit: vi.fn().mockImplementation(function (this: any) { return this; }),
-  gte: vi.fn().mockImplementation(function (this: any) { return this; }),
-  upsert: vi.fn().mockImplementation(function (this: any) { return this; }),
-  maybeSingle: vi.fn().mockImplementation(function (this: any) { return this; }),
-  single: vi.fn().mockImplementation(function (this: any) { return this; }),
+  select: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  eq: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  order: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  limit: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  gte: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  upsert: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  maybeSingle: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  single: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
   then: vi.fn().mockImplementation(function (this: any, onfulfilled: any) {
     if (typeof onfulfilled === 'function') {
       return Promise.resolve(mockQueryResult).then(onfulfilled);

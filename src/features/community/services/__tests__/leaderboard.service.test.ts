@@ -13,19 +13,45 @@ vi.mock('@/lib/supabase/server', () => ({
 // Setup default mock builder
 let mockQueryResult: { data: any; error: any } = { data: null, error: null };
 const mockBuilder: any = {
-  select: vi.fn().mockImplementation(function (this: any) { return this; }),
-  eq: vi.fn().mockImplementation(function (this: any) { return this; }),
-  neq: vi.fn().mockImplementation(function (this: any) { return this; }),
-  order: vi.fn().mockImplementation(function (this: any) { return this; }),
-  limit: vi.fn().mockImplementation(function (this: any) { return this; }),
-  range: vi.fn().mockImplementation(function (this: any) { return this; }),
-  gte: vi.fn().mockImplementation(function (this: any) { return this; }),
-  lte: vi.fn().mockImplementation(function (this: any) { return this; }),
-  delete: vi.fn().mockImplementation(function (this: any) { return this; }),
-  insert: vi.fn().mockImplementation(function (this: any) { return this; }),
-  upsert: vi.fn().mockImplementation(function (this: any) { return this; }),
-  maybeSingle: vi.fn().mockImplementation(function (this: any) { return this; }),
-  single: vi.fn().mockImplementation(function (this: any) { return this; }),
+  select: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  eq: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  neq: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  order: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  limit: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  range: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  gte: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  lte: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  delete: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  insert: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  upsert: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  maybeSingle: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
+  single: vi.fn().mockImplementation(function (this: any) {
+    return this;
+  }),
   then: vi.fn().mockImplementation(function (this: any, onfulfilled: any) {
     if (typeof onfulfilled === 'function') {
       return Promise.resolve(mockQueryResult).then(onfulfilled);
@@ -89,7 +115,7 @@ describe('leaderboard.service tests', () => {
           displayName: 'Hero',
           totalPoints: 1200,
           isCurrentUser: false,
-        })
+        }),
       );
     });
   });
@@ -116,7 +142,11 @@ describe('leaderboard.service tests', () => {
           total_points: 1000,
           current_level: 5,
           longest_streak: 10,
-          profiles: { display_name: 'User One', avatar_url: 'avatar-1', created_at: '2026-06-01T00:00:00Z' },
+          profiles: {
+            display_name: 'User One',
+            avatar_url: 'avatar-1',
+            created_at: '2026-06-01T00:00:00Z',
+          },
           community_profiles: { leaderboard_opt_in: true, public_profile_visibility: 'public' },
         },
         {
@@ -124,7 +154,11 @@ describe('leaderboard.service tests', () => {
           total_points: 2000,
           current_level: 6,
           longest_streak: 15,
-          profiles: { display_name: 'User Two', avatar_url: 'avatar-2', created_at: '2026-06-02T00:00:00Z' },
+          profiles: {
+            display_name: 'User Two',
+            avatar_url: 'avatar-2',
+            created_at: '2026-06-02T00:00:00Z',
+          },
           community_profiles: { leaderboard_opt_in: true, public_profile_visibility: 'public' },
         },
       ];

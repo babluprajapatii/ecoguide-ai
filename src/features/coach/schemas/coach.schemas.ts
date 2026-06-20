@@ -19,9 +19,7 @@ export const coachRequestSchema = z.object({
     .string()
     .min(1, 'Message cannot be empty.')
     .max(500, 'Message must be at most 500 characters.'),
-  conversationHistory: z
-    .array(messageSchema)
-    .max(10, 'History cannot exceed 10 messages.'),
+  conversationHistory: z.array(messageSchema).max(10, 'History cannot exceed 10 messages.'),
 });
 
 /** Typings derived from Zod schemas */

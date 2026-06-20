@@ -211,7 +211,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       user_badges: {
@@ -245,7 +245,7 @@ export interface Database {
             columns: ['badge_id'];
             referencedRelation: 'badges';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       points_transactions: {
@@ -276,7 +276,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       goals: {
@@ -322,7 +322,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       community_profiles: {
@@ -359,7 +359,7 @@ export interface Database {
             columns: ['id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       leaderboard_rank_cache: {
@@ -408,7 +408,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       community_stats_cache: {
@@ -535,7 +535,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       coach_recommendations: {
@@ -578,7 +578,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       saved_simulations: {
@@ -636,7 +636,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
     };

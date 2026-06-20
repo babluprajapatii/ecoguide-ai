@@ -25,7 +25,7 @@ export function useLeaderboard(initialLimit: number = 20) {
 
     try {
       const res = await fetch(
-        `/api/community/leaderboard?page=${page}&limit=${limit}&view=${view}`
+        `/api/community/leaderboard?page=${page}&limit=${limit}&view=${view}`,
       );
       if (!res.ok) {
         throw new Error(`Failed to fetch leaderboard: ${res.statusText}`);
@@ -36,7 +36,8 @@ export function useLeaderboard(initialLimit: number = 20) {
       setCurrentUser(data.currentUser || null);
       setPagination(data.pagination || null);
     } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : 'An error occurred while loading the leaderboard';
+      const errMsg =
+        err instanceof Error ? err.message : 'An error occurred while loading the leaderboard';
       setError(errMsg);
     } finally {
       setIsLoading(false);

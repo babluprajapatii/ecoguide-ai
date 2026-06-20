@@ -14,7 +14,10 @@ export const simulatorAdjustmentsSchema = z.object({
 });
 
 export const createSimulationSchema = z.object({
-  scenario_name: z.string().min(1, 'Scenario name cannot be empty.').max(100, 'Scenario name is too long.'),
+  scenario_name: z
+    .string()
+    .min(1, 'Scenario name cannot be empty.')
+    .max(100, 'Scenario name is too long.'),
   scenario_type: z.enum(['ev', 'solar', 'diet', 'flights', 'shopping', 'custom']),
   configuration: simulatorAdjustmentsSchema,
   estimated_carbon_savings: z.number().nonnegative(),

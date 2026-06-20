@@ -26,17 +26,16 @@ export async function getXpEarnedSummary(userId: string): Promise<XpSummary> {
   const now = new Date();
 
   // Start of UTC day
-  const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+  const startOfDay = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0),
+  );
 
   // Start of UTC week (7 days ago, or Monday of current week; we will do last 7 days for rolling week, or current calendar week. Let's do current calendar week, starting Sunday)
   const currentDayOfWeek = now.getUTCDay(); // 0 is Sunday
   const startOfWeek = new Date(startOfDay);
   startOfWeek.setUTCDate(startOfWeek.getUTCDate() - currentDayOfWeek);
 
-  let todayQuery = supabase
-    .from('points_transactions')
-    .select('points')
-    .eq('user_id', userId);
+  let todayQuery = supabase.from('points_transactions').select('points').eq('user_id', userId);
 
   if (typeof (todayQuery as any).gte === 'function') {
     todayQuery = (todayQuery as any).gte('awarded_at', startOfDay.toISOString());
@@ -45,14 +44,14 @@ export async function getXpEarnedSummary(userId: string): Promise<XpSummary> {
   const { data: todayTxs, error: todayError } = await todayQuery;
 
   if (todayError) {
-    console.error('[gamification-analytics] Failed to fetch today\'s transactions:', todayError.message);
+    console.error(
+      "[gamification-analytics] Failed to fetch today's transactions:",
+      todayError.message,
+    );
     throw new Error(`Failed to fetch today's XP: ${todayError.message}`);
   }
 
-  let weekQuery = supabase
-    .from('points_transactions')
-    .select('points')
-    .eq('user_id', userId);
+  let weekQuery = supabase.from('points_transactions').select('points').eq('user_id', userId);
 
   if (typeof (weekQuery as any).gte === 'function') {
     weekQuery = (weekQuery as any).gte('awarded_at', startOfWeek.toISOString());
@@ -61,7 +60,10 @@ export async function getXpEarnedSummary(userId: string): Promise<XpSummary> {
   const { data: weekTxs, error: weekError } = await weekQuery;
 
   if (weekError) {
-    console.error('[gamification-analytics] Failed to fetch this week\'s transactions:', weekError.message);
+    console.error(
+      "[gamification-analytics] Failed to fetch this week's transactions:",
+      weekError.message,
+    );
     throw new Error(`Failed to fetch this week's XP: ${weekError.message}`);
   }
 
@@ -89,7 +91,7 @@ export interface ProgressionHistoryPoint {
  */
 export async function getProgressionHistory(
   userId: string,
-  limitDays = 30
+  limitDays = 30,
 ): Promise<ProgressionHistoryPoint[]> {
   const supabase = createClient();
   const cutoffDate = new Date();
@@ -108,7 +110,10 @@ export async function getProgressionHistory(
   const { data: txs, error: txError } = await txsQuery;
 
   if (txError) {
-    console.error('[gamification-analytics] Failed to fetch transactions for progression history:', txError.message);
+    console.error(
+      '[gamification-analytics] Failed to fetch transactions for progression history:',
+      txError.message,
+    );
     throw new Error(`Failed to fetch progression history: ${txError.message}`);
   }
 
@@ -134,7 +139,9 @@ export async function getProgressionHistory(
 
   const now = new Date();
   for (let i = limitDays; i >= 0; i--) {
-    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i, 0, 0, 0, 0));
+    const d = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i, 0, 0, 0, 0),
+    );
     const dateStr = d.toISOString().split('T')[0]!;
     const dayXp = dailyXpMap.get(dateStr) ?? 0;
     runningXpSum += dayXp;

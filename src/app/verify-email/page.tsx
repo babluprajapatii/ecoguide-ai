@@ -50,28 +50,28 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-dark-900 grid-bg hero-gradient px-4">
-      <div className="w-full max-w-md p-8 rounded-2xl border border-eco-500/10 bg-dark-800/85 backdrop-blur-md shadow-2xl relative overflow-hidden">
+    <main className="grid-bg hero-gradient flex min-h-screen items-center justify-center bg-dark-900 px-4">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-eco-500/10 bg-dark-800/85 p-8 shadow-2xl backdrop-blur-md">
         {/* Top Glow Decorator */}
-        <div className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="pointer-events-none absolute -left-20 -top-20 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
 
-        <div className="text-center space-y-6">
+        <div className="space-y-6 text-center">
           {/* Logo Brand Icon */}
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20 text-white font-bold text-xl mx-auto">
+          <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-xl font-bold text-white shadow-lg shadow-emerald-500/20">
             E
           </div>
 
           <div className="space-y-2">
             <h1 className="text-2xl font-bold tracking-tight text-white">Check your email</h1>
-            <p className="text-stone-400 text-sm">
+            <p className="text-sm text-stone-400">
               We sent a verification link to your inbox. Click the link to activate your account.
             </p>
           </div>
 
           <div className="flex justify-center py-2">
             <div className="relative">
-              <div className="absolute inset-0 bg-emerald-500/25 rounded-full blur-xl animate-pulse" />
-              <div className="relative w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <div className="absolute inset-0 animate-pulse rounded-full bg-emerald-500/25 blur-xl" />
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
                 <Mail size={32} />
               </div>
             </div>
@@ -79,14 +79,20 @@ export default function VerifyEmailPage() {
 
           {/* Success / Error Banners */}
           {message && (
-            <div className="flex items-center gap-2 p-3 text-xs text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-left" role="alert">
+            <div
+              className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-left text-xs text-emerald-400"
+              role="alert"
+            >
               <CheckCircle2 size={16} className="shrink-0" />
               <span>{message}</span>
             </div>
           )}
 
           {error && (
-            <div className="flex items-center gap-2 p-3 text-xs text-red-400 bg-red-500/5 border border-red-500/20 rounded-xl text-left" role="alert">
+            <div
+              className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-left text-xs text-red-400"
+              role="alert"
+            >
               <AlertCircle size={16} className="shrink-0" />
               <span>{error}</span>
             </div>
@@ -107,14 +113,14 @@ export default function VerifyEmailPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email address"
                 required
-                className="w-full px-4 py-2.5 bg-dark-900 border border-eco-500/10 rounded-xl text-stone-200 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full rounded-xl border border-eco-500/10 bg-dark-900 px-4 py-2.5 text-sm text-stone-200 transition-colors focus:border-emerald-500 focus:outline-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 btn-primary rounded-xl text-white font-medium text-sm disabled:opacity-50 transition-opacity"
+              className="btn-primary flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-opacity disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -130,11 +136,11 @@ export default function VerifyEmailPage() {
             </button>
           </form>
 
-          <p className="text-xs text-stone-500 pt-2">
+          <p className="pt-2 text-xs text-stone-500">
             Ready to log in?{' '}
             <Link
               href="/login"
-              className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-4"
+              className="font-semibold text-emerald-400 underline underline-offset-4 hover:text-emerald-300"
             >
               Back to Login
             </Link>

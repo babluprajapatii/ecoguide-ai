@@ -14,12 +14,24 @@ describe('Sustainability Coach API Route (POST)', () => {
   const mockFrom = vi.fn();
 
   const mockBuilder: any = {
-    insert: vi.fn().mockImplementation(function (this: any) { return this; }),
-    select: vi.fn().mockImplementation(function (this: any) { return this; }),
-    eq: vi.fn().mockImplementation(function (this: any) { return this; }),
-    order: vi.fn().mockImplementation(function (this: any) { return this; }),
-    limit: vi.fn().mockImplementation(function (this: any) { return this; }),
-    maybeSingle: vi.fn().mockImplementation(function (this: any) { return this; }),
+    insert: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    select: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    eq: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    order: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    limit: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
+    maybeSingle: vi.fn().mockImplementation(function (this: any) {
+      return this;
+    }),
     then: vi.fn().mockImplementation(function (this: any, onfulfilled: any) {
       return Promise.resolve({ data: mockResult.data, error: mockResult.error }).then(onfulfilled);
     }),
@@ -46,28 +58,31 @@ describe('Sustainability Coach API Route (POST)', () => {
     } as any);
 
     // Mock global fetch for Anthropic API
-    vi.stubGlobal('fetch', vi.fn().mockImplementation(() => {
-      let done = false;
-      return Promise.resolve({
-        ok: true,
-        body: {
-          getReader: () => ({
-            read: () => {
-              if (!done) {
-                done = true;
-                return Promise.resolve({
-                  done: false,
-                  value: new TextEncoder().encode(
-                    'data: {"type": "content_block_delta", "delta": {"type": "text_delta", "text": "Hello user!"}}\n'
-                  ),
-                });
-              }
-              return Promise.resolve({ done: true, value: undefined });
-            },
-          }),
-        },
-      });
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() => {
+        let done = false;
+        return Promise.resolve({
+          ok: true,
+          body: {
+            getReader: () => ({
+              read: () => {
+                if (!done) {
+                  done = true;
+                  return Promise.resolve({
+                    done: false,
+                    value: new TextEncoder().encode(
+                      'data: {"type": "content_block_delta", "delta": {"type": "text_delta", "text": "Hello user!"}}\n',
+                    ),
+                  });
+                }
+                return Promise.resolve({ done: true, value: undefined });
+              },
+            }),
+          },
+        });
+      }),
+    );
   });
 
   afterEach(() => {
@@ -142,7 +157,7 @@ describe('Sustainability Coach API Route (POST)', () => {
         message: 'Hello World! How is the environment?',
         role: 'user',
         user_id: 'test-coach-user',
-      })
+      }),
     );
   });
 

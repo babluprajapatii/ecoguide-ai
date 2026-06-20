@@ -24,30 +24,31 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
           Measure Your Carbon Footprint
         </h1>
         <p className="mx-auto max-w-xl text-lg text-muted-foreground">
-          EcoGuide AI helps you calculate, track, and reduce your personal greenhouse gas emissions. Answer a few questions about your lifestyle to get a detailed breakdown.
+          EcoGuide AI helps you calculate, track, and reduce your personal greenhouse gas emissions.
+          Answer a few questions about your lifestyle to get a detailed breakdown.
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 text-left sm:grid-cols-5">
         <div className="rounded-xl border border-border p-4 text-center transition-colors hover:border-emerald-500/30">
           <Car className="mx-auto mb-2 h-6 w-6 text-blue-500" />
-          <span className="text-xs font-semibold block">Transport</span>
+          <span className="block text-xs font-semibold">Transport</span>
         </div>
         <div className="rounded-xl border border-border p-4 text-center transition-colors hover:border-emerald-500/30">
           <Zap className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
-          <span className="text-xs font-semibold block">Energy</span>
+          <span className="block text-xs font-semibold">Energy</span>
         </div>
         <div className="rounded-xl border border-border p-4 text-center transition-colors hover:border-emerald-500/30">
           <UtensilsCrossed className="mx-auto mb-2 h-6 w-6 text-red-500" />
-          <span className="text-xs font-semibold block">Diet</span>
+          <span className="block text-xs font-semibold">Diet</span>
         </div>
         <div className="rounded-xl border border-border p-4 text-center transition-colors hover:border-emerald-500/30">
           <ShoppingBag className="mx-auto mb-2 h-6 w-6 text-purple-500" />
-          <span className="text-xs font-semibold block">Shopping</span>
+          <span className="block text-xs font-semibold">Shopping</span>
         </div>
         <div className="rounded-xl border border-border p-4 text-center transition-colors hover:border-emerald-500/30">
           <Plane className="mx-auto mb-2 h-6 w-6 text-teal-500" />
-          <span className="text-xs font-semibold block">Travel</span>
+          <span className="block text-xs font-semibold">Travel</span>
         </div>
       </div>
 

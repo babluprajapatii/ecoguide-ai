@@ -72,7 +72,7 @@ const SHOPPING_ANNUAL_KG: Readonly<Record<ShoppingLevel, number>> = {
 /** Flight emission factors per passenger-km. Short-haul has high take-off penalty. */
 const FLIGHT_FACTORS = {
   shortHaul: 0.255, // Under 1500 km
-  longHaul: 0.195,  // 1500 km and above
+  longHaul: 0.195, // 1500 km and above
 } as const;
 
 /** Hotel stay emission factor in kg CO2 per night. */
@@ -109,10 +109,13 @@ export function calculateTransportFootprint(input: TransportInput): number {
     carEmissions = input.weeklyKm * factor * WEEKS_PER_YEAR;
   }
 
-  const publicTransportEmissions = input.publicTransportWeeklyHours * PUBLIC_TRANSPORT_FACTOR_PER_HOUR * WEEKS_PER_YEAR;
+  const publicTransportEmissions =
+    input.publicTransportWeeklyHours * PUBLIC_TRANSPORT_FACTOR_PER_HOUR * WEEKS_PER_YEAR;
   const rideShareEmissions = input.rideShareWeeklyKm * RIDESHARE_FACTOR_PER_KM * WEEKS_PER_YEAR;
 
-  return clampEmission(Math.round((carEmissions + publicTransportEmissions + rideShareEmissions) * 100) / 100);
+  return clampEmission(
+    Math.round((carEmissions + publicTransportEmissions + rideShareEmissions) * 100) / 100,
+  );
 }
 
 /**
@@ -125,7 +128,7 @@ export function calculateEnergyFootprint(input: EnergyInput): number {
   const renewFactor = Math.max(0, Math.min(100, input.renewableEnergyPercent || 0)) / 100;
 
   const gridFactor = DEFAULT_ELECTRICITY_FACTOR;
-  
+
   // Electricity emissions with renewable reduction
   const rawElectricityAnnual = input.electricityKwhPerMonth * MONTHS_PER_YEAR * gridFactor;
   const electricityAnnual = rawElectricityAnnual * (1 - renewFactor);
@@ -170,9 +173,10 @@ export function calculateShoppingFootprint(input: ShoppingInput): number {
  */
 export function calculateTravelFootprint(input: TravelInput): number {
   const flightDistanceThreshold = 1500;
-  const flightFactor = input.avgDistanceKm < flightDistanceThreshold
-    ? FLIGHT_FACTORS.shortHaul
-    : FLIGHT_FACTORS.longHaul;
+  const flightFactor =
+    input.avgDistanceKm < flightDistanceThreshold
+      ? FLIGHT_FACTORS.shortHaul
+      : FLIGHT_FACTORS.longHaul;
 
   const flightEmissions = input.flightsPerYear * input.avgDistanceKm * flightFactor;
   const hotelEmissions = input.hotelStaysPerYear * HOTEL_STAY_FACTOR_PER_NIGHT;
@@ -213,7 +217,9 @@ export function calculateTotalFootprint(inputs: AssessmentInput): FootprintBreak
   const shopping = calculateShoppingFootprint(inputs.shopping);
   const travel = calculateTravelFootprint(inputs.travel);
 
-  const total = clampEmission(Math.round((transport + energy + diet + shopping + travel) * 100) / 100);
+  const total = clampEmission(
+    Math.round((transport + energy + diet + shopping + travel) * 100) / 100,
+  );
   const comparedToAverage = clampEmission(Math.round((total / GLOBAL_AVERAGE_KG) * 100) / 100);
   const percentile = estimatePercentile(total);
 

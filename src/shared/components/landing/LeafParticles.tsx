@@ -25,9 +25,9 @@ export function LeafParticles() {
     const generatedLeaves: Leaf[] = Array.from({ length: 12 }).map((_, index) => ({
       id: index,
       left: Math.random() * 100, // 0% to 100% of viewport
-      delay: Math.random() * 10,  // 0s to 10s delay
+      delay: Math.random() * 10, // 0s to 10s delay
       duration: 10 + Math.random() * 15, // 10s to 25s fall time
-      scale: 0.5 + Math.random() * 0.8,  // size
+      scale: 0.5 + Math.random() * 0.8, // size
       rotate: Math.random() * 360,
       opacity: 0.2 + Math.random() * 0.4,
     }));
@@ -38,14 +38,11 @@ export function LeafParticles() {
   if (!mounted) return null;
 
   return (
-    <div
-      className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
-      aria-hidden="true"
-    >
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
       {leaves.map((leaf) => (
         <svg
           key={leaf.id}
-          className="leaf-particle text-eco-400/35 fill-current"
+          className="leaf-particle fill-current text-eco-400/35"
           style={{
             left: `${leaf.left}%`,
             animationDelay: `${leaf.delay}s`,

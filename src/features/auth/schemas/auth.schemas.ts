@@ -13,11 +13,7 @@ const HTML_TAG_REGEX = /<[^>]*>/;
  * - `password`: Between 8 and 128 characters.
  */
 export const signInSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
+  email: z.string().trim().min(1, 'Email is required').email('Please enter a valid email address'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
@@ -39,10 +35,7 @@ export const signUpSchema = signInSchema.extend({
     .trim()
     .min(2, 'Display name must be at least 2 characters')
     .max(50, 'Display name must be at most 50 characters')
-    .refine(
-      (value) => !HTML_TAG_REGEX.test(value),
-      'Display name must not contain HTML',
-    ),
+    .refine((value) => !HTML_TAG_REGEX.test(value), 'Display name must not contain HTML'),
 });
 
 /** Inferred TypeScript type for sign-up form data. */

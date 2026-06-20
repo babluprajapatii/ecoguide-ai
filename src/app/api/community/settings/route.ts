@@ -18,13 +18,16 @@ export async function GET(request: NextRequest) {
   if (!rateLimitResult.allowed) {
     return new NextResponse(
       JSON.stringify({ error: 'Too many requests. Please try again later.' }),
-      { status: 429, headers }
+      { status: 429, headers },
     );
   }
 
   try {
     const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers });
@@ -34,10 +37,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(settings, { status: 200, headers });
   } catch (err) {
     logger.error('Error in community settings GET endpoint', { error: err });
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500, headers }
-    );
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers });
   }
 }
 
@@ -48,13 +48,16 @@ export async function PUT(request: NextRequest) {
   if (!rateLimitResult.allowed) {
     return new NextResponse(
       JSON.stringify({ error: 'Too many requests. Please try again later.' }),
-      { status: 429, headers }
+      { status: 429, headers },
     );
   }
 
   try {
     const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers });
@@ -66,7 +69,7 @@ export async function PUT(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: 'Invalid settings fields', details: parsed.error.format() },
-        { status: 400, headers }
+        { status: 400, headers },
       );
     }
 
@@ -82,9 +85,6 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(parsed.data, { status: 200, headers });
   } catch (err) {
     logger.error('Error in community settings PUT endpoint', { error: err });
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500, headers }
-    );
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers });
   }
 }

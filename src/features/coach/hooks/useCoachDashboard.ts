@@ -126,7 +126,9 @@ export function useCoachDashboard() {
   );
 
   const createRecommendation = useCallback(
-    async (rec: Omit<CoachRecommendation, 'id' | 'user_id' | 'status' | 'created_at' | 'updated_at'>) => {
+    async (
+      rec: Omit<CoachRecommendation, 'id' | 'user_id' | 'status' | 'created_at' | 'updated_at'>,
+    ) => {
       return createRecMutation.mutateAsync(rec);
     },
     [createRecMutation],

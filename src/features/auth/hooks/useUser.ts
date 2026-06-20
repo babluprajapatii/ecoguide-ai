@@ -15,7 +15,7 @@ export function useUser() {
   if (context === undefined) {
     throw new Error(
       'useUser must be used within an AuthProvider. ' +
-        'Wrap your component tree with <AuthProvider>.'
+        'Wrap your component tree with <AuthProvider>.',
     );
   }
   return context.user;

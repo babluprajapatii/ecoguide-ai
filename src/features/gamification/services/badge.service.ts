@@ -22,17 +22,18 @@ import type { BadgeDefinition } from '../types/gamification.types';
  */
 export async function evaluateBadges(
   userId: string,
-  _triggerAction?: string
+  _triggerAction?: string,
 ): Promise<BadgeDefinition[]> {
   const supabase = createClient();
 
   // 1. Fetch badge definition mappings from DB to get UUIDs
-  const { data: dbBadges, error: dbBadgesError } = await supabase
-    .from('badges')
-    .select('id, slug');
+  const { data: dbBadges, error: dbBadgesError } = await supabase.from('badges').select('id, slug');
 
   if (dbBadgesError) {
-    console.error('[badge.service] Failed to fetch badge definitions from DB:', dbBadgesError.message);
+    console.error(
+      '[badge.service] Failed to fetch badge definitions from DB:',
+      dbBadgesError.message,
+    );
     return [];
   }
 
@@ -109,7 +110,8 @@ export async function evaluateBadges(
   const simulationsCount = simulationsArray.length;
   const hasVeganSimulation = simulationsArray.some((s) => {
     try {
-      const config = typeof s.configuration === 'string' ? JSON.parse(s.configuration) : s.configuration;
+      const config =
+        typeof s.configuration === 'string' ? JSON.parse(s.configuration) : s.configuration;
       return config?.dietType === 'vegan';
     } catch {
       return false;
@@ -146,9 +148,7 @@ export async function evaluateBadges(
   const isCommunityMember = !!commProfile?.opt_in;
 
   // 3f. Leaderboard top 10
-  let rankQuery = supabase
-    .from('user_points')
-    .select('user_id');
+  let rankQuery = supabase.from('user_points').select('user_id');
 
   if (typeof (rankQuery as any).limit === 'function') {
     rankQuery = (rankQuery as any).limit(10);
@@ -244,12 +244,10 @@ export async function evaluateBadges(
 
     if (isUnlocked) {
       // Award the badge in the DB
-      const { error: insertError } = await supabase
-        .from('user_badges')
-        .insert({
-          user_id: userId,
-          badge_id: badgeUuid,
-        });
+      const { error: insertError } = await supabase.from('user_badges').insert({
+        user_id: userId,
+        badge_id: badgeUuid,
+      });
 
       if (insertError) {
         // If it's a unique constraint violation, it means someone else inserted it first
@@ -257,7 +255,10 @@ export async function evaluateBadges(
           console.log(`[badge.service] Badge ${badgeDef.slug} already unlocked concurrently.`);
           continue;
         }
-        console.error(`[badge.service] Failed to unlock badge ${badgeDef.slug}:`, insertError.message);
+        console.error(
+          `[badge.service] Failed to unlock badge ${badgeDef.slug}:`,
+          insertError.message,
+        );
         continue;
       }
 

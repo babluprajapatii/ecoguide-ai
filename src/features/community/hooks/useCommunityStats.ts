@@ -20,7 +20,8 @@ export function useCommunityStats() {
       const data = await res.json();
       setStats(data);
     } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : 'An error occurred while loading community statistics';
+      const errMsg =
+        err instanceof Error ? err.message : 'An error occurred while loading community statistics';
       setError(errMsg);
     } finally {
       setIsLoading(false);

@@ -198,7 +198,7 @@ describe('Community Preview API Route Handlers', () => {
           optIn: true,
           leaderboardOptIn: true,
           publicProfileVisibility: 'public',
-        })
+        }),
       );
     });
   });

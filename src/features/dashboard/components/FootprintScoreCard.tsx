@@ -110,32 +110,22 @@ function FootprintScoreCardInner({
       className={cn('rounded-xl border p-6 transition-colors', styles.card)}
     >
       <div className="mb-1 flex items-center gap-2">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          Annual Carbon Footprint
-        </h2>
-        <span
-          className={cn(
-            'rounded-full px-2.5 py-0.5 text-xs font-semibold',
-            styles.badge,
-          )}
-        >
+        <h2 className="text-sm font-medium text-muted-foreground">Annual Carbon Footprint</h2>
+        <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-semibold', styles.badge)}>
           {styles.label}
         </span>
       </div>
 
       <p className="mb-4 text-5xl font-bold tracking-tight text-foreground">
         {formatTonnes(totalKg)}
-        <span className="ml-2 text-lg font-normal text-muted-foreground">
-          tonnes CO₂/yr
-        </span>
+        <span className="ml-2 text-lg font-normal text-muted-foreground">tonnes CO₂/yr</span>
       </p>
 
       <div className="space-y-1 text-sm text-muted-foreground">
         <p>{globalComparison}</p>
         <p>{nationalComparison}</p>
         <p>
-          Percentile ranking:{' '}
-          <span className="font-medium text-foreground">{percentile}</span>
+          Percentile ranking: <span className="font-medium text-foreground">{percentile}</span>
           <span className="text-xs">/100</span>
         </p>
       </div>

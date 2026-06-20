@@ -98,7 +98,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen bg-dark-900 font-sans antialiased text-stone-200 overflow-x-hidden">
+      <body className="min-h-screen overflow-x-hidden bg-dark-900 font-sans text-stone-200 antialiased">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
