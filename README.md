@@ -1,475 +1,214 @@
-<div align="center">
-
-<img src="public/logo.svg" alt="EcoGuide AI Logo" width="80" height="80" />
-
 # EcoGuide AI
 
-**AI-powered sustainability platform helping users understand, reduce, and optimize their carbon footprint.**
+### _AI-Powered Carbon Footprint Tracker & Sustainability Coach_
 
-[![CI/CD](https://github.com/babluprajapatii/ecoguide-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/babluprajapatii/ecoguide-ai/actions/workflows/ci.yml)
-[![Accessibility — WCAG 2.1 AA](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-22c55e?logo=w3c)](https://www.w3.org/WAI/standards-guidelines/wcag/)
-[![Security — OWASP Top 10](https://img.shields.io/badge/Security-OWASP%20Top%2010-3b82f6?logo=owasp)](https://owasp.org/www-project-top-ten/)
-[![Test Coverage — 90%+](https://img.shields.io/badge/Coverage-90%25%2B-10b981?logo=vitest)](https://vitest.dev/)
-[![Lighthouse — 95+](https://img.shields.io/badge/Lighthouse-95%2B-f97316?logo=lighthouse)](https://developers.google.com/web/tools/lighthouse)
-[![License: MIT](https://img.shields.io/badge/License-MIT-6b7280)](LICENSE)
-[![Next.js 14](https://img.shields.io/badge/Next.js-14-000000?logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)](https://www.typescriptlang.org/)
+EcoGuide AI is a production-ready, full-stack sustainability platform designed to help users track, understand, and lower their home utility bills and carbon footprint. It features real-time calculators, an AI coach, gamified level ups, and interactive simulators.
 
-[🚀 Live Demo](https://ecoguide-ai.vercel.app) · [📖 Documentation](#local-development) · [🐛 Report Bug](.github/ISSUE_TEMPLATE/bug_report.md) · [✨ Request Feature](.github/ISSUE_TEMPLATE/feature_request.md)
-
-</div>
+- **🚀 Live Demo**: [https://ecoguide-ai-lovat.vercel.app/](https://ecoguide-ai-lovat.vercel.app/)
+- **💻 Repository**: [https://github.com/babluprajapatii/ecoguide-ai](https://github.com/babluprajapatii/ecoguide-ai)
 
 ---
 
-## Project Overview
+## 🌿 Project Overview
 
-EcoGuide AI is a full-stack, production-ready sustainability SaaS platform built for the **Hack2Skill Hackathon**. It empowers individuals to take meaningful climate action through:
+Traditional sustainability tracking is fragmented, static, and often overwhelming. EcoGuide AI solves this problem by combining:
 
-- 🌿 **Personalized carbon assessment** across 5 lifestyle categories
-- 📊 **Real-time analytics dashboard** with interactive charts
-- 🤖 **AI sustainability coach** powered by Claude (Anthropic)
-- 🧪 **What-if simulator** to model lifestyle change impacts
-- 🏆 **Gamification system** with XP, badges, streaks, and levels
-- 🌍 **Community leaderboards** with opt-in privacy controls
+1. **Actionable Analytics**: A multi-step carbon footprint wizard that computes real-world emissions across 5 categories.
+2. **Context-Aware AI Guidance**: A 24/7 AI Sustainability Coach that learns the user's carbon hotspots and drafts custom reduction pathways.
+3. **Engaging Gamification**: High-fidelity community boards, daily streaks, levels, and unlockable achievement badges.
 
-Built with **Next.js 14**, **TypeScript 5 (strict)**, **Supabase**, and **Tailwind CSS**. Meets WCAG 2.1 AA accessibility, OWASP Top 10 security, and achieves Lighthouse 95+.
+EcoGuide AI provides users with a cohesive, accessible, and highly secure environment to track their progress, run what-if simulations on household habits, and compare their scores anonymously on a neighborhood leaderboard.
 
 ---
 
-## Key Features
+## ✨ Feature Highlights
 
-### 🌱 Carbon Footprint Assessment
-A guided, multi-step assessment covering:
-- **Transport** — car type, mileage, flights per year
-- **Energy** — home size, heating source, renewable energy
-- **Diet** — meat consumption, local/organic sourcing
-- **Shopping** — consumer goods, fast fashion habits
-- **Travel** — holidays, business trips, accommodation type
-
-Results displayed as interactive doughnut and bar charts with percentile rankings against global averages.
-
-### 📈 Analytics Dashboard
-- Real-time carbon score with trend visualization
-- Goal tracking with progress bars and completion rates
-- AI-generated weekly tip carousel
-- Streak counter and achievement preview widget
-- Community preview with nearby rank context
-
-### 🤖 AI Sustainability Coach
-- Chat interface powered by **Anthropic Claude 3 Haiku**
-- Conversation history persisted in Supabase
-- Context-aware advice based on assessment scores
-- Personalized action plans with measurable targets
-- Fallback graceful degradation when AI is unavailable
-- DOMPurify-sanitized markdown rendering
-
-### 🧪 Carbon Impact Simulator
-- Interactive sliders for 8 lifestyle parameters
-- Real-time CO₂ calculation with industry-standard emission factors
-- Side-by-side comparison chart (current vs. simulated)
-- Save up to 10 simulations to track potential futures
-- Export simulation results
-
-### 🏆 Gamification
-- **XP Points** — earned for every action: assessments, coaching, simulations
-- **Levels** — 10 levels from "Eco Novice" to "Eco Legend"
-- **Badges** — 16 unique achievement badges with unlock conditions
-- **Streaks** — daily engagement streaks with multiplier bonuses
-- **Leaderboard** — opt-in global rankings by XP, level, and streak
-
-### 🌍 Community & Leaderboards
-- Global, Top 10, and Nearby rank views
-- Privacy controls: public / private profile, leaderboard opt-in
-- Spotlight cards for Top Carbon Saver, Most Improved, Longest Streak
-- Community statistics: total users, active this week, XP earned
-- Public profile cards with badges and bio
+- **🌱 Carbon Footprint Assessment**: An interactive, multi-step carbon assessment wizard covering transport, home energy, dietary habits, consumer shopping, and travel parameters.
+- **🤖 AI Sustainability Coach**: A 24/7 personalized chat companion powered by Anthropic's Claude, delivering context-specific energy-saving recommendations based on the user's latest assessment score.
+- **🧪 Carbon Impact Simulator**: What-if scenario modeling using interactive sliders to simulate changes in weekly mileage, fuel types, diet, and heating methods.
+- **🌍 Community Leaderboard**: A private, opt-in leaderboard featuring global, nearby, and top performer rankings.
+- **🏆 Gamification & Achievements**: Level tracking, streak counter multipliers, and 16 unlockable badges.
+- **♿ Accessibility-First Design**: Built to meet WCAG 2.1 AA+ compliance, with keyboard focus, skip-to-content links, clean tab order, and screen reader announcements.
+- **🔐 Secure Authentication**: Dynamic cookie-based sessions with custom middleware protecting dashboard sub-pages.
+- **📋 Personalized Recommendations**: Adaptive tips carousel generated dynamically based on the highest carbon footprint categories.
 
 ---
 
-## Screenshots
-
-> *Screenshots showcase the premium dark-mode UI with emerald green accents.*
-
-### Landing Page
-The landing page features a hero section with animated gradient, feature cards, testimonials, and a call-to-action.
-
-### Dashboard
-Real-time carbon metrics, goal progress tracking, AI tips, and community preview — all in a responsive sidebar layout.
-
-### AI Coach
-Claude-powered chat interface with conversation history, contextual sustainability advice, and markdown rendering.
-
-### Carbon Simulator
-Interactive parameter sliders with real-time CO₂ calculation and comparison charts.
-
-### Badges & Achievements
-16 unique badge designs with unlock progress and animated reveal on achievement.
-
-### Community Leaderboard
-Responsive table/card layout with rank change indicators, avatar display, and XP/level/streak columns.
-
----
-
-## Architecture
+## 📐 Architecture
 
 ```mermaid
-flowchart LR
-    User["👤 User (Browser)"] --> Next["⚡ Next.js 14\n(App Router)"]
-    Next --> API["🔌 API Routes\n(Edge-ready)"]
-    Next --> UI["🎨 React Components\n(Client/Server)"]
-    API --> Supabase["🗄️ Supabase\n(PostgreSQL + Auth + Storage)"]
-    API --> Claude["🤖 Anthropic Claude\n(AI Coach)"]
-    Supabase --> DB[("📦 Database\nRLS-protected tables")]
-    Supabase --> Auth["🔐 Auth\n(JWT + Sessions)"]
-    Supabase --> Storage["🖼️ Storage\n(Avatar images)"]
-    Next --> MW["🛡️ Middleware\n(Auth guard + CSP headers)"]
+flowchart TD
+    User["👤 User (Browser)"] --> Next["⚡ Next.js Frontend"]
+    Next --> MW["🛡️ Middleware (Auth & CSP)"]
+    MW --> API["🔌 API Layer"]
+    API --> Supabase["🗄️ Supabase (Auth/DB/Storage)"]
+    API --> AI["🤖 AI Services (Claude API)"]
 ```
 
 ### Folder Structure
 
 ```
 src/
-├── app/                          # Next.js App Router
-│   ├── (dashboard)/              # Protected route group
-│   │   ├── assessment/           # Multi-step assessment wizard
-│   │   ├── badges/               # Achievement gallery
-│   │   ├── coach/                # AI coach chat interface
-│   │   ├── community/            # Leaderboard & community page
-│   │   ├── dashboard/            # Main analytics dashboard
-│   │   ├── settings/             # Profile & theme settings
-│   │   └── simulator/            # Carbon impact simulator
-│   ├── api/                      # API Route handlers
-│   │   ├── assessment/           # Assessment CRUD
-│   │   ├── coach/                # AI coaching + history
-│   │   ├── community/            # Leaderboard, stats, profile, settings
-│   │   ├── gamification/         # XP, badges, streaks
-│   │   ├── goals/                # Goal management
-│   │   └── simulator/            # Simulation calculations
-│   └── layout.tsx                # Root layout (SEO, fonts, providers)
-├── features/                     # Feature-based domain modules
-│   ├── assessment/               # Assessment forms, schemas, calculator
-│   ├── auth/                     # Authentication hooks and forms
-│   ├── coach/                    # AI coach components and service
-│   ├── community/                # Leaderboard, stats, profiles, settings
-│   ├── dashboard/                # Dashboard widgets and analytics
-│   ├── gamification/             # Points, levels, badges, streaks
-│   ├── profile/                  # Profile service and avatar upload
-│   └── simulator/                # Simulation engine and charts
-├── lib/                          # Core infrastructure
-│   ├── logger.ts                 # Structured JSON logger (no PII)
-│   ├── rate-limiter.ts           # Sliding window rate limiter
-│   └── supabase/                 # Supabase client, server, middleware
-├── providers/                    # React context providers
-│   ├── AuthProvider.tsx          # Auth state management
-│   ├── ThemeProvider.tsx         # Dark/light theme
-│   └── a11y-announcer-provider.tsx # Screen reader announcements
-└── shared/                       # Cross-feature shared code
-    ├── components/               # Reusable UI components
-    │   └── ui/                   # shadcn/ui primitives
-    └── hooks/                    # Shared custom hooks
-```
-
-### Design Principles
-
-| Principle | Implementation |
-|-----------|---------------|
-| **Feature-based architecture** | Each domain is self-contained with components, hooks, services, schemas, types |
-| **SOLID principles** | Single responsibility (< 150 lines), dependency inversion via providers |
-| **Zero barrel exports** | Direct imports preserve tree-shaking effectiveness |
-| **TypeScript strict mode** | `noImplicitAny`, `noUncheckedIndexedAccess`, zero `any` in production code |
-| **Runtime validation** | Zod schemas on all API inputs, environment variables, and form data |
-| **Error boundaries** | Graceful fallbacks at React component and API levels |
-
----
-
-## Security
-
-### OWASP Top 10 Compliance
-
-| # | Category | Implementation |
-|---|---------|----------------|
-| **A01** | Broken Access Control | Supabase Row Level Security (RLS) on all tables; middleware auth guard for all dashboard routes |
-| **A02** | Cryptographic Failures | HTTPS enforced via HSTS (`max-age=31536000; includeSubDomains; preload`); no sensitive data in client-side storage |
-| **A03** | Injection | Zod schema validation on all API inputs; Supabase parameterized queries; DOMPurify sanitization of AI output |
-| **A04** | Insecure Design | Rate limiting (sliding window) on all mutation endpoints; fail-safe defaults |
-| **A05** | Security Misconfiguration | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `poweredByHeader: false`; no debug headers in production |
-| **A06** | Vulnerable Components | `npm audit --audit-level=high` runs on every CI/CD pipeline; automated dependency alerts |
-| **A07** | Auth Failures | Supabase JWT-based sessions; middleware validates every request; session refresh on browser focus |
-| **A08** | Data Integrity | Trusted Types CSP (`require-trusted-types-for 'script'`); DOMPurify with `dompurify` trusted type policy |
-| **A09** | Logging Failures | Structured JSON logger with timestamps; no PII in logs; error stack traces captured server-side |
-| **A10** | SSRF | AI API calls are server-side only; `connect-src` CSP restricts client origins to known domains |
-
-### Security Headers
-
-```
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; ...
-Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-X-Frame-Options: DENY
-X-Content-Type-Options: nosniff
-Referrer-Policy: strict-origin-when-cross-origin
-Permissions-Policy: camera=(), microphone=(), geolocation=()
-Cross-Origin-Opener-Policy: same-origin
-Cross-Origin-Resource-Policy: same-site
-Cross-Origin-Embedder-Policy: credentialless
+├── app/                          # Next.js App Router Pages & API handlers
+│   ├── (dashboard)/              # Protected sub-pages (dashboard, coach, simulator, community, etc.)
+│   ├── api/                      # Backend API Route handlers (auth, goals, community, etc.)
+│   └── layout.tsx                # Root layout (SEO meta tags, fonts, global providers)
+├── features/                     # Self-contained domain-driven feature modules
+│   ├── assessment/               # Carbon calculator, schemas, and wizard components
+│   ├── auth/                     # Forms, hooks, and AuthContext connectors
+│   ├── coach/                    # Chat interface, suggested prompts, and OpenAI/Claude logic
+│   ├── community/                # Leaderboard, stats, settings panels, and public profiles
+│   ├── dashboard/                # Dashboard widgets and achievements previews
+│   ├── gamification/             # Points, badges definitions, streaks, and levels
+│   ├── profile/                  # Profile updates and file upload service
+│   └── simulator/                # What-if slider panel and comparison charts
+├── lib/                          # Shared library modules
+│   ├── logger.ts                 # JSON structured logger (no PII leak)
+│   ├── rate-limiter.ts           # Sliding window API rate limiter
+│   └── supabase/                 # Client/server Supabase setups and mock DB
+├── providers/                    # React Context hooks
+│   ├── AuthProvider.tsx          # Auth session provider
+│   ├── ThemeProvider.tsx         # Next-themes dark/light switch
+│   └── a11y-announcer-provider.tsx # Aria live-region screen reader announcer
+└── shared/                       # Global reusable UI primitives and hooks
 ```
 
 ---
 
-## Accessibility
+## 🛡️ Security
 
-EcoGuide AI is designed to meet **WCAG 2.1 Level AA** across all user interfaces.
+EcoGuide AI incorporates industry-standard security protocols focusing on OWASP Top 10 guidelines:
 
-### Key Implementations
+- **Authentication**: JWT-based secure session cookie tokens. Fallback mock cookie authentication (`sb-mock-auth-token`) when keys are unconfigured.
+- **Authorization**: Row Level Security (RLS) policies enforced on all Supabase tables, validating `auth.uid()` match.
+- **Protected Routes**: Next.js server-side `middleware.ts` interceptor blocks unauthorized views and handles `redirectTo` login flows.
+- **Rate Limiting**: Sliding window rate limiter protecting resource-intensive API routes (AI Coach, assessment submits, profile uploads).
+- **Input Validation**: Compulsory validation on all API payloads using Zod schemas.
+- **Output Sanitization**: Dynamic AI markdown rendering passed through DOMPurify HTML sanitizers with Trusted Types compliant policy configurations.
+- **Environment Variables**: Server-side secrets (`ANTHROPIC_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) are kept isolated on the server layer.
 
-| Feature | Implementation |
-|---------|----------------|
-| **Skip Navigation** | "Skip to main content" link as first focusable element on every page |
-| **Keyboard Navigation** | Full keyboard support for all interactive elements; custom `DropdownMenu` with arrow key navigation |
-| **Focus Management** | Focus returns to trigger after modal close; focus moves to first row on pagination change |
-| **Screen Reader Announcements** | `A11yProvider` with polite/assertive live regions for badge unlocks, level-ups, errors |
-| **ARIA Roles & Labels** | Proper `role="tablist"`, `aria-haspopup`, `aria-expanded`, `aria-describedby`, `aria-invalid` on all components |
-| **Data Tables** | Semantic `<table>`, `<caption>`, `<th scope="col">` for leaderboard; sr-only data tables for charts |
-| **Color Contrast** | All text meets ≥ 4.5:1 contrast ratio; focus outlines are clearly visible |
-| **Touch Targets** | All interactive elements ≥ 44×44px |
-| **Form Accessibility** | All inputs have `<label>`, error messages linked via `aria-describedby` |
+---
 
-### axe-core Automated Testing
+## ♿ Accessibility
 
-Accessibility tests run with [`@axe-core/react`](https://github.com/dequelabs/axe-core-npm) in the Vitest suite:
+- **WCAG 2.1 AA Compliance**: Optimized focus borders (`focus-visible:ring-emerald-500`) and high contrast color schemes.
+- **Keyboard Navigation**: 100% focus trap controls on modals, drawer layouts, and keyboard-responsive sliders.
+- **Skip Links**: Accessible "Skip to main content" skip link as the first focusable element.
+- **Screen Reader Support**: Polite and assertive live regions (`role="status"`, `role="alert"`) announcing page updates and alert banners.
+- **Focus Management**: Focus automatically moves to key layout elements on navigation and resets properly upon close events.
+
+---
+
+## 🧪 Testing
+
+We achieve high reliability and code quality using a comprehensive automated test coverage strategy:
+
+- **Unit & Integration Tests**: 226 tests executing via Vitest checking all core state machines, schemas, services, API routes, and hooks.
+- **Statement Code Coverage**: Over **99% code coverage** on all business logic, gamification rules, and calculators.
+- **Mocks**: Database, auth, and AI services are mocked using integration stubs.
+
+To run the test suite:
 
 ```bash
-npm run test -- --reporter=verbose
-```
-
----
-
-## Testing
-
-### Coverage Results
-
-| Category | Target | Status |
-|----------|--------|--------|
-| Lines | ≥ 90% | ✅ |
-| Functions | ≥ 90% | ✅ |
-| Statements | ≥ 90% | ✅ |
-| Branches | ≥ 80% | ✅ |
-
-### Test Suite Breakdown
-
-| Suite | Framework | Tests | Status |
-|-------|-----------|-------|--------|
-| Unit Tests | Vitest | 221 | ✅ All passing |
-| Integration Tests | Vitest | Included above | ✅ All passing |
-| Accessibility Tests | axe-core + Vitest | 2 | ✅ No violations |
-| End-to-End Tests | Playwright | 1 full user journey | ✅ Passing (12s) |
-
-### Running Tests
-
-```bash
-# Unit and integration tests
 npm run test
-
-# Tests with coverage report
-npm run test:coverage
-
-# End-to-end tests (requires production build)
-npm run build
-npx playwright test
-
-# Accessibility tests (included in unit suite)
-npm run test -- --reporter=verbose
 ```
 
 ---
 
-## Performance
+## 🖼️ Screenshots
 
-Optimized for **Lighthouse 95+** across all metrics:
+_Screenshots showcase the dark-mode theme with high-contrast emerald green highlights._
 
-| Metric | Strategy |
-|--------|----------|
-| **Code Splitting** | Next.js automatic route-based splitting |
-| **Dynamic Imports** | `next/dynamic` for heavy community/chart components |
-| **Image Optimization** | Next.js `<Image>` with AVIF + WebP format priority |
-| **Font Optimization** | `next/font/google` with `display: swap` |
-| **Bundle Size** | No barrel imports; tree-shaking preserved |
-| **Lazy Loading** | Dynamic imports with loading skeletons |
-| **Edge-ready** | API routes use `force-dynamic` with efficient Supabase queries |
-| **CSS** | Tailwind CSS with PurgeCSS — zero unused styles in production |
+### Landing Page
 
----
+![Landing Page Screenshot](public/screenshots/landing.png)
 
-## Tech Stack
+### Assessment Wizard
 
-| Category | Technology | Version |
-|----------|-----------|---------|
-| **Framework** | [Next.js](https://nextjs.org/) App Router | 14.x |
-| **Language** | [TypeScript](https://www.typescriptlang.org/) strict mode | 5.x |
-| **Styling** | [Tailwind CSS](https://tailwindcss.com/) | 3.x |
-| **UI Components** | [shadcn/ui](https://ui.shadcn.com/) | latest |
-| **Database & Auth** | [Supabase](https://supabase.com/) (PostgreSQL + JWT) | 2.x |
-| **AI** | [Anthropic Claude 3 Haiku](https://www.anthropic.com/) | API v1 |
-| **Charts** | [Recharts](https://recharts.org/) | 2.x |
-| **Validation** | [Zod](https://zod.dev/) | 3.x |
-| **Animation** | [Framer Motion](https://www.framer.com/motion/) | 11.x |
-| **Unit Testing** | [Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/) | latest |
-| **E2E Testing** | [Playwright](https://playwright.dev/) | 1.x |
-| **Accessibility** | [axe-core](https://github.com/dequelabs/axe-core) | 4.x |
-| **Linting** | [ESLint](https://eslint.org/) (typescript + jsx-a11y) | 8.x |
-| **Formatting** | [Prettier](https://prettier.io/) + Tailwind plugin | 3.x |
-| **Git Hooks** | [Husky](https://typicode.github.io/husky/) + lint-staged | 9.x |
-| **CI/CD** | [GitHub Actions](https://github.com/features/actions) | — |
+![Assessment Screenshot](public/screenshots/assessment.png)
+
+### Analytics Dashboard
+
+![Dashboard Screenshot](public/screenshots/dashboard.png)
+
+### AI Coach
+
+![AI Coach Screenshot](public/screenshots/coach.png)
+
+### Community Standings
+
+![Community Screenshot](public/screenshots/community.png)
+
+### Account Settings
+
+![Settings Screenshot](public/screenshots/settings.png)
 
 ---
 
-## Local Development
+## 💻 Tech Stack
+
+| Category           | Technology              | Purpose                                               |
+| ------------------ | ----------------------- | ----------------------------------------------------- |
+| **Core Framework** | Next.js 14 (App Router) | React Server Components, file-based routing, and SSR  |
+| **Language**       | TypeScript 5 (Strict)   | Compulsory static typing and safety                   |
+| **Styling**        | Tailwind CSS            | Utility-first styling for responsive layouts          |
+| **Backend & DB**   | Supabase                | PostgreSQL DB, Auth profiles, and file storage bucket |
+| **AI Integration** | Anthropic Claude API    | Contextual chat advice                                |
+| **Testing**        | Vitest & Axe            | Unit, integration, and accessibility checks           |
+| **Hosting**        | Vercel                  | Production CDN deployment                             |
+
+---
+
+## 🚀 Local Setup
 
 ### Prerequisites
 
-- **Node.js** ≥ 20.x
-- **npm** ≥ 10.x
-- **Supabase account** (or use mock mode — see below)
+Ensure you have **Node.js 18.x** or higher installed.
 
-### Quick Start
+1. **Clone the repository**:
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/babluprajapatii/ecoguide-ai.git
-cd ecoguide-ai
+   ```bash
+   git clone https://github.com/babluprajapatii/ecoguide-ai.git
+   cd ecoguide-ai
+   ```
 
-# 2. Install dependencies
-npm install
+2. **Install dependencies**:
 
-# 3. Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your credentials (see Environment Variables section)
+   ```bash
+   npm install
+   ```
 
-# 4. Start the development server
-npm run dev
-```
+3. **Set up Environment Variables**:
+   Create a `.env.local` file by copying `.env.example`:
 
-The application will be available at [http://localhost:3000](http://localhost:3000).
+   ```bash
+   cp .env.example .env.local
+   ```
 
-### Mock Mode (No Supabase Required)
-
-To run without a Supabase account, leave `NEXT_PUBLIC_SUPABASE_URL` empty in `.env.local`. The app will automatically use an in-memory mock database, allowing full UI exploration.
-
-### Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Create optimized production build |
-| `npm run start` | Start production server (after build) |
-| `npm run lint` | Run ESLint checks |
-| `npm run lint:fix` | Auto-fix lint issues |
-| `npm run typecheck` | Run TypeScript type checking |
-| `npm run format` | Format code with Prettier |
-| `npm run format:check` | Check code formatting (CI) |
-| `npm run test` | Run unit & integration tests |
-| `npm run test:coverage` | Run tests with ≥90% coverage threshold |
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) with your browser.
 
 ---
 
-## Environment Variables
+## ⚙️ Environment Variables
 
-Copy `.env.example` to `.env.local` and fill in the values:
-
-```env
-# ─── Supabase ──────────────────────────────────────────────────────────────────
-# Required for real auth and database. Leave empty for mock mode.
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key   # Server-side only
-
-# ─── Anthropic AI ──────────────────────────────────────────────────────────────
-# Required for the AI Coach feature. Get your key at console.anthropic.com
-ANTHROPIC_API_KEY=sk-ant-...                       # Server-side only
-
-# ─── Application ───────────────────────────────────────────────────────────────
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-> ⚠️ **Never commit `.env.local` to version control.** It is already in `.gitignore`.
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | No* | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No* | Supabase anonymous key |
-| `SUPABASE_SERVICE_ROLE_KEY` | No* | Supabase service role key (server only) |
-| `ANTHROPIC_API_KEY` | No* | Anthropic Claude API key (server only) |
-| `NEXT_PUBLIC_APP_URL` | No | Public-facing URL (`https://...` in production) |
-
-*No = optional; the app runs in mock mode without them.
+| Variable Name                   | Required | Description                                                       |
+| ------------------------------- | -------- | ----------------------------------------------------------------- |
+| `NEXT_PUBLIC_APP_URL`           | No       | Public application URL (default: `http://localhost:3000` locally) |
+| `NEXT_PUBLIC_SUPABASE_URL`      | No       | Supabase Project URL (falls back to local Mock Mode if missing)   |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No       | Supabase Anon Key (falls back to local Mock Mode if missing)      |
+| `SUPABASE_SERVICE_ROLE_KEY`     | No       | Server-side Supabase secret key (for administration tasks)        |
+| `ANTHROPIC_API_KEY`             | No       | Anthropic Claude developer API key (for the AI Coach client)      |
 
 ---
 
-## Deployment Guide
+## 🤝 Contribution & Feedback
 
-### Deploy to Vercel (Recommended)
+We welcome feedback and reports. Please open an issue using our repository template configurations:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/babluprajapatii/ecoguide-ai)
-
-1. Click the button above or import the repository in [vercel.com/new](https://vercel.com/new)
-2. Add environment variables in the Vercel dashboard:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `ANTHROPIC_API_KEY`
-   - `NEXT_PUBLIC_APP_URL` (your Vercel domain)
-3. Deploy — Vercel auto-builds on every push to `main`
-
-### Database Setup (Supabase)
-
-1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Run migrations from `supabase/migrations/` in order
-3. Enable Row Level Security (RLS) on all tables
-4. Copy the project URL and keys to your environment variables
-
-### Self-Hosted / Docker
-
-```bash
-# Build the production image
-npm run build
-
-# Start the production server
-npm start
-# → Listening on http://0.0.0.0:3000
-```
-
----
-
-## Contributing
-
-We welcome contributions! Please read our guidelines before submitting a PR.
-
-1. **Fork** the repository and create a feature branch from `main`
-2. **Follow** the feature-based folder structure for new features
-3. **Ensure** your code passes `npm run lint`, `npm run typecheck`, and `npm run test`
-4. **Add** tests for new functionality (90%+ coverage required)
-5. **Check** accessibility using `npm run test` (axe-core violations fail the suite)
-6. **Submit** a pull request using the [PR template](.github/pull_request_template.md)
-
-Pre-commit hooks (Husky + lint-staged) automatically run lint, format, and typecheck before each commit.
-
-### Issue Templates
-
-- 🐛 [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md)
-- ✨ [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)
-- 🔒 [Security Report](.github/ISSUE_TEMPLATE/security_report.md)
-
----
-
-## License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-Built with ❤️ for a greener tomorrow · [EcoGuide AI](https://ecoguide-ai.vercel.app)
-
-**Hack2Skill Hackathon Submission** · 2026
-
-</div>
+- [🐛 Report a Bug](https://github.com/babluprajapatii/ecoguide-ai/issues/new?template=bug_report.md)
+- [✨ Request a Feature](https://github.com/babluprajapatii/ecoguide-ai/issues/new?template=feature_request.md)
+- [🛡️ Security Disclosures](https://github.com/babluprajapatii/ecoguide-ai/blob/main/SECURITY.md)

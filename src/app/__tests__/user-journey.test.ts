@@ -5,7 +5,7 @@ import { GET as getDashboard } from '../api/dashboard/route';
 import { GET as getCoachDashboard } from '../api/coach/dashboard/route';
 import { POST as postCoachRec } from '../api/coach/recommendations/route';
 import { POST as postSimulation } from '../api/simulator/route';
-import { POST as postCommunityPreview } from '../api/community/preview/route';
+import { PUT as putCommunitySettings } from '../api/community/settings/route';
 import { createClient } from '@/lib/supabase/server';
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest } from 'next/server';
@@ -208,11 +208,16 @@ describe('Complete End-to-End User Journey Integration', () => {
 
     // 6. User joins community leaderboard
     mockResult.data = { id: 'profile-uuid', leaderboard_opt_in: true };
-    const communityReq = new NextRequest('http://localhost/api/community/preview', {
-      method: 'POST',
-      body: JSON.stringify({ opt_in: true }),
+    const communityReq = new NextRequest('http://localhost/api/community/settings', {
+      method: 'PUT',
+      body: JSON.stringify({
+        optIn: true,
+        leaderboardOptIn: true,
+        publicProfileVisibility: 'public',
+        bio: '',
+      }),
     });
-    const communityRes = await postCommunityPreview(communityReq);
+    const communityRes = await putCommunitySettings(communityReq);
     expect(communityRes.status).toBe(200);
 
     // 7. User logs out / Sync session out

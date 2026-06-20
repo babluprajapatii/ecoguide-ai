@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Users, Globe, Lock } from 'lucide-react';
 import Image from 'next/image';
+import type { LeaderboardEntry } from '@/features/community/types/community.types';
 
 interface LeaderboardUser {
   readonly displayName: string;
@@ -29,12 +30,39 @@ export function CommunityPreview() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/community/preview');
-      if (!res.ok) {
-        throw new Error('Failed to load community preview');
+      const settingsRes = await fetch('/api/community/settings');
+      if (!settingsRes.ok) {
+        throw new Error('Failed to load community settings');
       }
-      const previewData = (await res.json()) as CommunityPreviewData;
-      setData(previewData);
+      const settings = await settingsRes.json();
+      const optedIn = settings.optIn && settings.leaderboardOptIn;
+
+      if (!optedIn) {
+        setData({
+          optedIn: false,
+          currentUserRank: null,
+          totalOptedInUsers: 0,
+          leaderboardPreview: [],
+        });
+      } else {
+        const leaderboardRes = await fetch('/api/community/leaderboard?view=nearby&limit=5');
+        if (!leaderboardRes.ok) {
+          throw new Error('Failed to load community standings');
+        }
+        const lbData = await leaderboardRes.json();
+        setData({
+          optedIn: true,
+          currentUserRank: lbData.currentUser?.rank || null,
+          totalOptedInUsers: lbData.pagination?.total || 0,
+          leaderboardPreview: (lbData.rankings || []).map((r: LeaderboardEntry) => ({
+            displayName: r.displayName,
+            avatarUrl: r.avatarUrl || null,
+            score: r.totalPoints,
+            rank: r.rank,
+            isCurrentUser: !!r.isCurrentUser,
+          })),
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error fetching preview');
     } finally {
@@ -49,10 +77,22 @@ export function CommunityPreview() {
   const handleToggleOptIn = async (status: boolean) => {
     setIsUpdating(true);
     try {
-      const res = await fetch('/api/community/preview', {
-        method: 'POST',
+      const settingsRes = await fetch('/api/community/settings');
+      let currentBio = '';
+      if (settingsRes.ok) {
+        const settings = await settingsRes.json();
+        currentBio = settings.bio || '';
+      }
+
+      const res = await fetch('/api/community/settings', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ opt_in: status }),
+        body: JSON.stringify({
+          optIn: status,
+          leaderboardOptIn: status,
+          publicProfileVisibility: status ? 'public' : 'hidden',
+          bio: currentBio,
+        }),
       });
 
       if (!res.ok) {

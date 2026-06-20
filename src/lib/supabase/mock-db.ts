@@ -282,8 +282,8 @@ function setCookieVal(name: string, value: string | null) {
     } else {
       store.set(name, value, { path: '/', maxAge: 604800 });
     }
-  } catch {
-    // ignore
+  } catch (err) {
+    console.debug('Failed to set cookie in mock server context', err);
   }
 }
 
@@ -291,7 +291,9 @@ function notifySubscribers(event: string, session: any) {
   authSubscribers.forEach((cb) => {
     try {
       cb(event, session);
-    } catch {}
+    } catch (err) {
+      console.warn('Failed to notify auth subscriber', err);
+    }
   });
 }
 
@@ -309,7 +311,9 @@ export const mockSupabaseClient: any = {
         try {
           const session = JSON.parse(token);
           return Promise.resolve({ data: { user: session.user }, error: null });
-        } catch {}
+        } catch (err) {
+          console.warn('Failed to parse mock user token', err);
+        }
       }
       return Promise.resolve({ data: { user: null }, error: null });
     },
@@ -319,7 +323,9 @@ export const mockSupabaseClient: any = {
         try {
           const session = JSON.parse(token);
           return Promise.resolve({ data: { session }, error: null });
-        } catch {}
+        } catch (err) {
+          console.warn('Failed to parse mock session token', err);
+        }
       }
       return Promise.resolve({ data: { session: null }, error: null });
     },
@@ -330,7 +336,9 @@ export const mockSupabaseClient: any = {
       if (token) {
         try {
           session = JSON.parse(token);
-        } catch {}
+        } catch (err) {
+          console.warn('Failed to parse auth change token', err);
+        }
       }
       callback('INITIAL_SESSION', session);
       return {
@@ -395,7 +403,9 @@ export const mockSupabaseClient: any = {
           setCookieVal('sb-mock-auth-token', JSON.stringify(session));
           notifySubscribers('USER_UPDATED', session);
           return Promise.resolve({ data: { user }, error: null });
-        } catch {}
+        } catch (err) {
+          console.error('Failed to update mock user details', err);
+        }
       }
       return Promise.resolve({ data: { user }, error: null });
     },
@@ -408,9 +418,15 @@ export const mockSupabaseClient: any = {
       upload: (path: string, file: File) => {
         if (typeof window !== 'undefined') {
           try {
+            const previousUrl = mockStorageMap[path];
+            if (previousUrl && previousUrl.startsWith('blob:')) {
+              URL.revokeObjectURL(previousUrl);
+            }
             const objectUrl = URL.createObjectURL(file);
             mockStorageMap[path] = objectUrl;
-          } catch {}
+          } catch (err) {
+            console.error('Failed to upload mock storage file', err);
+          }
         }
         return Promise.resolve({ data: { path }, error: null });
       },
