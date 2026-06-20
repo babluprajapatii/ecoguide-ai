@@ -15,38 +15,77 @@ const playfair = Playfair_Display({
   variable: '--font-serif',
 });
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://ecoguide-ai.vercel.app';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: {
-    default: 'EcoGuide AI - Optimize Your Home, Lower Utility Bills',
+    default: 'EcoGuide AI — AI-Powered Carbon Footprint & Sustainability Platform',
     template: '%s | EcoGuide AI',
   },
   description:
-    'The sustainable living platform that combines AI guidance, carbon footprint tracking, and smart home integration to help you live greener — effortlessly.',
-  keywords: ['sustainability', 'eco-friendly', 'AI', 'environmental impact', 'green living'],
-  authors: [{ name: 'EcoGuide AI Team' }],
+    'Track, reduce, and optimize your carbon footprint with AI-powered coaching, interactive assessments, real-time simulations, and community challenges. Start living greener today.',
+  keywords: [
+    'sustainability',
+    'carbon footprint',
+    'eco-friendly',
+    'AI sustainability coach',
+    'environmental impact',
+    'green living',
+    'climate action',
+    'carbon calculator',
+    'eco goals',
+    'community leaderboard',
+  ],
+  authors: [{ name: 'EcoGuide AI Team', url: APP_URL }],
+  creator: 'EcoGuide AI Team',
+  publisher: 'EcoGuide AI',
+  category: 'environment',
   openGraph: {
     type: 'website',
     locale: 'en_US',
+    url: APP_URL,
     siteName: 'EcoGuide AI',
-    title: 'EcoGuide AI - Optimize Your Home, Lower Utility Bills',
+    title: 'EcoGuide AI — AI-Powered Carbon Footprint & Sustainability Platform',
     description:
-      'AI-powered sustainability coaching and environmental impact tracking.',
+      'Track, reduce, and optimize your carbon footprint with AI-powered coaching, interactive assessments, and community challenges.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'EcoGuide AI — Your AI-powered sustainability companion',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'EcoGuide AI',
+    title: 'EcoGuide AI — AI-Powered Carbon Footprint Platform',
     description:
-      'AI-powered sustainability coaching and environmental impact tracking.',
+      'Track, reduce, and optimize your carbon footprint with AI coaching, simulations, and community challenges.',
+    images: ['/og-image.png'],
+    creator: '@ecoguideai',
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
+  alternates: {
+    canonical: APP_URL,
+  },
+  manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: dark)', color: '#0a0f0d' },
+    { media: '(prefers-color-scheme: light)', color: '#f0fdf4' },
   ],
   width: 'device-width',
   initialScale: 1,
