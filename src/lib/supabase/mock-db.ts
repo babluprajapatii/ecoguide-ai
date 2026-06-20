@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { BADGES } from '../../features/gamification/data/badges';
 
 class InMemoryDB {
   private static store: Record<string, any[]> = {
@@ -44,6 +45,17 @@ class InMemoryDB {
     goals: [],
     user_badges: [],
     points_transactions: [],
+    badges: BADGES.map((b) => ({
+      id: `badge-uuid-${b.slug}`,
+      slug: b.slug,
+      name: b.name,
+      description: b.description,
+      icon: b.icon,
+      xp_reward: b.pointValue,
+      unlock_condition: b.criteria,
+      category: b.category,
+      created_at: new Date().toISOString(),
+    })),
   };
 
   static getTable(table: string) {
@@ -85,10 +97,17 @@ function createMockBuilder(table: string) {
       };
     });
   } else if (table === 'user_badges') {
+    const badges = InMemoryDB.getTable('badges');
     data = data.map((row) => {
+      const matchedBadge = badges.find(
+        (b) => b.id === row.badge_id || b.slug === row.badge_slug || `badge-uuid-${b.slug}` === row.badge_id
+      ) || {
+        id: row.badge_id || 'badge-uuid-first_assessment',
+        slug: 'first_assessment',
+      };
       return {
         ...row,
-        badges: { slug: row.badge_slug || 'first_assessment' },
+        badges: matchedBadge,
       };
     });
   }

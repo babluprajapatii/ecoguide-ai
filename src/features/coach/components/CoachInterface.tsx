@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, type FormEvent, type KeyboardEvent } from 'react';
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitizeHtml } from '@/lib/sanitize';
 import { useCoach } from '@/features/coach/hooks/useCoach';
 import { SuggestedPrompts } from './SuggestedPrompts';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -211,8 +211,7 @@ export function CoachInterface({
           <>
             {messages.map((msg) => {
               const isUser = msg.role === 'user';
-              const rawHtml = isUser ? msg.content : parseMarkdownToHtml(msg.content);
-              const sanitizedHtml = DOMPurify.sanitize(rawHtml);
+              const sanitizedHtml = isUser ? '' : sanitizeHtml(parseMarkdownToHtml(msg.content));
 
               return (
                 <div
@@ -248,10 +247,10 @@ export function CoachInterface({
                     {!isUser ? (
                       <div
                         className="prose prose-emerald dark:prose-invert prose-xs leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+                        dangerouslySetInnerHTML={{ __html: sanitizedHtml as string }}
                       />
                     ) : (
-                      <p className="whitespace-pre-wrap leading-relaxed">{sanitizedHtml}</p>
+                      <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                     )}
 
                     <span className="block mt-1 text-[9px] text-right opacity-60">
