@@ -7,9 +7,10 @@ import * as z from 'zod';
 import Link from 'next/link';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { emailValidator } from '@/lib/validators';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: emailValidator,
 });
 
 type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;

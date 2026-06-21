@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
@@ -12,6 +11,34 @@ interface AppProvidersProps {
   children: ReactNode;
 }
 
+interface SafeExtensionEvent {
+  addListener: (cb: unknown) => void;
+  removeListener: (cb: unknown) => void;
+  hasListener: () => boolean;
+  hasListeners: () => boolean;
+}
+
+interface SafeExtensionRuntime {
+  onMessage?: SafeExtensionEvent;
+  onConnect?: SafeExtensionEvent;
+  sendMessage?: () => Promise<void>;
+  connect?: () => {
+    onMessage: SafeExtensionEvent;
+    onDisconnect: SafeExtensionEvent;
+    postMessage: () => void;
+    disconnect: () => void;
+  };
+}
+
+interface CustomWindow {
+  chrome?: {
+    runtime?: SafeExtensionRuntime;
+  };
+  browser?: {
+    runtime?: SafeExtensionRuntime;
+  };
+}
+
 /**
  * AppProviders mounts all root-level React providers including error boundary,
  * next-themes ThemeProvider, React Query provider, and Supabase AuthProvider.
@@ -22,14 +49,14 @@ export function AppProviders({ children }: AppProvidersProps) {
 
     // Browser extension polyfills / compatibility shims to prevent runtime crashes from third-party scripts/extensions
     try {
-      const safeEvent = {
-        addListener: (cb: any) => {},
-        removeListener: (cb: any) => {},
+      const safeEvent: SafeExtensionEvent = {
+        addListener: (_cb: unknown) => {},
+        removeListener: (_cb: unknown) => {},
         hasListener: () => false,
         hasListeners: () => false,
       };
 
-      const safeRuntime = {
+      const safeRuntime: SafeExtensionRuntime = {
         onMessage: safeEvent,
         onConnect: safeEvent,
         sendMessage: () => Promise.resolve(),
@@ -41,13 +68,15 @@ export function AppProviders({ children }: AppProvidersProps) {
         }),
       };
 
+      const win = window as unknown as CustomWindow;
+
       // Polyfill window.chrome
-      if (typeof (window as any).chrome === 'undefined') {
-        (window as any).chrome = {
+      if (typeof win.chrome === 'undefined') {
+        win.chrome = {
           runtime: safeRuntime,
         };
       } else {
-        const chromeObj = (window as any).chrome;
+        const chromeObj = win.chrome;
         if (!chromeObj.runtime) {
           chromeObj.runtime = safeRuntime;
         } else {
@@ -65,12 +94,12 @@ export function AppProviders({ children }: AppProvidersProps) {
       }
 
       // Polyfill window.browser
-      if (typeof (window as any).browser === 'undefined') {
-        (window as any).browser = {
+      if (typeof win.browser === 'undefined') {
+        win.browser = {
           runtime: safeRuntime,
         };
       } else {
-        const browserObj = (window as any).browser;
+        const browserObj = win.browser;
         if (!browserObj.runtime) {
           browserObj.runtime = safeRuntime;
         } else {

@@ -5,6 +5,7 @@ import { useGoals } from '../hooks/useGoals';
 import type { Goal } from '../hooks/useGoals';
 import { Target, Plus, Trash2, X, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AsyncBoundary } from '@/shared/components/AsyncBoundary';
 
 export function GoalsWidget() {
   const { goals, isLoading, createGoal, updateGoal, deleteGoal, createError } = useGoals();
@@ -119,271 +120,248 @@ export function GoalsWidget() {
     await updateGoal(goal.id, nextVal);
   };
 
-  if (isLoading) {
-    return (
-      <div className="h-[300px] animate-pulse rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25" />
-    );
-  }
-
   return (
-    <div className="space-y-4 rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25">
-      <div className="flex items-center justify-between border-b border-border/60 pb-3">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
-          <Target size={16} className="text-emerald-500" />
-          <span>Active Sustainability Goals</span>
-        </h3>
-        <button
-          ref={triggerRef}
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-600 hover:bg-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400"
-        >
-          <Plus size={14} />
-          <span>Add Goal</span>
-        </button>
-      </div>
+    <AsyncBoundary isLoading={isLoading}>
+      <div className="space-y-4 rounded-2xl border border-border/80 bg-card/40 p-6 shadow-sm backdrop-blur-md dark:bg-card/25">
+        <div className="flex items-center justify-between border-b border-border/60 pb-3">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
+            <Target size={16} className="text-emerald-500" />
+            <span>Active Sustainability Goals</span>
+          </h3>
+          <button
+            ref={triggerRef}
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-600 hover:bg-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400"
+          >
+            <Plus size={14} />
+            <span>Add Goal</span>
+          </button>
+        </div>
 
-      <div className="max-h-[320px] space-y-4 overflow-y-auto pr-1">
-        {goals.length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">
-            No active sustainability goals. Click Add Goal to create one!
-          </div>
-        ) : (
-          goals.map((goal) => {
-            const progressPct =
-              goal.target_value > 0
-                ? Math.min(100, Math.round((goal.current_value / goal.target_value) * 100))
-                : 0;
-
-            return (
-              <div
-                key={goal.id}
-                className="space-y-2 rounded-xl border border-border/40 bg-card/50 p-4 transition-colors hover:border-emerald-500/10"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                      {goal.category}
-                    </span>
-                    <h4 className="mt-0.5 truncate text-xs font-bold text-foreground">
-                      {goal.title}
-                    </h4>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void deleteGoal(goal.id)}
-                    className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-500"
-                    aria-label={`Delete goal: ${goal.title}`}
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-
-                {/* Progress bar container with full screen reader attributes */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
-                    <span>
-                      {goal.current_value} / {goal.target_value} {goal.unit}
-                    </span>
-                    <span
-                      className={
-                        goal.status === 'completed' ? 'text-emerald-500' : 'text-foreground'
-                      }
+        <div className="max-h-[320px] space-y-4 overflow-y-auto pr-1">
+          {goals.length === 0 ? (
+            <div className="py-8 text-center text-xs text-muted-foreground">
+              No active sustainability goals. Click Add Goal to create one!
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {goals.map((goal) => (
+                <div
+                  key={goal.id}
+                  className="rounded-xl border border-border/30 bg-muted/10 p-3 text-xs"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-foreground">{goal.title}</p>
+                      <p className="mt-0.5 text-[10px] capitalize text-muted-foreground">
+                        Category: {goal.category}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void deleteGoal(goal.id)}
+                      className="rounded p-1 text-stone-500 transition-colors hover:text-red-500"
+                      aria-label={`Delete goal: ${goal.title}`}
                     >
-                      {progressPct}%
-                    </span>
+                      <Trash2 size={13} />
+                    </button>
                   </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted/60">
-                    <div
-                      role="progressbar"
-                      aria-valuenow={progressPct}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-label={`Goal progress for: ${goal.title}`}
-                      className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-                      style={{ width: `${progressPct}%` }}
-                    />
+
+                  <div className="mt-3 flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-baseline justify-between text-[10px] font-bold">
+                        <span className="text-emerald-600 dark:text-emerald-400">
+                          {goal.current_value} / {goal.target_value} {goal.unit}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {Math.round((goal.current_value / goal.target_value) * 100)}% Complete
+                        </span>
+                      </div>
+                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted/60">
+                        <div
+                          role="progressbar"
+                          aria-valuenow={Math.round((goal.current_value / goal.target_value) * 100)}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`Progress for: ${goal.title}`}
+                          className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                          style={{ width: `${(goal.current_value / goal.target_value) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => void handleDecrement(goal)}
+                        className="flex h-6 w-6 items-center justify-center rounded-lg border border-border/60 bg-card text-xs font-bold text-foreground transition-colors hover:bg-accent"
+                        aria-label="Decrease current value"
+                      >
+                        -
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleIncrement(goal)}
+                        className="flex h-6 w-6 items-center justify-center rounded-lg border border-border/60 bg-card text-xs font-bold text-foreground transition-colors hover:bg-accent"
+                        aria-label="Increase current value"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-                <div className="flex items-center gap-2 pt-1">
-                  <button
-                    type="button"
-                    disabled={goal.current_value <= 0}
-                    onClick={() => handleDecrement(goal)}
-                    className="flex-1 rounded-md border border-border px-2 py-1 text-[10px] font-bold text-foreground hover:bg-accent disabled:opacity-50"
-                  >
-                    - Reduce
-                  </button>
-                  <button
-                    type="button"
-                    disabled={goal.status === 'completed'}
-                    onClick={() => handleIncrement(goal)}
-                    className="flex-1 rounded-md bg-emerald-500 px-2 py-1 text-[10px] font-bold text-white hover:bg-emerald-600 disabled:opacity-50"
-                  >
-                    + Progress
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      {/* Modal dialog with focus trapping and custom backing overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              aria-hidden="true"
-            />
-
-            {/* Content card */}
-            <motion.div
-              ref={modalRef}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="modal-title"
-            >
+        <AnimatePresence>
+          {isOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-dark-900/60 p-4 backdrop-blur-sm">
               <button
                 type="button"
+                aria-label="Close dialog overlay"
+                className="fixed inset-0 cursor-default"
                 onClick={() => setIsOpen(false)}
-                className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label="Close modal"
+              />
+              <motion.div
+                ref={modalRef}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="relative w-full max-w-sm rounded-2xl border border-border/80 bg-card p-6 shadow-2xl backdrop-blur-md"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-title"
               >
-                <X size={16} />
-              </button>
-
-              <h3 id="modal-title" className="mb-4 text-base font-bold text-foreground">
-                Create Sustainability Goal
-              </h3>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="goal-title"
-                    className="mb-1 block text-xs font-semibold text-foreground"
-                  >
-                    Goal Title
-                  </label>
-                  <input
-                    id="goal-title"
-                    type="text"
-                    required
-                    placeholder="e.g. Reduce driving, meat-free meals"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label
-                      htmlFor="goal-category"
-                      className="mb-1 block text-xs font-semibold text-foreground"
-                    >
-                      Category
-                    </label>
-                    <select
-                      id="goal-category"
-                      value={category}
-                      onChange={(e) =>
-                        setCategory(
-                          e.target.value as
-                            | 'total'
-                            | 'transport'
-                            | 'energy'
-                            | 'diet'
-                            | 'shopping'
-                            | 'travel',
-                        )
-                      }
-                      className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="total">Overall</option>
-                      <option value="transport">Transport</option>
-                      <option value="energy">Energy</option>
-                      <option value="diet">Diet</option>
-                      <option value="shopping">Shopping</option>
-                      <option value="travel">Travel</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="goal-unit"
-                      className="mb-1 block text-xs font-semibold text-foreground"
-                    >
-                      Progress Unit
-                    </label>
-                    <input
-                      id="goal-unit"
-                      type="text"
-                      required
-                      value={unit}
-                      onChange={(e) => setUnit(e.target.value)}
-                      className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="goal-target"
-                    className="mb-1 block text-xs font-semibold text-foreground"
-                  >
-                    Target Goal Value
-                  </label>
-                  <input
-                    id="goal-target"
-                    type="number"
-                    min={1}
-                    required
-                    value={targetValue}
-                    onChange={(e) => setTargetValue(Number(e.target.value))}
-                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                {/* Form feedback error messages */}
-                {(validationError || createError) && (
-                  <div className="flex items-center gap-1.5 text-xs text-red-500">
-                    <AlertCircle size={14} />
-                    <span>{validationError || createError}</span>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-2">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <h4 id="modal-title" className="text-xs font-bold text-foreground">
+                    Create New Sustainability Goal
+                  </h4>
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="flex-1 rounded-lg border border-border px-4 py-2 text-xs font-bold text-foreground hover:bg-accent"
+                    className="text-muted-foreground outline-none hover:text-foreground"
+                    aria-label="Close dialog"
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-600"
-                  >
-                    Create Goal
+                    <X size={15} />
                   </button>
                 </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
+
+                <form onSubmit={(e) => void handleSubmit(e)} className="mt-4 space-y-4">
+                  {validationError && (
+                    <div className="flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/5 p-2.5 text-[10px] text-red-500">
+                      <AlertCircle size={12} className="shrink-0" />
+                      <span>{validationError}</span>
+                    </div>
+                  )}
+
+                  {createError && (
+                    <div className="flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/5 p-2.5 text-[10px] text-red-500">
+                      <AlertCircle size={12} className="shrink-0" />
+                      <span>{createError}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <label htmlFor="goal-title" className="text-[10px] font-bold text-stone-400">
+                      Goal Title
+                    </label>
+                    <input
+                      id="goal-title"
+                      type="text"
+                      placeholder="e.g. Reduce daily shower time"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full rounded-lg border border-border bg-dark-900 px-3 py-1.5 text-xs text-foreground focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="goal-category"
+                        className="text-[10px] font-bold text-stone-400"
+                      >
+                        Category
+                      </label>
+                      <select
+                        id="goal-category"
+                        value={category}
+                        onChange={(e) =>
+                          setCategory(
+                            e.target.value as
+                              | 'total'
+                              | 'transport'
+                              | 'energy'
+                              | 'diet'
+                              | 'shopping'
+                              | 'travel',
+                          )
+                        }
+                        className="w-full rounded-lg border border-border bg-dark-900 px-3 py-1.5 text-xs text-foreground focus:border-emerald-500 focus:outline-none"
+                      >
+                        <option value="total">Overall</option>
+                        <option value="transport">Transport</option>
+                        <option value="energy">Energy</option>
+                        <option value="diet">Diet</option>
+                        <option value="shopping">Shopping</option>
+                        <option value="travel">Travel</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label htmlFor="goal-unit" className="text-[10px] font-bold text-stone-400">
+                        Unit
+                      </label>
+                      <input
+                        id="goal-unit"
+                        type="text"
+                        placeholder="e.g. %, kg, min"
+                        value={unit}
+                        onChange={(e) => setUnit(e.target.value)}
+                        className="w-full rounded-lg border border-border bg-dark-900 px-3 py-1.5 text-xs text-foreground focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label htmlFor="goal-target" className="text-[10px] font-bold text-stone-400">
+                      Target Value ({unit})
+                    </label>
+                    <input
+                      id="goal-target"
+                      type="number"
+                      min={1}
+                      value={targetValue}
+                      onChange={(e) => setTargetValue(Number(e.target.value))}
+                      className="w-full rounded-lg border border-border bg-dark-900 px-3 py-1.5 text-xs text-foreground focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 border-t border-border/60 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsOpen(false)}
+                      className="flex-1 rounded-lg border border-border px-4 py-2 text-xs font-bold text-foreground hover:bg-accent"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-600"
+                    >
+                      Create Goal
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </AsyncBoundary>
   );
 }

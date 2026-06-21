@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Gamification Analytics Service.
  *
@@ -37,8 +36,11 @@ export async function getXpEarnedSummary(userId: string): Promise<XpSummary> {
 
   let todayQuery = supabase.from('points_transactions').select('points').eq('user_id', userId);
 
-  if (typeof (todayQuery as any).gte === 'function') {
-    todayQuery = (todayQuery as any).gte('awarded_at', startOfDay.toISOString());
+  const todayBuilder = todayQuery as unknown as {
+    gte?: (column: string, value: string) => typeof todayQuery;
+  };
+  if (todayBuilder && typeof todayBuilder.gte === 'function') {
+    todayQuery = todayBuilder.gte('awarded_at', startOfDay.toISOString());
   }
 
   const { data: todayTxs, error: todayError } = await todayQuery;
@@ -53,8 +55,11 @@ export async function getXpEarnedSummary(userId: string): Promise<XpSummary> {
 
   let weekQuery = supabase.from('points_transactions').select('points').eq('user_id', userId);
 
-  if (typeof (weekQuery as any).gte === 'function') {
-    weekQuery = (weekQuery as any).gte('awarded_at', startOfWeek.toISOString());
+  const weekBuilder = weekQuery as unknown as {
+    gte?: (column: string, value: string) => typeof weekQuery;
+  };
+  if (weekBuilder && typeof weekBuilder.gte === 'function') {
+    weekQuery = weekBuilder.gte('awarded_at', startOfWeek.toISOString());
   }
 
   const { data: weekTxs, error: weekError } = await weekQuery;
@@ -103,8 +108,11 @@ export async function getProgressionHistory(
     .select('points, awarded_at')
     .eq('user_id', userId);
 
-  if (typeof (txsQuery as any).order === 'function') {
-    txsQuery = (txsQuery as any).order('awarded_at', { ascending: true });
+  const txsBuilder = txsQuery as unknown as {
+    order?: (column: string, options: { ascending: boolean }) => typeof txsQuery;
+  };
+  if (txsBuilder && typeof txsBuilder.order === 'function') {
+    txsQuery = txsBuilder.order('awarded_at', { ascending: true });
   }
 
   const { data: txs, error: txError } = await txsQuery;

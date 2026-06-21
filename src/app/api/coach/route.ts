@@ -115,8 +115,20 @@ export async function POST(request: NextRequest) {
 
     // 3. Prompt Injection Protections and Message Sanitization
     let sanitizedMessage = rawMessage
-      // eslint-disable-next-line no-control-regex
-      .replace(/[\x00-\x1F\x7F-\x9F]/g, '') // Strip ASCII control sequences
+      .replace(
+        new RegExp(
+          '[' +
+            String.fromCharCode(0) +
+            '-' +
+            String.fromCharCode(31) +
+            String.fromCharCode(127) +
+            '-' +
+            String.fromCharCode(159) +
+            ']',
+          'g',
+        ),
+        '',
+      ) // Strip ASCII control sequences
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
 

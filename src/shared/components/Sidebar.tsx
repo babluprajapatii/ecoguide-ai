@@ -69,9 +69,10 @@ export default function Sidebar({
     <>
       {/* Mobile Sidebar Overlay */}
       {isOpenMobile && (
-        /* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */
-        <div
-          className="fixed inset-0 z-40 bg-dark-900/60 backdrop-blur-sm lg:hidden"
+        <button
+          type="button"
+          aria-label="Close mobile navigation overlay"
+          className="fixed inset-0 z-40 border-none bg-dark-900/60 outline-none backdrop-blur-sm lg:hidden"
           onClick={() => setIsOpenMobile(false)}
         />
       )}

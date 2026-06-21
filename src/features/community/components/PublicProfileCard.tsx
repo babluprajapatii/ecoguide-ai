@@ -115,17 +115,22 @@ export default function PublicProfileCard({ userId, onClose }: PublicProfileCard
   }, [onClose]);
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="profile-title"
-      onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
+      <button
+        type="button"
+        onClick={handleOverlayClick}
+        tabIndex={-1}
+        aria-hidden="true"
+        className="fixed inset-0 cursor-default bg-black/50 backdrop-blur-sm transition-opacity"
+      />
       <div
         ref={modalRef}
-        className="relative w-full max-w-md scale-100 transform overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-2xl transition-transform dark:border-zinc-800 dark:bg-zinc-900"
+        className="relative z-10 w-full max-w-md scale-100 transform overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-2xl transition-transform dark:border-zinc-800 dark:bg-zinc-900"
       >
         {/* Close Button */}
         {onClose && (

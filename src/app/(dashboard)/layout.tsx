@@ -10,6 +10,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Menu, Settings, LogOut, ChevronDown, User } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 interface LayoutProps {
   readonly children: React.ReactNode;
@@ -147,7 +148,7 @@ export default function DashboardRouteGroupLayout({ children }: LayoutProps) {
           tabIndex={-1}
           className="flex-1 overflow-y-auto px-4 py-6 outline-none sm:p-6 lg:p-8"
         >
-          {children}
+          <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>
     </div>

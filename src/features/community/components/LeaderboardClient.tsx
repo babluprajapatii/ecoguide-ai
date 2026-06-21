@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import PublicProfileCard from './PublicProfileCard';
 
@@ -195,10 +196,12 @@ export default function LeaderboardClient() {
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-zinc-100 dark:border-zinc-700/50 dark:bg-zinc-800">
                           {entry.avatarUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
+                            <Image
                               src={entry.avatarUrl}
                               alt=""
+                              width={36}
+                              height={36}
+                              unoptimized
                               className="h-full w-full object-cover"
                             />
                           ) : (

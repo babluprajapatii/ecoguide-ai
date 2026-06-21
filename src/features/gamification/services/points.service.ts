@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Points & Streaks Service.
  *
@@ -91,8 +90,9 @@ export async function awardPoints(
       .eq('user_id', userId)
       .eq('action', action);
 
-    if (typeof (query as any).gte === 'function') {
-      query = (query as any).gte('awarded_at', startOfDay.toISOString());
+    const builder = query as unknown as { gte?: (column: string, value: string) => typeof query };
+    if (builder && typeof builder.gte === 'function') {
+      query = builder.gte('awarded_at', startOfDay.toISOString());
     }
 
     const { data: txs, error: txError } = await query;
@@ -257,8 +257,11 @@ export async function fetchEarnedBadges(userId: string): Promise<EarnedBadge[]> 
     )
     .eq('user_id', userId);
 
-  if (typeof (query as any).order === 'function') {
-    query = (query as any).order('earned_at', { ascending: false });
+  const builder = query as unknown as {
+    order?: (column: string, options: { ascending: boolean }) => typeof query;
+  };
+  if (builder && typeof builder.order === 'function') {
+    query = builder.order('earned_at', { ascending: false });
   }
 
   const { data, error } = await query;
@@ -268,12 +271,32 @@ export async function fetchEarnedBadges(userId: string): Promise<EarnedBadge[]> 
     throw new Error(`Failed to fetch badges: ${error.message}`);
   }
 
-  return (data ?? []).map((row: any) => ({
-    badgeId: row.badge_id ?? '',
-    badgeSlug: (row.badges?.slug ?? '') as BadgeSlug,
-    earnedAt: row.earned_at as string,
-    pointValue: (row.badges?.xp_reward ?? 0) as number,
-  }));
+  interface EarnedBadgeQueryResult {
+    badge_id: string;
+    earned_at: string;
+    badges:
+      | {
+          slug: string;
+          xp_reward: number;
+        }
+      | {
+          slug: string;
+          xp_reward: number;
+        }[]
+      | null;
+  }
+
+  return ((data as unknown as EarnedBadgeQueryResult[]) ?? []).map((row) => {
+    const b = row.badges;
+    const badgeSlug = (Array.isArray(b) ? b[0]?.slug : b?.slug) || '';
+    const pointValue = (Array.isArray(b) ? b[0]?.xp_reward : b?.xp_reward) || 0;
+    return {
+      badgeId: row.badge_id ?? '',
+      badgeSlug: badgeSlug as BadgeSlug,
+      earnedAt: row.earned_at as string,
+      pointValue,
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------

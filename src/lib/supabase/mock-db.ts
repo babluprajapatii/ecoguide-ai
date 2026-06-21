@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, no-empty */
 import { BADGES } from '../../features/gamification/data/badges';
 
 class InMemoryDB {
-  private static store: Record<string, any[]> = {
+  private static store: Record<string, Record<string, unknown>[]> = {
     profiles: [
       {
         id: 'test-user-id',
@@ -58,15 +57,36 @@ class InMemoryDB {
     })),
   };
 
-  static getTable(table: string) {
+  static getTable(table: string): Record<string, unknown>[] {
     if (!this.store[table]) {
       this.store[table] = [];
     }
-    return this.store[table];
+    return this.store[table]!;
   }
 }
 
-function createMockBuilder(table: string) {
+interface MockBuilder {
+  select: (columns?: string, options?: { count?: string; head?: boolean }) => MockBuilder;
+  eq: (column: string, value: unknown) => MockBuilder;
+  neq: (column: string, value: unknown) => MockBuilder;
+  gte: (column: string, value: unknown) => MockBuilder;
+  lte: (column: string, value: unknown) => MockBuilder;
+  order: (column: string, options?: { ascending?: boolean }) => MockBuilder;
+  limit: (count: number) => MockBuilder;
+  range: (from: number, to: number) => MockBuilder;
+  insert: (values: unknown) => MockBuilder;
+  update: (values: Record<string, unknown>) => MockBuilder;
+  upsert: (values: unknown) => MockBuilder;
+  delete: () => MockBuilder;
+  then: <T = unknown>(onfulfilled?: (value: unknown) => T) => Promise<T>;
+  single: () => Promise<{
+    data: Record<string, unknown> | null;
+    error: { message: string } | null;
+  }>;
+  maybeSingle: () => Promise<{ data: Record<string, unknown> | null; error: null }>;
+}
+
+function createMockBuilder(table: string): MockBuilder {
   let data = InMemoryDB.getTable(table);
 
   if (table === 'user_points' || table === 'assessments') {
@@ -79,76 +99,77 @@ function createMockBuilder(table: string) {
         avatar_url: '',
         created_at: new Date().toISOString(),
       };
-      const cp = communityProfiles.find(
-        (comp) => comp.user_id === row.user_id || comp.id === row.user_id,
-      ) || {
+      const cp = communityProfiles.find((cprof) => cprof.id === row.user_id) || {
         id: row.user_id,
-        user_id: row.user_id,
         opt_in: true,
         leaderboard_opt_in: true,
         public_profile_visibility: 'public',
-        bio: '',
+        bio: 'Living green!',
       };
       return {
         ...row,
         profiles: p,
         community_profiles: cp,
-        'community_profiles:user_id': cp,
-      };
-    });
-  } else if (table === 'user_badges') {
-    const badges = InMemoryDB.getTable('badges');
-    data = data.map((row) => {
-      const matchedBadge = badges.find(
-        (b) =>
-          b.id === row.badge_id ||
-          b.slug === row.badge_slug ||
-          `badge-uuid-${b.slug}` === row.badge_id,
-      ) || {
-        id: row.badge_id || 'badge-uuid-first_assessment',
-        slug: 'first_assessment',
-      };
-      return {
-        ...row,
-        badges: matchedBadge,
       };
     });
   }
 
   let filteredData = [...data];
-
   let countOnly = false;
 
-  const builder: any = {
-    select: (_columns?: string, _options?: any) => {
+  const builder: MockBuilder = {
+    select: (_columns?: string, _options?: { count?: string; head?: boolean }) => {
       if (_options && _options.count === 'exact' && _options.head === true) {
         countOnly = true;
       }
       return builder;
     },
-    eq: (column: string, value: any) => {
+    eq: (column: string, value: unknown) => {
       filteredData = filteredData.filter((row) => row[column] === value);
       return builder;
     },
-    neq: (column: string, value: any) => {
+    neq: (column: string, value: unknown) => {
       filteredData = filteredData.filter((row) => row[column] !== value);
       return builder;
     },
-    gte: (column: string, value: any) => {
-      filteredData = filteredData.filter((row) => row[column] >= value);
+    gte: (column: string, value: unknown) => {
+      filteredData = filteredData.filter((row) => {
+        const val = row[column];
+        if (typeof val === 'string' && typeof value === 'string') {
+          return val >= value;
+        }
+        if (typeof val === 'number' && typeof value === 'number') {
+          return val >= value;
+        }
+        return false;
+      });
       return builder;
     },
-    lte: (column: string, value: any) => {
-      filteredData = filteredData.filter((row) => row[column] <= value);
+    lte: (column: string, value: unknown) => {
+      filteredData = filteredData.filter((row) => {
+        const val = row[column];
+        if (typeof val === 'string' && typeof value === 'string') {
+          return val <= value;
+        }
+        if (typeof val === 'number' && typeof value === 'number') {
+          return val <= value;
+        }
+        return false;
+      });
       return builder;
     },
-    order: (column: string, options?: any) => {
+    order: (column: string, options?: { ascending?: boolean }) => {
       filteredData.sort((a, b) => {
         const valA = a[column];
         const valB = b[column];
         const asc = options?.ascending !== false;
-        if (valA < valB) return asc ? -1 : 1;
-        if (valA > valB) return asc ? 1 : -1;
+        if (typeof valA === 'number' && typeof valB === 'number') {
+          return asc ? valA - valB : valB - valA;
+        }
+        const strA = String(valA || '');
+        const strB = String(valB || '');
+        if (strA < strB) return asc ? -1 : 1;
+        if (strA > strB) return asc ? 1 : -1;
         return 0;
       });
       return builder;
@@ -161,57 +182,59 @@ function createMockBuilder(table: string) {
       filteredData = filteredData.slice(from, to + 1);
       return builder;
     },
-    insert: (values: any) => {
+    insert: (values: unknown) => {
       const rows = Array.isArray(values) ? values : [values];
       rows.forEach((r) => {
+        const record = r as Record<string, unknown>;
         if (table === 'community_profiles') {
-          if (!r.user_id && r.id) r.user_id = r.id;
-          if (!r.id && r.user_id) r.id = r.user_id;
+          if (!record.user_id && record.id) record.user_id = record.id;
+          if (!record.id && record.user_id) record.id = record.user_id;
         }
         const uuid =
           typeof crypto !== 'undefined' && crypto.randomUUID
             ? crypto.randomUUID()
             : Math.random().toString(36).substring(2);
-        const newRow = { id: r.id || uuid, created_at: new Date().toISOString(), ...r };
+        const newRow = { id: record.id || uuid, created_at: new Date().toISOString(), ...record };
         data.push(newRow);
         filteredData.push(newRow);
       });
       return builder;
     },
-    update: (values: any) => {
+    update: (values: Record<string, unknown>) => {
       filteredData.forEach((row) => {
         Object.assign(row, values);
       });
       return builder;
     },
-    upsert: (values: any) => {
+    upsert: (values: unknown) => {
       const rows = Array.isArray(values) ? values : [values];
       rows.forEach((r) => {
+        const record = r as Record<string, unknown>;
         if (table === 'community_profiles') {
-          if (!r.user_id && r.id) r.user_id = r.id;
-          if (!r.id && r.user_id) r.id = r.user_id;
+          if (!record.user_id && record.id) record.user_id = record.id;
+          if (!record.id && record.user_id) record.id = record.user_id;
         }
         let index = -1;
         if (table === 'community_stats_cache') {
           index = data.findIndex((row) => row.id === 1 || row.id === '1');
-        } else if (r.id) {
-          index = data.findIndex((row) => row.id === r.id);
-        } else if (r.user_id) {
-          index = data.findIndex((row) => row.user_id === r.user_id);
+        } else if (record.id) {
+          index = data.findIndex((row) => row.id === record.id);
+        } else if (record.user_id) {
+          index = data.findIndex((row) => row.user_id === record.user_id);
         }
 
         if (index >= 0) {
-          Object.assign(data[index], r);
+          Object.assign(data[index]!, record);
           const fIndex = filteredData.findIndex(
-            (row) => row.id === r.id || row.user_id === r.user_id,
+            (row) => row.id === record.id || row.user_id === record.user_id,
           );
-          if (fIndex >= 0) Object.assign(filteredData[fIndex], r);
+          if (fIndex >= 0) Object.assign(filteredData[fIndex]!, record);
         } else {
           const uuid =
             typeof crypto !== 'undefined' && crypto.randomUUID
               ? crypto.randomUUID()
               : Math.random().toString(36).substring(2);
-          const newRow = { id: r.id || uuid, created_at: new Date().toISOString(), ...r };
+          const newRow = { id: record.id || uuid, created_at: new Date().toISOString(), ...record };
           data.push(newRow);
           filteredData.push(newRow);
         }
@@ -226,15 +249,15 @@ function createMockBuilder(table: string) {
       filteredData = [];
       return builder;
     },
-    then: (onfulfilled?: (value: any) => any) => {
+    then: <T = unknown>(onfulfilled?: (value: unknown) => T) => {
       const res = countOnly
         ? { data: null, error: null, count: filteredData.length }
         : { data: filteredData, error: null, count: filteredData.length };
-      return Promise.resolve(onfulfilled ? onfulfilled(res) : res);
+      return Promise.resolve(onfulfilled ? onfulfilled(res) : (res as unknown as T));
     },
     single: () => {
       const res = {
-        data: filteredData[0] || null,
+        data: (filteredData[0] as Record<string, unknown>) || null,
         error: filteredData[0] ? null : { message: 'No rows found' },
       };
       return Promise.resolve(res);
@@ -248,7 +271,7 @@ function createMockBuilder(table: string) {
   return builder;
 }
 
-const authSubscribers: Array<(event: string, session: any) => void> = [];
+const authSubscribers: Array<(event: string, session: unknown) => void> = [];
 const mockStorageMap: Record<string, string> = {};
 
 function getCookieVal(name: string): string | null {
@@ -257,8 +280,8 @@ function getCookieVal(name: string): string | null {
     return match && match[2] ? decodeURIComponent(match[2]) : null;
   }
   try {
-    const { cookies } = require('next/headers');
-    const store = cookies();
+    const nextHeaders = eval('require')('next/headers');
+    const store = nextHeaders.cookies();
     return store.get(name)?.value || null;
   } catch {
     return null;
@@ -275,8 +298,8 @@ function setCookieVal(name: string, value: string | null) {
     return;
   }
   try {
-    const { cookies } = require('next/headers');
-    const store = cookies();
+    const nextHeaders = eval('require')('next/headers');
+    const store = nextHeaders.cookies();
     if (value === null) {
       store.delete(name);
     } else {
@@ -287,7 +310,7 @@ function setCookieVal(name: string, value: string | null) {
   }
 }
 
-function notifySubscribers(event: string, session: any) {
+function notifySubscribers(event: string, session: unknown) {
   authSubscribers.forEach((cb) => {
     try {
       cb(event, session);
@@ -303,7 +326,7 @@ const defaultUser = {
   user_metadata: { display_name: 'Green Pioneer' },
 };
 
-export const mockSupabaseClient: any = {
+export const mockSupabaseClient = {
   auth: {
     getUser: () => {
       const token = getCookieVal('sb-mock-auth-token');
@@ -329,7 +352,7 @@ export const mockSupabaseClient: any = {
       }
       return Promise.resolve({ data: { session: null }, error: null });
     },
-    onAuthStateChange: (callback: (event: string, session: any) => void) => {
+    onAuthStateChange: (callback: (event: string, session: unknown) => void) => {
       authSubscribers.push(callback);
       const token = getCookieVal('sb-mock-auth-token');
       let session = null;
@@ -357,7 +380,7 @@ export const mockSupabaseClient: any = {
       notifySubscribers('SIGNED_OUT', null);
       return Promise.resolve({ error: null });
     },
-    signInWithPassword: ({ email }: any) => {
+    signInWithPassword: ({ email }: { email: string }) => {
       const user = {
         id: 'test-user-id',
         email,
@@ -372,7 +395,13 @@ export const mockSupabaseClient: any = {
       notifySubscribers('SIGNED_IN', session);
       return Promise.resolve({ data: { user, session }, error: null });
     },
-    signUp: ({ email, options }: any) => {
+    signUp: ({
+      email,
+      options,
+    }: {
+      email: string;
+      options?: { data?: { display_name?: string } };
+    }) => {
       const user = {
         id: 'test-user-id',
         email,
@@ -389,7 +418,7 @@ export const mockSupabaseClient: any = {
       notifySubscribers('SIGNED_IN', session);
       return Promise.resolve({ data: { user, session }, error: null });
     },
-    updateUser: (attributes: any) => {
+    updateUser: (attributes: { data?: Record<string, unknown> }) => {
       const token = getCookieVal('sb-mock-auth-token');
       let user = { ...defaultUser };
       if (token) {

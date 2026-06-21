@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Service for managing user community profile settings, privacy visibilities,
  * and fetching sanitized public profile pages.
@@ -74,7 +73,10 @@ export async function getPublicProfile(
 
     // Map badge slugs
     const badgeSlugs = (badgesRes.data || [])
-      .map((row: any) => row.badges?.slug)
+      .map((row: { badges: { slug: string } | { slug: string }[] | null }) => {
+        const b = row.badges;
+        return Array.isArray(b) ? b[0]?.slug : b?.slug;
+      })
       .filter(Boolean) as string[];
 
     const totalPoints = points?.total_points || 0;
@@ -176,7 +178,7 @@ export async function getVisibilitySettings(userId: string): Promise<CommunitySe
     return {
       optIn: data?.opt_in ?? false,
       leaderboardOptIn: data?.leaderboard_opt_in ?? false,
-      publicProfileVisibility: (data?.public_profile_visibility ?? 'public') as any,
+      publicProfileVisibility: (data?.public_profile_visibility ?? 'public') as 'public' | 'hidden',
       bio: data?.bio ?? '',
     };
   } catch (err) {

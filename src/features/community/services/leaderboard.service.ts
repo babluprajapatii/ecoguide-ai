@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Service for managing the community leaderboard and ranking cache.
  *
@@ -11,10 +10,34 @@
 import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 import { getLevel } from '@/features/gamification/services/level.service';
-import type { LeaderboardEntry, CurrentUserRank } from '../types/community.types';
+import type {
+  LeaderboardEntry,
+  CurrentUserRank,
+  LeaderboardCacheRow,
+} from '../types/community.types';
 
 // Cache configuration: 5 minutes TTL
 const CACHE_TTL_SECONDS = 300;
+
+interface ProfilesQueryResult {
+  display_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+}
+
+interface CommunityProfilesQueryResult {
+  leaderboard_opt_in: boolean;
+  public_profile_visibility: string;
+}
+
+interface UserPointsQueryResult {
+  user_id: string;
+  total_points: number;
+  current_level: number;
+  longest_streak: number;
+  profiles: ProfilesQueryResult | ProfilesQueryResult[] | null;
+  community_profiles: CommunityProfilesQueryResult | CommunityProfilesQueryResult[] | null;
+}
 
 /**
  * Checks if the leaderboard cache is stale.
@@ -103,17 +126,16 @@ export async function refreshLeaderboardCache(): Promise<void> {
           leaderboard_opt_in,
           public_profile_visibility
         )
-      `)) as any;
+      `)) as unknown as { data: UserPointsQueryResult[] | null; error: { message: string } | null };
 
     if (usersError) {
       throw usersError;
     }
 
     // Filter to users who have opted into the leaderboard and are public
-    const filteredUsers = (users || []).filter((u: any) => {
-      const cp = Array.isArray(u.community_profiles)
-        ? u.community_profiles[0]
-        : u.community_profiles;
+    const filteredUsers = (users || []).filter((u) => {
+      const cpRaw = u.community_profiles;
+      const cp = Array.isArray(cpRaw) ? cpRaw[0] : cpRaw;
       return cp?.leaderboard_opt_in === true && cp?.public_profile_visibility === 'public';
     });
 
@@ -134,7 +156,7 @@ export async function refreshLeaderboardCache(): Promise<void> {
     // 2) current_level DESC
     // 3) longest_streak DESC
     // 4) profiles.created_at ASC
-    filteredUsers.sort((a: any, b: any) => {
+    filteredUsers.sort((a, b) => {
       if (b.total_points !== a.total_points) {
         return b.total_points - a.total_points;
       }
@@ -144,17 +166,23 @@ export async function refreshLeaderboardCache(): Promise<void> {
       if (b.longest_streak !== a.longest_streak) {
         return b.longest_streak - a.longest_streak;
       }
-      const dateA = new Date(a.profiles?.created_at || 0).getTime();
-      const dateB = new Date(b.profiles?.created_at || 0).getTime();
+      const profARaw = a.profiles;
+      const profA = Array.isArray(profARaw) ? profARaw[0] : profARaw;
+      const profBRaw = b.profiles;
+      const profB = Array.isArray(profBRaw) ? profBRaw[0] : profBRaw;
+      const dateA = new Date(profA?.created_at || 0).getTime();
+      const dateB = new Date(profB?.created_at || 0).getTime();
       return dateA - dateB;
     });
 
     // 5. Build new cache rows
     const cachedAtStr = new Date().toISOString();
-    const newCacheRows = filteredUsers.map((u: any, index: number) => {
+    const newCacheRows = filteredUsers.map((u, index) => {
       const newRank = index + 1;
       const prevRank = previousRanks.get(u.user_id) || null;
       const rankChange = prevRank !== null ? prevRank - newRank : 0;
+      const profRaw = u.profiles;
+      const prof = Array.isArray(profRaw) ? profRaw[0] : profRaw;
 
       return {
         user_id: u.user_id,
@@ -164,8 +192,8 @@ export async function refreshLeaderboardCache(): Promise<void> {
         total_points: u.total_points,
         current_level: u.current_level,
         longest_streak: u.longest_streak,
-        display_name: u.profiles?.display_name || 'Anonymous User',
-        avatar_url: u.profiles?.avatar_url || null,
+        display_name: prof?.display_name || 'Anonymous User',
+        avatar_url: prof?.avatar_url || null,
         badge_count: badgeCounts.get(u.user_id) || 0,
         cached_at: cachedAtStr,
       };
@@ -259,7 +287,7 @@ export async function getGlobalLeaderboard(
     return [];
   }
 
-  return (data || []).map((row: any) => ({
+  return (data || []).map((row: LeaderboardCacheRow) => ({
     rank: row.rank,
     previousRank: row.previous_rank,
     rankChange: row.rank_change,
@@ -325,7 +353,7 @@ export async function getNearbyRankings(
     return [];
   }
 
-  return (data || []).map((row: any) => ({
+  return (data || []).map((row: LeaderboardCacheRow) => ({
     rank: row.rank,
     previousRank: row.previous_rank,
     rankChange: row.rank_change,
@@ -370,7 +398,7 @@ export async function getTopPerformers(limit: number): Promise<LeaderboardEntry[
     return [];
   }
 
-  return (data || []).map((row: any) => ({
+  return (data || []).map((row: LeaderboardCacheRow) => ({
     rank: row.rank,
     previousRank: row.previous_rank,
     rankChange: row.rank_change,

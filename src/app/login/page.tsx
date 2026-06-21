@@ -9,10 +9,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { emailValidator, loginPasswordValidator } from '@/lib/validators';
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: emailValidator,
+  password: loginPasswordValidator,
 });
 
 type LoginSchema = z.infer<typeof loginSchema>;

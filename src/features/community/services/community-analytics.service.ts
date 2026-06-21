@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Service for computing and caching community-wide statistics and highlights.
  *
@@ -11,6 +10,53 @@
 import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 import type { CommunityStats } from '../types/community.types';
+
+interface AssessmentWithProfile {
+  user_id: string;
+  total_score: number;
+  created_at: string;
+  profiles:
+    | {
+        display_name: string | null;
+      }
+    | {
+        display_name: string | null;
+      }[]
+    | null;
+  community_profiles:
+    | {
+        opt_in: boolean;
+        public_profile_visibility: string;
+      }
+    | {
+        opt_in: boolean;
+        public_profile_visibility: string;
+      }[]
+    | null;
+}
+
+interface StreakDataWithProfile {
+  user_id: string;
+  longest_streak: number;
+  profiles:
+    | {
+        display_name: string | null;
+      }
+    | {
+        display_name: string | null;
+      }[]
+    | null;
+  community_profiles:
+    | {
+        opt_in: boolean;
+        public_profile_visibility: string;
+      }
+    | {
+        opt_in: boolean;
+        public_profile_visibility: string;
+      }[]
+    | null;
+}
 
 // Cache TTL: 10 minutes
 const STATS_TTL_SECONDS = 600;
@@ -112,12 +158,15 @@ export async function refreshCommunityStats(): Promise<void> {
         )
       `,
       )
-      .eq('is_complete', true)) as any;
+      .eq('is_complete', true)) as unknown as {
+      data: AssessmentWithProfile[] | null;
+      error: { message: string } | null;
+    };
     if (allAssessErr) throw allAssessErr;
 
     // Deduplicate assessments to latest per user in memory
-    const userLatestAssessments = new Map<string, any>();
-    const userFirstAssessments = new Map<string, any>();
+    const userLatestAssessments = new Map<string, AssessmentWithProfile>();
+    const userFirstAssessments = new Map<string, AssessmentWithProfile>();
 
     // Sort by created_at ascending to find first vs last
     const sortedAssessments = [...(assessments || [])].sort(
@@ -142,9 +191,8 @@ export async function refreshCommunityStats(): Promise<void> {
 
     // Filter public & opted-in users for highlight widgets
     const publicLatestAssessments = latestAssessmentsList.filter((r) => {
-      const cp = Array.isArray(r.community_profiles)
-        ? r.community_profiles[0]
-        : r.community_profiles;
+      const cpRaw = r.community_profiles;
+      const cp = Array.isArray(cpRaw) ? cpRaw[0] : cpRaw;
       return cp?.opt_in === true && cp?.public_profile_visibility === 'public';
     });
 
@@ -154,14 +202,16 @@ export async function refreshCommunityStats(): Promise<void> {
     let topCarbonSaverScore = 0;
 
     if (publicLatestAssessments.length > 0) {
-      let topSaver = publicLatestAssessments[0];
+      let topSaver = publicLatestAssessments[0]!;
       for (const record of publicLatestAssessments) {
         if (record.total_score < topSaver.total_score) {
           topSaver = record;
         }
       }
+      const profRaw = topSaver.profiles;
+      const prof = Array.isArray(profRaw) ? profRaw[0] : profRaw;
       topCarbonSaverUserId = topSaver.user_id;
-      topCarbonSaverName = topSaver.profiles?.display_name || 'Anonymous';
+      topCarbonSaverName = prof?.display_name || 'Anonymous';
       topCarbonSaverScore = topSaver.total_score;
     }
 
@@ -173,9 +223,11 @@ export async function refreshCommunityStats(): Promise<void> {
     const improvementCandidates = publicLatestAssessments.map((latest) => {
       const first = userFirstAssessments.get(latest.user_id);
       const reduction = first ? Number(first.total_score) - Number(latest.total_score) : 0;
+      const profRaw = latest.profiles;
+      const prof = Array.isArray(profRaw) ? profRaw[0] : profRaw;
       return {
         userId: latest.user_id,
-        name: latest.profiles?.display_name || 'Anonymous',
+        name: prof?.display_name || 'Anonymous',
         reduction,
       };
     });
@@ -209,25 +261,26 @@ export async function refreshCommunityStats(): Promise<void> {
           opt_in,
           public_profile_visibility
         )
-      `)) as any;
+      `)) as unknown as { data: StreakDataWithProfile[] | null; error: { message: string } | null };
 
     if (!streakErr && streakData) {
-      const publicStreakUsers = (streakData || []).filter((r: any) => {
-        const cp = Array.isArray(r.community_profiles)
-          ? r.community_profiles[0]
-          : r.community_profiles;
+      const publicStreakUsers = (streakData || []).filter((r) => {
+        const cpRaw = r.community_profiles;
+        const cp = Array.isArray(cpRaw) ? cpRaw[0] : cpRaw;
         return cp?.opt_in === true && cp?.public_profile_visibility === 'public';
       });
 
       if (publicStreakUsers.length > 0) {
-        let topStreak = publicStreakUsers[0];
+        let topStreak = publicStreakUsers[0]!;
         for (const row of publicStreakUsers) {
           if (row.longest_streak > topStreak.longest_streak) {
             topStreak = row;
           }
         }
+        const profRaw = topStreak.profiles;
+        const prof = Array.isArray(profRaw) ? profRaw[0] : profRaw;
         longestStreakUserId = topStreak.user_id;
-        longestStreakName = topStreak.profiles?.display_name || 'Anonymous';
+        longestStreakName = prof?.display_name || 'Anonymous';
         longestStreakDays = topStreak.longest_streak;
       }
     }

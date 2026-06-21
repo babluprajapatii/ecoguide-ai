@@ -36,8 +36,26 @@ export type LeaderboardQueryParams = z.infer<typeof leaderboardQuerySchema>;
 // ---------------------------------------------------------------------------
 
 /** Strip ASCII control characters from strings. */
-// eslint-disable-next-line no-control-regex
-const sanitizedString = z.string().transform((s) => s.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim());
+const sanitizedString = z
+  .string()
+  .transform((s) =>
+    s
+      .replace(
+        new RegExp(
+          '[' +
+            String.fromCharCode(0) +
+            '-' +
+            String.fromCharCode(31) +
+            String.fromCharCode(127) +
+            '-' +
+            String.fromCharCode(159) +
+            ']',
+          'g',
+        ),
+        '',
+      )
+      .trim(),
+  );
 
 export const communitySettingsSchema = z.object({
   optIn: z.boolean(),

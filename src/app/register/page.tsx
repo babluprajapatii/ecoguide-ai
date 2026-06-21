@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { emailValidator, passwordValidator } from '@/lib/validators';
 
 const registerSchema = z
   .object({
@@ -16,14 +17,8 @@ const registerSchema = z
       .min(1, 'Full name is required')
       .min(2, 'Name must be at least 2 characters')
       .max(50, 'Name must be less than 50 characters'),
-    email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
-    password: z
-      .string()
-      .min(1, 'Password is required')
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[a-z]/, 'Password must contain at least 1 lowercase letter')
-      .regex(/[A-Z]/, 'Password must contain at least 1 uppercase letter')
-      .regex(/\d/, 'Password must contain at least 1 number'),
+    email: emailValidator,
+    password: passwordValidator,
     confirmPassword: z.string().min(1, 'Confirm password is required'),
   })
   .refine((data) => data.password === data.confirmPassword, {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Badge Unlock Engine.
  *
@@ -64,8 +63,11 @@ export async function evaluateBadges(
     .select('total_score, is_complete, created_at')
     .eq('user_id', userId);
 
-  if (typeof (assessmentsQuery as any).order === 'function') {
-    assessmentsQuery = (assessmentsQuery as any).order('created_at', { ascending: true });
+  const assessmentsBuilder = assessmentsQuery as unknown as {
+    order?: (column: string, config: { ascending: boolean }) => typeof assessmentsQuery;
+  };
+  if (assessmentsBuilder && typeof assessmentsBuilder.order === 'function') {
+    assessmentsQuery = assessmentsBuilder.order('created_at', { ascending: true });
   }
 
   const { data: assessments, error: assessError } = await assessmentsQuery;
@@ -150,12 +152,17 @@ export async function evaluateBadges(
   // 3f. Leaderboard top 10
   let rankQuery = supabase.from('user_points').select('user_id');
 
-  if (typeof (rankQuery as any).limit === 'function') {
-    rankQuery = (rankQuery as any).limit(10);
+  const rankBuilder = rankQuery as unknown as {
+    limit?: (count: number) => typeof rankQuery;
+    order?: (column: string, config: { ascending: boolean }) => typeof rankQuery;
+  };
+
+  if (rankBuilder && typeof rankBuilder.limit === 'function') {
+    rankQuery = rankBuilder.limit(10);
   }
 
-  if (typeof (rankQuery as any).order === 'function') {
-    rankQuery = (rankQuery as any).order('total_points', { ascending: false });
+  if (rankBuilder && typeof rankBuilder.order === 'function') {
+    rankQuery = rankBuilder.order('total_points', { ascending: false });
   }
 
   const { data: topUsers, error: rankError } = await rankQuery;
